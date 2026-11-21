@@ -46,7 +46,10 @@ export interface CharacterTheme {
   /** 시안 좌표 (헤더 아래 기준 px, 402px 폭 기준) */
   layout: {
     characterTop: number;
-    /** 가운데에서 얼마나 옮기는지 */
+    /**
+     * 가운데(201)에서 얼마나 옮기는지. 캐릭터 png 안 여백이 오른쪽이 더 넓어서
+     * 보이는 몸 가운데가 게이지 · 유리 원 가운데(x 195)에 오도록 맞춘 값
+     */
     characterLeftOffset: number;
     shadowLeft: number;
     shadowTop: number;
@@ -74,8 +77,8 @@ const PURPLE: CharacterTheme = {
   glass: true,
   layout: {
     characterTop: 36,
-    characterLeftOffset: -6.5,
-    shadowLeft: 92,
+    characterLeftOffset: -2.5,
+    shadowLeft: 94.5,
     shadowTop: 353,
     wave1Top: 237,
     wave2Top: 287,
@@ -103,8 +106,8 @@ const ORANGE: CharacterTheme = {
   glass: false,
   layout: {
     characterTop: 42,
-    characterLeftOffset: -4.5,
-    shadowLeft: 91,
+    characterLeftOffset: 0,
+    shadowLeft: 94.5,
     shadowTop: 343,
     wave1Top: 244,
     wave2Top: 292,
