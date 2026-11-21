@@ -3,6 +3,7 @@ import { ONBOARDING_PATHS } from '@/routes/onboardingPaths';
 import { useOnboardingStore } from '@/stores/onboarding';
 import { MAX_MEMBERS } from '@/types/group';
 import BottomButton from './components/BottomButton';
+import InfoText from './components/InfoText';
 import OnboardingLayout from './components/OnboardingLayout';
 
 /** 구성원 이름 목록(첫 번째 = 나)에 따른 제목 · 설명 (명세 규칙) */
@@ -50,9 +51,7 @@ function S03WaitingPage() {
           </li>
         ))}
       </ul>
-      <p className="mt-8 flex gap-2 text-sm text-neutral-500">
-        <span aria-hidden>ⓘ</span>더 기다리거나, 지금 바로 시작할 수 있어요.
-      </p>
+      <InfoText className="mt-8">더 기다리거나, 지금 바로 시작할 수 있어요.</InfoText>
     </OnboardingLayout>
   );
 }

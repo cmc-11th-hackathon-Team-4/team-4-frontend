@@ -3,7 +3,9 @@ import { useNavigate, useSearchParams } from 'react-router';
 import { ONBOARDING_PATHS } from '@/routes/onboardingPaths';
 import { CHARACTER_COUNT, type CharacterId } from '@/types/member';
 import BottomButton from './components/BottomButton';
+import InfoText from './components/InfoText';
 import OnboardingLayout from './components/OnboardingLayout';
+import UnderlineInput from './components/UnderlineInput';
 import { INPUT_RULES, isValidText } from './validation';
 
 /** 캐릭터 값 형식은 서버 확정 전까지 '1'~'4' */
@@ -52,17 +54,15 @@ function P01ProfilePage() {
         ))}
       </div>
 
-      <label className="mt-6 flex flex-col gap-2">
-        <span className="text-sm font-semibold">이름</span>
-        <input
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          maxLength={INPUT_RULES.profileName.max}
-          placeholder="수아"
-          className="h-12 rounded-xl border border-neutral-300 px-4 text-base"
-        />
-        <span className="text-xs text-neutral-500">1~10자 · 메인에서 캐릭터와 함께 보여요.</span>
-      </label>
+      <UnderlineInput
+        className="mt-8"
+        label="이름"
+        value={name}
+        onChange={setName}
+        maxLength={INPUT_RULES.profileName.max}
+        placeholder="수아"
+      />
+      <InfoText className="mt-2">1~10자 · 메인에서 캐릭터와 함께 보여요.</InfoText>
     </OnboardingLayout>
   );
 }

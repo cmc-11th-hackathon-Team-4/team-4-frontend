@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { useNavigate } from 'react-router';
+import backIcon from '@/assets/icons/back.svg';
 import { useKeyboardInset } from '@/hooks/useKeyboardInset';
 
 interface OnboardingLayoutProps {
@@ -16,7 +17,7 @@ interface OnboardingLayoutProps {
   footer?: ReactNode;
 }
 
-// 플로우 ① 공통 화면 틀. 스타일은 디자인 확정 전 임시 무채색
+// 플로우 ① 공통 화면 틀 (피그마 Components · Header, 비주얼 시안 SubTitle 기준)
 function OnboardingLayout({
   title,
   showBack = true,
@@ -31,24 +32,34 @@ function OnboardingLayout({
   return (
     <div className="flex flex-1 flex-col">
       {(title || showBack) && (
-        <header className="relative flex h-14 items-center justify-center px-4">
-          {showBack && (
+        <header className="grid h-14 grid-cols-[24px_1fr_24px] items-center px-4">
+          {showBack ? (
             <button
               type="button"
               aria-label="뒤로가기"
               onClick={() => navigate(-1)}
-              className="absolute left-2 flex size-10 items-center justify-center text-xl"
+              className="-m-2 flex size-10 items-center justify-center"
             >
-              ‹
+              <img src={backIcon} alt="" width={24} height={24} />
             </button>
+          ) : (
+            <span />
           )}
-          {title && <h1 className="text-base font-semibold">{title}</h1>}
+          {title && (
+            <h1 className="text-center text-lg leading-[normal] font-semibold text-gray-800">
+              {title}
+            </h1>
+          )}
         </header>
       )}
 
-      <main className="flex flex-1 flex-col px-4 pt-4">
-        {heading && <h2 className="text-2xl font-bold">{heading}</h2>}
-        {description && <p className="mt-2 text-sm text-neutral-500">{description}</p>}
+      <main className="flex flex-1 flex-col px-4 pt-10 break-keep">
+        {heading && (
+          <h2 className="text-[28px] leading-[normal] font-semibold text-gray-800">{heading}</h2>
+        )}
+        {description && (
+          <p className="mt-4 text-base leading-[normal] font-medium text-gray-500">{description}</p>
+        )}
         {children}
       </main>
 
