@@ -9,6 +9,7 @@ import { MAIN_TEXT } from '@/constants/main';
 import { useDevSession } from '@/hooks/useDevSession';
 import { useGroupBoard } from '@/hooks/useGroupBoard';
 import { useMainMutations } from '@/hooks/useMainMutations';
+import { useEndCycle } from '@/hooks/useWeekly';
 import { MAIN_PATHS } from '@/routes/mainPaths';
 import { WEEKLY_PATHS } from '@/routes/weeklyPaths';
 import { useToastStore } from '@/stores/toast';
@@ -18,6 +19,9 @@ import ExtendCycleSheet from '@/components/main/ExtendCycleSheet';
 import { useCycle } from '@/hooks/useCycle';
 import { formatMonthDay } from '@/utils/date';
 
+/** 시연 메뉴 노출 여부 (기본 보임) */
+const SHOW_DEMO_MENU = import.meta.env.VITE_DEMO_MENU !== 'false';
+
 /** V5-12 우리 집 설정 (+ V5-13 집안일 추가 시트) */
 function SettingsPage() {
   useDevSession();
@@ -25,6 +29,7 @@ function SettingsPage() {
   const showToast = useToastStore((s) => s.show);
   const { group, me, isLoading, isError, refetch } = useGroupBoard();
   const { add, end, extend } = useMainMutations();
+  const weeklyEnd = useEndCycle();
   const { data: cycle } = useCycle();
   const [adding, setAdding] = useState(false);
   const [extending, setExtending] = useState(false);
@@ -108,21 +113,29 @@ function SettingsPage() {
           />
         </SettingsSection>
 
-        {/* 시연용: 배포 때 뺄 가능성 높음 */}
-        <section>
-          <h2 className="mb-2 px-1 text-xs text-neutral-500">{MAIN_TEXT.sectionDemo}</h2>
-          <button
-            type="button"
-            disabled={!me.isHost || end.isPending}
-            className="flex h-14 w-full items-center rounded-2xl border border-dashed border-neutral-300 px-4 disabled:opacity-40"
-            onClick={() =>
-              end.mutate(undefined, { onSuccess: () => navigate(WEEKLY_PATHS.summary) })
-            }
-          >
-            <span className="flex-1 text-left">{MAIN_TEXT.endCycle}</span>
-            <span className="text-xs text-neutral-400">{MAIN_TEXT.endCycleTag}</span>
-          </button>
-        </section>
+        {/* 시연용: 배포 때 .env에 VITE_DEMO_MENU=false 로 숨김 (④와 같은 규칙) */}
+        {SHOW_DEMO_MENU && (
+          <section>
+            <h2 className="mb-2 px-1 text-xs text-neutral-500">{MAIN_TEXT.sectionDemo}</h2>
+            <button
+              type="button"
+              disabled={!me.isHost || end.isPending || weeklyEnd.isPending}
+              className="flex h-14 w-full items-center rounded-2xl border border-dashed border-neutral-300 px-4 disabled:opacity-40"
+              onClick={async () => {
+                try {
+                  // ② 상대 폰 배너 알림 + ③ 결산 상태를 '종료'로
+                  await Promise.all([end.mutateAsync(), weeklyEnd.mutateAsync()]);
+                  navigate(WEEKLY_PATHS.summary);
+                } catch {
+                  // 실패 토스트는 각 뮤테이션에서 처리
+                }
+              }}
+            >
+              <span className="flex-1 text-left">{MAIN_TEXT.endCycle}</span>
+              <span className="text-xs text-neutral-400">{MAIN_TEXT.endCycleTag}</span>
+            </button>
+          </section>
+        )}
       </main>
 
       <TabBar />
