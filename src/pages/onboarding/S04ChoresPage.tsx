@@ -1,29 +1,58 @@
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
+import { getChorePresets, saveChores } from '@/apis/onboarding';
+import StateView from '@/components/common/StateView';
 import { ONBOARDING_PATHS } from '@/routes/onboardingPaths';
 import checkboxDefaultIcon from '@/assets/icons/checkbox-default.svg';
 import checkboxSelectIcon from '@/assets/icons/checkbox-select.svg';
 import { useOnboardingStore } from '@/stores/onboarding';
+import { useToastStore } from '@/stores/toast';
+import { errorMessage, LOAD_ERROR, RETRY_LABEL } from './apiMessages';
 import BottomButton from './components/BottomButton';
+import ChoreIcon from './components/ChoreIcon';
 import OnboardingLayout from './components/OnboardingLayout';
-import { DEFAULT_CHORES } from './constants';
+import { ONBOARDING_STEP_TOTAL } from './constants';
+import { onboardingKeys } from './queryKeys';
+import { useMe } from './useMyHouse';
 import { INPUT_RULES, isValidText } from './validation';
 
 /**
  * S-04 집안일 고르기 (권한: 방장 확정)
  * - 기본 목록 체크 + 직접 추가, 1개 이상 골라야 [N개 선택 완료]가 눌리고 S-06으로 이동
- * - TODO(API): 고른 집안일 목록 저장
+ * - 기본 목록: GET /api/v1/chore-presets (못 불러오면 "다시 시도")
+ * - [N개 선택 완료]: PUT /api/v1/houses/{id}/chores 로 저장 (보낸 목록이 최종 목록) 후 S-06
  * - 참여자와 함께 고르기는 부가 기능이라 보류
  */
 function S04ChoresPage() {
+  const presets = useQuery({ queryKey: onboardingKeys.presets, queryFn: getChorePresets });
+  const me = useMe();
+  const houseId = me.data?.house ? String(me.data.house.id) : null;
+
+  if (presets.isLoading || me.isLoading) return <StateView type="loading" />;
+  if (presets.isError || !presets.data || !houseId) {
+    return (
+      <StateView
+        type="error"
+        message={LOAD_ERROR}
+        retryLabel={RETRY_LABEL}
+        onRetry={() => (presets.isError ? presets.refetch() : me.refetch())}
+      />
+    );
+  }
+  return <ChoreForm presets={presets.data} houseId={houseId} />;
+}
+
+function ChoreForm({ presets, houseId }: { presets: string[]; houseId: string }) {
   const navigate = useNavigate();
+  const showToast = useToastStore((s) => s.show);
   const savedChores = useOnboardingStore((s) => s.selectedChores);
   const setSelectedChores = useOnboardingStore((s) => s.setSelectedChores);
 
   // 직접 추가한 항목도 목록에 남도록 기본 목록 + 이전 선택을 합침
   const [options, setOptions] = useState(() => [
-    ...DEFAULT_CHORES,
-    ...savedChores.filter((c) => !DEFAULT_CHORES.includes(c)),
+    ...presets,
+    ...savedChores.filter((c) => !presets.includes(c)),
   ]);
   const [selected, setSelected] = useState<string[]>(savedChores);
   const [isAdding, setIsAdding] = useState(false);
@@ -45,33 +74,47 @@ function S04ChoresPage() {
     setIsAdding(false);
   };
 
-  const handleNext = () => {
-    setSelectedChores(selected);
-    navigate(ONBOARDING_PATHS.cycle);
-  };
+  const save = useMutation({
+    mutationFn: () => saveChores(houseId, selected),
+    onSuccess: () => {
+      setSelectedChores(selected);
+      navigate(ONBOARDING_PATHS.cycle);
+    },
+    onError: (error) => showToast(errorMessage(error)),
+  });
+
+  const handleNext = () => save.mutate();
 
   return (
     <OnboardingLayout
       title="집안일 고르기"
-      heading="우리 집 집안일을 골라주세요"
+      step={{ current: 5, total: ONBOARDING_STEP_TOTAL }}
+      heading={
+        <>
+          우리 집 집안일을
+          <br />
+          골라주세요
+        </>
+      }
       description="나중에 홈에서 더 추가할 수 있어요."
       footer={
-        <BottomButton disabled={selected.length === 0} onClick={handleNext}>
+        <BottomButton disabled={selected.length === 0 || save.isPending} onClick={handleNext}>
           {selected.length}개 선택 완료
         </BottomButton>
       }
     >
-      <ul className="mt-6 flex flex-col">
+      {/* 피그마 2-5 S-04: 체크박스 20 · 아이콘 48 · 18px 이름, 항목마다 아래 구분선 */}
+      <ul className="mt-6 flex flex-col gap-4">
         {options.map((chore) => {
           const checked = selected.includes(chore);
           return (
-            <li key={chore}>
+            <li key={chore} className="flex flex-col gap-1">
               <button
                 type="button"
                 role="checkbox"
                 aria-checked={checked}
                 onClick={() => toggle(chore)}
-                className="flex h-15 w-full items-center gap-4 text-left"
+                className="flex w-full items-center gap-0.5 text-left text-lg leading-[normal] font-semibold text-gray-600"
               >
                 {/* 피그마 Components · checkbox_1 (default / select) */}
                 <span
@@ -85,8 +128,10 @@ function S04ChoresPage() {
                     height={20}
                   />
                 </span>
+                <ChoreIcon name={chore} />
                 {chore}
               </button>
+              <span aria-hidden className="h-px bg-line-400" />
             </li>
           );
         })}

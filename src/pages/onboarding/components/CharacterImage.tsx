@@ -11,6 +11,8 @@ interface CharacterImageProps {
   scale?: number;
   /** circle: 원 (P-01), square: 둥근 사각형 28px (S-02·S-03 아바타) */
   shape?: 'circle' | 'square';
+  /** square 모서리 둥글기(px). 기본 28 (S-02·S-03), S-05 작은 아바타는 14 */
+  radius?: number;
   className?: string;
 }
 
@@ -24,15 +26,16 @@ function CharacterImage({
   offset = 0.28,
   scale = 1.667,
   shape = 'circle',
+  radius = 28,
   className = '',
 }: CharacterImageProps) {
   return (
     <span
       aria-hidden
       className={`relative block shrink-0 overflow-hidden bg-line-400 ${
-        shape === 'circle' ? 'rounded-full' : 'rounded-[28px]'
+        shape === 'circle' ? 'rounded-full' : ''
       } ${className}`}
-      style={{ width: size, height: size }}
+      style={{ width: size, height: size, borderRadius: shape === 'square' ? radius : undefined }}
     >
       <img
         src={CHARACTER_IMAGES[id]}

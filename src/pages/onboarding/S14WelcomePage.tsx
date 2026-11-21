@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router';
+import welcomeIllustration from '@/assets/illustrations/welcome.png';
 import { ONBOARDING_PATHS } from '@/routes/onboardingPaths';
 import { useProfileStore } from '@/stores/profile';
 import BottomButton from './components/BottomButton';
@@ -27,25 +28,34 @@ function S14WelcomePage() {
     <OnboardingLayout
       showBack={false}
       footer={
-        // 비주얼 시안: 밑줄 텍스트 링크가 주 버튼 위
-        <div className="flex flex-col gap-3">
-          <BottomButton variant="secondary" className="underline" onClick={() => goProfile('join')}>
-            초대 코드가 있어요
-          </BottomButton>
+        // 피그마 2-5 S-14: 밑줄 텍스트 링크(14px)가 주 버튼 위
+        <div className="flex flex-col items-center gap-4">
+          <button
+            type="button"
+            onClick={() => goProfile('join')}
+            className="py-1 text-sm leading-[normal] font-medium text-gray-600 underline"
+          >
+            초대코드가 있어요
+          </button>
           <BottomButton onClick={() => goProfile('create')}>집 만들기</BottomButton>
         </div>
       }
     >
-      {/* 비주얼 시안: 가운데 정렬 제목 (문구는 기능명세서 기준 유지) */}
-      <div className="mt-10 flex flex-col items-center gap-8 text-center leading-[normal]">
-        <h2 className="text-2xl font-semibold text-gray-800">같이 사는 사람과 짐을 나눠볼까요?</h2>
-        <p className="text-base font-medium text-gray-700">집을 만들고 구성원을 초대해 보세요.</p>
+      {/* 피그마 2-5 S-14: 가운데 정렬 굵은 제목 두 줄 + 설명, 아래 캐릭터 일러스트 370×405 */}
+      <div className="mt-6 flex flex-col items-center gap-4 text-center leading-[normal]">
+        <h2 className="text-[28px] font-bold text-gray-800">
+          같이 사는 사람과
+          <br />
+          우리집 집안일 나눠볼까요?
+        </h2>
+        <p className="text-base font-medium text-gray-500">집을 만들고 구성원을 초대해 보세요.</p>
       </div>
-      {/* 캐릭터 확정 전까지 회색 박스 (명세) */}
-      <div
-        role="img"
-        aria-label="캐릭터 일러스트"
-        className="mx-auto mt-10 aspect-square w-48 rounded-3xl bg-neutral-200"
+      <img
+        src={welcomeIllustration}
+        alt="캐릭터 일러스트"
+        width={370}
+        height={405}
+        className="mx-auto mt-6 h-auto w-full max-w-[370px] mix-blend-multiply"
       />
     </OnboardingLayout>
   );
