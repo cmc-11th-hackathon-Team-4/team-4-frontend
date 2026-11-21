@@ -4,10 +4,18 @@ import { isApiError } from '@/apis/error';
 import { createProfile, getMe, getMyHouse, updateProfile } from '@/apis/profile';
 import { type Profile, useProfileStore } from '@/stores/profile';
 
+/** 내 정보 쿼리 키 (③ 결산에서도 공유) */
+export const ME_QUERY_KEY = ['me'] as const;
+
 const profileKeys = {
-  me: ['me'] as const,
+  me: ME_QUERY_KEY,
   house: (houseId: string) => ['myHouse', houseId] as const,
 };
+
+/** 내 정보 + 소속 집 (GET /users/me). 프로필이 없으면 data가 null */
+export function useMe() {
+  return useQuery({ queryKey: profileKeys.me, queryFn: getMe });
+}
 
 /**
  * 내 프로필 + 집 (M-01, P-01 수정)
@@ -16,7 +24,7 @@ const profileKeys = {
  */
 export function useMyProfile() {
   const setProfile = useProfileStore((s) => s.setProfile);
-  const me = useQuery({ queryKey: profileKeys.me, queryFn: getMe });
+  const me = useMe();
   const houseId = me.data?.house?.id;
   const house = useQuery({
     queryKey: profileKeys.house(houseId ?? ''),
