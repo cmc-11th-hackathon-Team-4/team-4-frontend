@@ -1,16 +1,28 @@
+import { useMutation } from '@tanstack/react-query';
 import { useNavigate } from 'react-router';
+import { type ServerSettlementCycle, updateSettlementCycle } from '@/apis/onboarding';
 import { ONBOARDING_PATHS } from '@/routes/onboardingPaths';
 import { useOnboardingStore, type SettlementCycle } from '@/stores/onboarding';
+import { useToastStore } from '@/stores/toast';
+import { errorMessage } from './apiMessages';
 import BottomButton from './components/BottomButton';
 import InfoText from './components/InfoText';
 import OnboardingLayout from './components/OnboardingLayout';
 import { formatDate, parseDate, todayString, weekdayOf } from './date';
+import { useMe } from './useMyHouse';
 
 const CYCLE_OPTIONS: { value: SettlementCycle; label: string }[] = [
   { value: 'weekly', label: '매주' },
   { value: 'biweekly', label: '2주' },
   { value: 'monthly', label: '한 달' },
 ];
+
+/** 앱 주기 값 → 서버 값 (settlementCycle) */
+const SERVER_CYCLE: Record<SettlementCycle, ServerSettlementCycle> = {
+  weekly: 'WEEKLY',
+  biweekly: 'BIWEEKLY',
+  monthly: 'MONTHLY',
+};
 
 /** 고른 주기에 맞춘 안내 문구 (명세 예시: 매주 월요일 0시에 결산하고 다시 나눠요.) */
 function getCycleGuide(cycle: SettlementCycle, startDate: string) {
@@ -24,7 +36,8 @@ function getCycleGuide(cycle: SettlementCycle, startDate: string) {
  * S-06 결산 주기 (권한: 방장)
  * - 주기 매주 / 2주 / 한 달 (기본 매주), 시작 날짜는 오늘 이후만
  * - [우리 집 시작하기] → S-05 랜덤 배분 (명세 순서: S-04 → S-06 → S-05)
- * - TODO(API): 주기 · 시작 날짜 저장, 실패 시 토스트
+ * - 주기: PATCH /api/v1/houses/{id} (settlementCycle) 로 저장, 실패 시 토스트
+ * - TODO(API): 시작 날짜는 저장 API 에 받는 칸이 없어 화면 입력만 (백엔드 확인 필요)
  */
 function S06CyclePage() {
   const navigate = useNavigate();
@@ -36,16 +49,28 @@ function S06CyclePage() {
   const today = todayString();
   const startDate = savedDate && savedDate >= today ? savedDate : today;
 
-  const handleStart = () => {
-    navigate(ONBOARDING_PATHS.assign);
-  };
+  const showToast = useToastStore((s) => s.show);
+  const me = useMe();
+  const houseId = me.data?.house ? String(me.data.house.id) : null;
+
+  const save = useMutation({
+    mutationFn: () => updateSettlementCycle(houseId!, SERVER_CYCLE[cycle]),
+    onSuccess: () => navigate(ONBOARDING_PATHS.assign),
+    onError: (error) => showToast(errorMessage(error)),
+  });
+
+  const handleStart = () => save.mutate();
 
   return (
     <OnboardingLayout
       title="결산 주기"
       heading="언제마다 새로 나눌까요?"
       description="주기가 끝나면 결산하고 다시 나눠요."
-      footer={<BottomButton onClick={handleStart}>우리 집 시작하기</BottomButton>}
+      footer={
+        <BottomButton disabled={!houseId || save.isPending} onClick={handleStart}>
+          우리 집 시작하기
+        </BottomButton>
+      }
     >
       <label className="mt-8 flex flex-col">
         <span className="text-sm text-neutral-500">결산 주기</span>
