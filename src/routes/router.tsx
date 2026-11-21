@@ -1,6 +1,7 @@
 import { createBrowserRouter } from 'react-router';
 import App from '../App';
 import { mainRoutes } from './main';
+import { mypageRoutes } from './mypage';
 import { onboardingRoutes } from './onboarding';
 import { weeklyRoutes } from './weekly';
 
@@ -9,6 +10,6 @@ export const router = createBrowserRouter([
   {
     path: '/',
     element: <App />,
-    children: [...mainRoutes, ...onboardingRoutes, ...weeklyRoutes],
+    children: [...mainRoutes, ...onboardingRoutes, ...weeklyRoutes, ...mypageRoutes],
   },
 ]);
