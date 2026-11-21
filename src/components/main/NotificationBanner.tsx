@@ -8,7 +8,7 @@ import { useGroupBoard } from '@/hooks/useGroupBoard';
 import { useNotifications } from '@/hooks/useNotifications';
 import { MAIN_PATHS } from '@/routes/mainPaths';
 import { WEEKLY_PATHS } from '@/routes/weeklyPaths';
-import { formatMonthDayWeek } from '@/utils/date';
+import { formatMonthDayWeekday } from '@/utils/date';
 import { useSeenNotificationStore } from '@/stores/seenNotification';
 import type { Group } from '@/types/group';
 import type { AppNotification } from '@/types/notification';
@@ -33,7 +33,7 @@ function toContent(n: AppNotification, group: Group): BannerContent | null {
     return { title: MAIN_TEXT.declinedBy(from, chore), desc: MAIN_TEXT.declinedByDesc(chore) };
   if (n.type === 'cycleEnd') return { title: MAIN_TEXT.cycleEnded };
   if (n.type === 'cycleExtend' && n.endDate)
-    return { title: MAIN_TEXT.cycleExtended(formatMonthDayWeek(n.endDate)) };
+    return { title: MAIN_TEXT.cycleExtended(formatMonthDayWeekday(n.endDate)) };
   if (n.status === 'unwilling')
     return { title: STATUS_NOTICE.title(from), desc: STATUS_NOTICE.desc(from) };
   return null;

@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router';
-import { ONBOARDING_PATHS } from '@/routes/onboardingPaths';
+import { HOME_PATH } from '@/routes/onboardingPaths';
+import { useOnboardingStore } from '@/stores/onboarding';
 import BottomButton from './components/BottomButton';
 import OnboardingLayout from './components/OnboardingLayout';
 
@@ -11,15 +12,22 @@ interface AssignmentResult {
 
 /**
  * S-05 랜덤 배분 (권한: 방장)
- * - 사람별 결과, [다시 섞기](몇 번이든), [확정하기] → S-06
+ * - 사람별 결과, [다시 섞기](몇 번이든), [확정하기] → V5-01 내 메인 (명세 순서: S-04 → S-06 → S-05)
  * - 균등 규칙: 인원수로 나누고 남는 일은 1개씩 더 (차이는 최대 1개)
  * - TODO(API): 배분 주체(서버 / 앱) 결정 전까지 배분 로직 보류 → 결과는 비어 있음
- * - TODO(API): 섞는 동안 짧은 로딩, 확정 시 각 집안일의 담당자 저장
+ * - TODO(API): 섞는 동안 짧은 로딩, 확정 시 각 집안일의 담당자 저장 · 구성원 모두에게 배분 알림
  */
 function S05AssignPage() {
   const navigate = useNavigate();
+  const reset = useOnboardingStore((s) => s.reset);
   const results: AssignmentResult[] = [];
   const perPerson = results[0]?.chores.length;
+
+  // 플로우 ① 마지막 화면: 진행 상태를 비우고 내 메인으로
+  const handleConfirm = () => {
+    reset();
+    navigate(HOME_PATH, { replace: true });
+  };
 
   return (
     <OnboardingLayout
@@ -33,7 +41,7 @@ function S05AssignPage() {
           <BottomButton variant="secondary" disabled className="flex-1">
             다시 섞기
           </BottomButton>
-          <BottomButton className="flex-1" onClick={() => navigate(ONBOARDING_PATHS.cycle)}>
+          <BottomButton className="flex-1" onClick={handleConfirm}>
             확정하기
           </BottomButton>
         </div>

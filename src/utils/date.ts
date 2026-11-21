@@ -1,31 +1,31 @@
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
 
-/** 'YYYY-MM-DD' → Date (시간대 영향 없이 로컬 날짜로) */
-export function parseDate(value: string) {
+/** YYYY-MM-DD → 로컬 Date */
+export function parseYmd(value: string) {
   const [y, m, d] = value.split('-').map(Number);
   return new Date(y, m - 1, d);
 }
 
-/** Date → 'YYYY-MM-DD' */
-export function toDateString(date: Date) {
+/** Date → YYYY-MM-DD */
+export function toYmd(date: Date) {
   const pad = (n: number) => String(n).padStart(2, '0');
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 }
 
-/** 'YYYY-MM-DD' + n일 → 'YYYY-MM-DD' */
+/** YYYY-MM-DD에 n일 더하기 */
 export function addDays(value: string, days: number) {
-  const date = parseDate(value);
+  const date = parseYmd(value);
   date.setDate(date.getDate() + days);
-  return toDateString(date);
+  return toYmd(date);
 }
 
-/** '2026-11-30' → '11월 30일' */
+/** YYYY-MM-DD → "11월 30일" */
 export function formatMonthDay(value: string) {
-  const date = parseDate(value);
+  const date = parseYmd(value);
   return `${date.getMonth() + 1}월 ${date.getDate()}일`;
 }
 
-/** '2026-11-30' → '11월 30일 (일)' */
-export function formatMonthDayWeek(value: string) {
-  return `${formatMonthDay(value)} (${WEEKDAYS[parseDate(value).getDay()]})`;
+/** YYYY-MM-DD → "11월 30일 (일)" */
+export function formatMonthDayWeekday(value: string) {
+  return `${formatMonthDay(value)} (${WEEKDAYS[parseYmd(value).getDay()]})`;
 }

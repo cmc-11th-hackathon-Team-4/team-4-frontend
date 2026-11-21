@@ -2,7 +2,7 @@ import { useState } from 'react';
 import BottomButton from '@/components/common/BottomButton';
 import { MAIN_TEXT } from '@/constants/main';
 import InfoText from '@/pages/onboarding/components/InfoText';
-import { addDays, formatMonthDayWeek } from '@/utils/date';
+import { addDays, formatMonthDayWeekday } from '@/utils/date';
 
 interface ExtendCycleSheetProps {
   endDate: string;
@@ -40,7 +40,7 @@ function ExtendCycleSheet({ endDate, onClose, onSubmit }: ExtendCycleSheetProps)
         <h2 className="text-xl font-bold">{MAIN_TEXT.extendTitle}</h2>
 
         <p className="mt-5 text-sm text-neutral-500">{MAIN_TEXT.currentEnd}</p>
-        <p className="mt-1 text-lg font-semibold">{formatMonthDayWeek(endDate)}</p>
+        <p className="mt-1 text-lg font-semibold">{formatMonthDayWeekday(endDate)}</p>
 
         <div role="radiogroup" className="mt-5 grid grid-cols-3 gap-2">
           {MAIN_TEXT.extendOptions.map((option) => {
@@ -64,7 +64,9 @@ function ExtendCycleSheet({ endDate, onClose, onSubmit }: ExtendCycleSheetProps)
 
         <div className="mt-4 flex items-center justify-between rounded-2xl bg-neutral-100 px-4 py-3">
           <span className="text-sm text-neutral-500">{MAIN_TEXT.newEnd}</span>
-          <span className="font-bold">{nextEndDate ? formatMonthDayWeek(nextEndDate) : '-'}</span>
+          <span className="font-bold">
+            {nextEndDate ? formatMonthDayWeekday(nextEndDate) : '-'}
+          </span>
         </div>
 
         <InfoText className="mt-3">{MAIN_TEXT.extendInfo}</InfoText>

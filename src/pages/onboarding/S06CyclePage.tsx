@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router';
-import { HOME_PATH } from '@/routes/onboardingPaths';
+import { ONBOARDING_PATHS } from '@/routes/onboardingPaths';
 import { useOnboardingStore, type SettlementCycle } from '@/stores/onboarding';
 import BottomButton from './components/BottomButton';
 import InfoText from './components/InfoText';
@@ -23,8 +23,8 @@ function getCycleGuide(cycle: SettlementCycle, startDate: string) {
 /**
  * S-06 결산 주기 (권한: 방장)
  * - 주기 매주 / 2주 / 한 달 (기본 매주), 시작 날짜는 오늘 이후만
- * - [우리 집 시작하기] → V5-01 내 메인
- * - TODO(API): 주기 · 시작 날짜 저장, 구성원 모두에게 배분 알림, 실패 시 토스트
+ * - [우리 집 시작하기] → S-05 랜덤 배분 (명세 순서: S-04 → S-06 → S-05)
+ * - TODO(API): 주기 · 시작 날짜 저장, 실패 시 토스트
  */
 function S06CyclePage() {
   const navigate = useNavigate();
@@ -32,14 +32,12 @@ function S06CyclePage() {
   const setCycle = useOnboardingStore((s) => s.setCycle);
   const savedDate = useOnboardingStore((s) => s.startDate);
   const setStartDate = useOnboardingStore((s) => s.setStartDate);
-  const reset = useOnboardingStore((s) => s.reset);
 
   const today = todayString();
   const startDate = savedDate && savedDate >= today ? savedDate : today;
 
   const handleStart = () => {
-    reset();
-    navigate(HOME_PATH, { replace: true });
+    navigate(ONBOARDING_PATHS.assign);
   };
 
   return (

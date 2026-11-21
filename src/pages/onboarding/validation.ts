@@ -13,3 +13,14 @@ export function isValidText(value: string, rule: { min: number; max: number }) {
   const length = value.trim().length;
   return length >= rule.min && length <= rule.max;
 }
+
+/** S-13 초대 코드: 영문 대문자 · 숫자 6자리 (소문자는 대문자로 바꿔 받음) */
+export const INVITE_CODE_LENGTH = 6;
+
+/** 입력값을 초대 코드 형식으로 정리: 대문자로 바꾸고 영문 · 숫자 외 문자 제거, 6자리까지 */
+export function normalizeInviteCode(value: string) {
+  return value
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, '')
+    .slice(0, INVITE_CODE_LENGTH);
+}

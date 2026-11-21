@@ -7,7 +7,7 @@ import {
   useWeeklySession,
   useWeeklySettlement,
 } from '@/hooks/useWeekly';
-import { HOME_PATH } from '@/routes/weeklyPaths';
+import { HOME_PATH } from '@/routes/onboardingPaths';
 import { formatPeriod, getUndoneChores, withSubject } from '@/utils/weekly';
 import Avatar from './components/Avatar';
 import StateView from '@/components/common/StateView';
@@ -101,7 +101,7 @@ function S12NextPage() {
   return (
     <WeeklyLayout step="next" skipCarryOver={!hasMyUndone} footer={footer}>
       <div className="flex flex-col items-center">
-        <Avatar className="size-17" />
+        <Avatar character={me.character} size={68} />
         <h2 className="mt-4 text-2xl font-bold">다음 주 내 집안일 {myChores.length}개</h2>
         <p className="mt-2 text-center text-sm text-neutral-500">{subtitle}</p>
       </div>

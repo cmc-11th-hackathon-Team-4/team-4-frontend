@@ -54,7 +54,7 @@ function S08SummaryPage() {
     >
       <div className="flex h-50 items-center justify-center gap-6 rounded-2xl bg-neutral-100">
         {data.members.map((m) => (
-          <Avatar key={m.id} className="size-23" />
+          <Avatar key={m.id} character={m.character} size={92} />
         ))}
       </div>
 

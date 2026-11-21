@@ -5,6 +5,7 @@ import { useOnboardingStore } from '@/stores/onboarding';
 import BottomButton from './components/BottomButton';
 import InfoText from './components/InfoText';
 import OnboardingLayout from './components/OnboardingLayout';
+import { ONBOARDING_STEP_TOTAL } from './constants';
 import UnderlineInput from './components/UnderlineInput';
 import { INPUT_RULES, isValidText } from './validation';
 
@@ -31,6 +32,7 @@ function S01CreateHousePage() {
   return (
     <OnboardingLayout
       title="집 만들기"
+      step={{ current: 2, total: ONBOARDING_STEP_TOTAL }}
       heading="우리 집 이름을 알려주세요"
       description="구성원에게 보여질 이름이에요."
       footer={

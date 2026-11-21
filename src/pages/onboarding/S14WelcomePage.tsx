@@ -1,18 +1,27 @@
 import { useNavigate } from 'react-router';
 import { ONBOARDING_PATHS } from '@/routes/onboardingPaths';
+import { useProfileStore } from '@/stores/profile';
 import BottomButton from './components/BottomButton';
 import OnboardingLayout from './components/OnboardingLayout';
 
 /**
  * S-14 홈 · 집 없음 (권한: 모두)
  * - 집이 없을 때만 보이는 홈. 집 있음 → V5-01 분기는 가드에서 처리 (② 담당과 협의, API 필요)
- * - TODO(API): "프로필 있음?" 확인 후 있으면 P-01을 건너뛰고 S-01 / S-13으로 이동
+ * - "프로필 있음?": 있으면 P-01을 건너뛰고 S-01 / S-13, 없으면 P-01을 먼저 거침
+ *   (기기에 저장된 프로필 기준. TODO(API): GET /api/v1/users/me 결과로 교체)
  */
 function S14WelcomePage() {
   const navigate = useNavigate();
 
-  const goProfile = (next: 'create' | 'join') =>
+  const hasProfile = useProfileStore((s) => s.profile !== null);
+
+  const goProfile = (next: 'create' | 'join') => {
+    if (hasProfile) {
+      navigate(next === 'join' ? ONBOARDING_PATHS.join : ONBOARDING_PATHS.create);
+      return;
+    }
     navigate(`${ONBOARDING_PATHS.profileNew}?next=${next}`);
+  };
 
   return (
     <OnboardingLayout

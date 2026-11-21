@@ -11,7 +11,7 @@ import { INPUT_RULES, isValidText } from './validation';
 
 /**
  * S-04 집안일 고르기 (권한: 방장 확정)
- * - 기본 목록 체크 + 직접 추가, 1개 이상 골라야 [N개 선택 완료]가 눌리고 S-05로 이동
+ * - 기본 목록 체크 + 직접 추가, 1개 이상 골라야 [N개 선택 완료]가 눌리고 S-06으로 이동
  * - TODO(API): 고른 집안일 목록 저장
  * - 참여자와 함께 고르기는 부가 기능이라 보류
  */
@@ -47,7 +47,7 @@ function S04ChoresPage() {
 
   const handleNext = () => {
     setSelectedChores(selected);
-    navigate(ONBOARDING_PATHS.assign);
+    navigate(ONBOARDING_PATHS.cycle);
   };
 
   return (
