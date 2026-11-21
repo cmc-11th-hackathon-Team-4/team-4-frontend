@@ -3,7 +3,9 @@ import { useNavigate } from 'react-router';
 import { ONBOARDING_PATHS } from '@/routes/onboardingPaths';
 import { useOnboardingStore } from '@/stores/onboarding';
 import BottomButton from './components/BottomButton';
+import InfoText from './components/InfoText';
 import OnboardingLayout from './components/OnboardingLayout';
+import UnderlineInput from './components/UnderlineInput';
 import { INPUT_RULES, isValidText } from './validation';
 
 /**
@@ -37,20 +39,17 @@ function S01CreateHousePage() {
         </BottomButton>
       }
     >
-      <label className="mt-8 flex flex-col">
-        <span className="text-sm text-neutral-500">집 이름</span>
-        <input
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          maxLength={INPUT_RULES.houseName.max}
-          placeholder="302호 우리집"
-          className="h-12 border-b-2 border-neutral-300 text-xl font-semibold outline-none focus:border-neutral-900"
-        />
-      </label>
-      <p className="mt-3 flex gap-2 text-sm text-neutral-500">
-        <span aria-hidden>ⓘ</span>
+      <UnderlineInput
+        className="mt-10"
+        label="집 이름"
+        value={name}
+        onChange={setName}
+        maxLength={INPUT_RULES.houseName.max}
+        placeholder="302호 우리집"
+      />
+      <InfoText className="mt-2">
         구성원 모두에게 보이는 이름이에요. 나중에 마이페이지에서 바꿀 수 있어요.
-      </p>
+      </InfoText>
     </OnboardingLayout>
   );
 }

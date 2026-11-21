@@ -17,17 +17,21 @@ function S14WelcomePage() {
   return (
     <OnboardingLayout
       showBack={false}
-      heading="같이 사는 사람과 짐을 나눠볼까요?"
-      description="집을 만들고 구성원을 초대해 보세요."
       footer={
-        <>
-          <BottomButton onClick={() => goProfile('create')}>집 만들기</BottomButton>
-          <BottomButton variant="secondary" onClick={() => goProfile('join')}>
+        // 비주얼 시안: 밑줄 텍스트 링크가 주 버튼 위
+        <div className="flex flex-col gap-3">
+          <BottomButton variant="secondary" className="underline" onClick={() => goProfile('join')}>
             초대 코드가 있어요
           </BottomButton>
-        </>
+          <BottomButton onClick={() => goProfile('create')}>집 만들기</BottomButton>
+        </div>
       }
     >
+      {/* 비주얼 시안: 가운데 정렬 제목 (문구는 기능명세서 기준 유지) */}
+      <div className="mt-10 flex flex-col items-center gap-8 text-center leading-[normal]">
+        <h2 className="text-2xl font-semibold text-gray-800">같이 사는 사람과 짐을 나눠볼까요?</h2>
+        <p className="text-base font-medium text-gray-700">집을 만들고 구성원을 초대해 보세요.</p>
+      </div>
       {/* 캐릭터 확정 전까지 회색 박스 (명세) */}
       <div
         role="img"

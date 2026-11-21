@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router';
 import { HOME_PATH } from '@/routes/onboardingPaths';
 import { useOnboardingStore, type SettlementCycle } from '@/stores/onboarding';
 import BottomButton from './components/BottomButton';
+import InfoText from './components/InfoText';
 import OnboardingLayout from './components/OnboardingLayout';
 import { formatDate, parseDate, todayString, weekdayOf } from './date';
 
@@ -79,14 +80,9 @@ function S06CyclePage() {
         />
       </label>
 
-      <div className="mt-3 flex flex-col gap-1 text-sm text-neutral-500">
-        <p className="flex gap-2">
-          <span aria-hidden>ⓘ</span>
-          {getCycleGuide(cycle, startDate)}
-        </p>
-        <p className="flex gap-2">
-          <span aria-hidden>ⓘ</span>주기는 우리 집 설정에서 바꿀 수 있어요.
-        </p>
+      <div className="mt-3 flex flex-col gap-2">
+        <InfoText>{getCycleGuide(cycle, startDate)}</InfoText>
+        <InfoText>주기는 우리 집 설정에서 바꿀 수 있어요.</InfoText>
       </div>
     </OnboardingLayout>
   );

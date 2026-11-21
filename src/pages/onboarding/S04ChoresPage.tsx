@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { ONBOARDING_PATHS } from '@/routes/onboardingPaths';
+import checkboxDefaultIcon from '@/assets/icons/checkbox-default.svg';
+import checkboxSelectIcon from '@/assets/icons/checkbox-select.svg';
 import { useOnboardingStore } from '@/stores/onboarding';
 import BottomButton from './components/BottomButton';
 import OnboardingLayout from './components/OnboardingLayout';
@@ -71,13 +73,17 @@ function S04ChoresPage() {
                 onClick={() => toggle(chore)}
                 className="flex h-15 w-full items-center gap-4 text-left"
               >
+                {/* 피그마 Components · checkbox_1 (default / select) */}
                 <span
                   aria-hidden
-                  className={`flex size-6.5 items-center justify-center rounded-full border-2 text-sm ${
-                    checked ? 'border-neutral-900 bg-neutral-900 text-white' : 'border-neutral-300'
-                  }`}
+                  className={`size-5 shrink-0 rounded-full ${checked ? 'bg-primary-500' : ''}`}
                 >
-                  {checked && '✓'}
+                  <img
+                    src={checked ? checkboxSelectIcon : checkboxDefaultIcon}
+                    alt=""
+                    width={20}
+                    height={20}
+                  />
                 </span>
                 {chore}
               </button>

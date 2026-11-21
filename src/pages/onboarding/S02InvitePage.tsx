@@ -1,7 +1,9 @@
 import { useNavigate } from 'react-router';
 import { ONBOARDING_PATHS } from '@/routes/onboardingPaths';
+import plusCircleIcon from '@/assets/icons/plus-circle.svg';
 import { MAX_MEMBERS } from '@/types/group';
 import BottomButton from './components/BottomButton';
+import InfoText from './components/InfoText';
 import OnboardingLayout from './components/OnboardingLayout';
 
 /**
@@ -26,24 +28,25 @@ function S02InvitePage() {
         </BottomButton>
       }
     >
-      <ul className="mt-8 flex gap-4">
-        <li className="flex flex-col items-center gap-2">
-          <button
-            type="button"
-            disabled
-            aria-label="구성원 추가"
-            className="flex size-20 items-center justify-center rounded-full border-2 border-dashed border-neutral-300 text-3xl text-neutral-400"
-          >
-            +
-          </button>
-          <span className="text-sm text-neutral-500">추가</span>
-        </li>
+      {/* 비주얼 시안: 구성원 아바타(둥근 사각형) 뒤에 추가 버튼 */}
+      <ul className="mt-15 flex items-start gap-3">
         {memberLabels.map((label) => (
-          <li key={label} className="flex flex-col items-center gap-2">
-            <div aria-hidden className="size-20 rounded-full bg-neutral-200" />
-            <span className="text-sm">{label}</span>
+          <li key={label} className="flex w-20 flex-col items-center gap-2">
+            <div aria-hidden className="size-20 rounded-[28px] bg-line-400" />
+            <span
+              className={`text-lg leading-[normal] font-semibold ${
+                label === '나' ? 'text-primary-500' : 'text-gray-700'
+              }`}
+            >
+              {label}
+            </span>
           </li>
         ))}
+        <li className="pt-1">
+          <button type="button" disabled aria-label="구성원 추가" className="block size-18">
+            <img src={plusCircleIcon} alt="" width={72} height={72} />
+          </button>
+        </li>
       </ul>
 
       <section className="mt-10">
@@ -62,10 +65,9 @@ function S02InvitePage() {
             />
           ))}
         </div>
-        <p className="mt-3 flex gap-2 text-sm text-neutral-500">
-          <span aria-hidden>ⓘ</span>
+        <InfoText className="mt-3">
           최대 {MAX_MEMBERS}명까지 초대할 수 있어요. 들어온 사람은 바로 위 목록에 보여요.
-        </p>
+        </InfoText>
       </section>
     </OnboardingLayout>
   );
