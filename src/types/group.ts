@@ -2,8 +2,8 @@ import type { Chore } from './chore';
 import type { Id } from './common';
 import type { Member } from './member';
 
-/** 구성원 최대 인원 (본인 포함 5명, 확정) */
-export const MAX_MEMBERS = 5;
+/** 구성원 최대 인원 (본인 포함 4명: 피그마 기능명세서 · Swagger 정원 HOUSE-409-1 기준) */
+export const MAX_MEMBERS = 4;
 
 export interface Group {
   id: Id;

@@ -10,8 +10,10 @@ export const ONBOARDING_PATHS = {
   create: '/onboarding/create',
   /** S-02 초대장 만들기 */
   invite: '/onboarding/invite',
-  /** S-13 코드로 참여 */
+  /** S-13 초대 코드 입력 */
   join: '/onboarding/join',
+  /** S-13-W 방장 기다리는 중 (참여자) */
+  joinWaiting: '/onboarding/join/waiting',
   /** S-03 대기실 */
   waiting: '/onboarding/waiting',
   /** S-04 집안일 고르기 */
