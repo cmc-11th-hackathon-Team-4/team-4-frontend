@@ -1,33 +1,82 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { updateProfile } from '@/apis/profile';
-import { queryKeys } from '@/apis/queryKeys';
-import { useGroupBoard } from '@/hooks/useGroupBoard';
+import { useEffect } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { isApiError } from '@/apis/error';
+import { createProfile, getMe, getMyHouse, updateProfile } from '@/apis/profile';
 import { type Profile, useProfileStore } from '@/stores/profile';
-import { useSessionStore } from '@/stores/session';
 
-/** 내 프로필 + 집 정보. 집에 들어가 있으면 구성원 정보, 아니면 P-01에서 저장한 값 */
+const profileKeys = {
+  me: ['me'] as const,
+  house: (houseId: string) => ['myHouse', houseId] as const,
+};
+
+/**
+ * 내 프로필 + 집 (M-01, P-01 수정)
+ * - GET /users/me → 프로필 · 집 유무, 집이 있으면 GET /houses/{houseId} → 집 이름 · 구성원
+ * - 서버 값을 프로필 스토어에도 맞춰 둠 (①의 S-02 · S-03 · S-13 · S-14가 스토어를 읽음)
+ */
 export function useMyProfile() {
-  const board = useGroupBoard();
-  const stored = useProfileStore((s) => s.profile);
-  const profile: Profile | null = board.me
-    ? { nickname: board.me.nickname, character: board.me.character }
-    : stored;
-  return { ...board, profile, hasHouse: !!board.me };
+  const setProfile = useProfileStore((s) => s.setProfile);
+  const me = useQuery({ queryKey: profileKeys.me, queryFn: getMe });
+  const houseId = me.data?.house?.id;
+  const house = useQuery({
+    queryKey: profileKeys.house(houseId ?? ''),
+    queryFn: () => getMyHouse(houseId!),
+    enabled: !!houseId,
+  });
+
+  const nickname = me.data?.nickname;
+  const character = me.data?.character;
+  useEffect(() => {
+    if (nickname && character) setProfile({ nickname, character });
+  }, [nickname, character, setProfile]);
+
+  const profile: Profile | null = me.data
+    ? { nickname: me.data.nickname, character: me.data.character }
+    : null;
+
+  return {
+    profile,
+    me: me.data ?? null,
+    house: house.data ?? null,
+    hasHouse: !!me.data?.house,
+    isLoading: me.isLoading || house.isLoading,
+    isError: me.isError || house.isError,
+    refetch: () => {
+      me.refetch();
+      if (houseId) house.refetch();
+    },
+  };
 }
 
-/** P-01 프로필 저장 (만들기 · 수정 공용) */
+/**
+ * P-01 프로필 저장 (만들기 · 수정 공용)
+ * - 프로필이 없으면 POST /users, 있으면 PATCH /users/me
+ * - 이미 등록된 기기(USER-409)면 수정으로 저장
+ */
 export function useSaveProfile() {
-  const { memberId, groupId } = useSessionStore();
   const setProfile = useProfileStore((s) => s.setProfile);
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (profile: Profile) => {
-      if (memberId && groupId) await updateProfile(memberId, profile);
+      const me = await getMe();
+      if (me) {
+        await updateProfile(profile);
+      } else {
+        try {
+          await createProfile(profile);
+        } catch (error) {
+          if (!isApiError(error, 'USER-409')) throw error;
+          await updateProfile(profile);
+        }
+      }
       setProfile(profile);
     },
     onSuccess: () => {
-      if (groupId) queryClient.invalidateQueries({ queryKey: queryKeys.group(groupId) });
+      queryClient.invalidateQueries({ queryKey: profileKeys.me });
+      queryClient.invalidateQueries({ queryKey: ['myHouse'] });
+      // ② 그룹 화면의 내 이름 · 캐릭터도 다시 조회
+      queryClient.invalidateQueries({ queryKey: ['group'] });
     },
   });
 }
