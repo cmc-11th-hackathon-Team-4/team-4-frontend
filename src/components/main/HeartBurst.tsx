@@ -13,7 +13,7 @@ const HEARTS = [
 ];
 
 /** 하트 받았을 때 캐릭터 뒤 하트 뿅뿅 (1회 재생 후 onEnd) */
-function HeartBurst({ onEnd }: { onEnd: () => void }) {
+function HeartBurst({ onEnd, color }: { onEnd: () => void; color?: string }) {
   const refs = useRef<(HTMLSpanElement | null)[]>([]);
   const onEndRef = useRef(onEnd);
 
@@ -56,6 +56,7 @@ function HeartBurst({ onEnd }: { onEnd: () => void }) {
             refs.current[i] = el;
           }}
           className="absolute top-1/2 left-1/2 text-neutral-900 opacity-0"
+          style={{ color }}
         >
           <IconHeart size={i % 2 ? 18 : 24} fill="currentColor" />
         </span>

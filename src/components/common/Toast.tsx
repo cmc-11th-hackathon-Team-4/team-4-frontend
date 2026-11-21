@@ -3,7 +3,7 @@ import { useToastStore } from '@/stores/toast';
 
 const DURATION = 4000;
 
-/** App에 한 번만 두는 전역 토스트 */
+/** App에 한 번만 두는 전역 토스트 — 피그마 toast (354 × 52, 하단 탭 위) */
 function Toast() {
   const { message, action, hide } = useToastStore();
 
@@ -16,10 +16,10 @@ function Toast() {
   if (!message) return null;
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-28 z-50 flex justify-center px-4">
+    <div className="pointer-events-none fixed inset-x-0 bottom-[calc(122px+var(--safe-bottom))] z-50 flex justify-center px-6">
       <div
         role="status"
-        className="pointer-events-auto flex max-w-[360px] items-center gap-3 rounded-2xl bg-neutral-900 px-4 py-2.5 text-sm break-keep text-white shadow-lg"
+        className="pointer-events-auto flex min-h-[52px] w-full max-w-[354px] items-center justify-center gap-3 rounded-[14px] bg-gray-800/92 px-4 py-2.5 text-center text-sm leading-[normal] font-medium break-keep text-white"
       >
         <span>{message}</span>
         {action && (

@@ -6,6 +6,11 @@
  * - 사용 예: bg-primary-500, text-gray-800, border-line-700
  */
 @theme {
+  /* 피그마 텍스트 스타일 폰트 */
+  --font-sans:
+    'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui,
+    'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+
   --color-primary-500: #7f68f1;
   --color-primary-400: #a594f6;
   --color-primary-300: #c1b6f9;

@@ -1,0 +1,7 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="heart_button">
+<rect x="0.9" y="0.9" width="22.2" height="22.2" rx="11.1" fill="white"/>
+<rect x="0.9" y="0.9" width="22.2" height="22.2" rx="11.1" stroke="#DBDDE4" stroke-width="1.8"/>
+<path id="Heart" d="M12 17.3685C11.7474 17.3685 11.5263 17.1664 11.2421 16.9137L7.42105 13.2948C6.22105 12.158 6 11.1474 6 9.88427C6 8.08427 7.35789 6.63164 9.15789 6.63164C10.3579 6.63164 11.3684 7.26322 12 8.21059C12.6316 7.26322 13.6421 6.63164 14.8421 6.63164C16.6421 6.63164 18 8.08427 18 9.88427C18 11.1474 17.7789 12.158 16.5789 13.2948L12.7579 16.9137C12.4737 17.1664 12.2526 17.3685 12 17.3685Z" fill="#DBDDE4"/>
+</g>
+</svg>
