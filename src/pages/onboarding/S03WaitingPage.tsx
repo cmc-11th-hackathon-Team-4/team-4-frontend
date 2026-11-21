@@ -5,6 +5,7 @@ import { MAX_MEMBERS } from '@/types/group';
 import BottomButton from './components/BottomButton';
 import InfoText from './components/InfoText';
 import OnboardingLayout from './components/OnboardingLayout';
+import { ONBOARDING_STEP_TOTAL } from './constants';
 
 /** 구성원 이름 목록(첫 번째 = 나)에 따른 제목 · 설명 (명세 규칙) */
 function getWaitingCopy(names: string[]) {
@@ -31,6 +32,7 @@ function S03WaitingPage() {
   return (
     <OnboardingLayout
       title="대기실"
+      step={{ current: 4, total: ONBOARDING_STEP_TOTAL }}
       heading={heading}
       description={description}
       footer={

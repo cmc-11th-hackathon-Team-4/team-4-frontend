@@ -5,6 +5,7 @@ import { MAX_MEMBERS } from '@/types/group';
 import BottomButton from './components/BottomButton';
 import InfoText from './components/InfoText';
 import OnboardingLayout from './components/OnboardingLayout';
+import { ONBOARDING_STEP_TOTAL } from './constants';
 
 /**
  * S-02 초대장 만들기 (권한: 방장)
@@ -20,6 +21,7 @@ function S02InvitePage() {
   return (
     <OnboardingLayout
       title="초대장 만들기"
+      step={{ current: 3, total: ONBOARDING_STEP_TOTAL }}
       heading="같이 사는 사람에게 초대장을 보내주세요"
       description="초대 코드를 받은 사람만 들어올 수 있어요."
       footer={

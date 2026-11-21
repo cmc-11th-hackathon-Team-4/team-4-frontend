@@ -5,6 +5,7 @@ import { CHARACTER_COUNT, type CharacterId } from '@/types/member';
 import BottomButton from './components/BottomButton';
 import InfoText from './components/InfoText';
 import OnboardingLayout from './components/OnboardingLayout';
+import { ONBOARDING_STEP_TOTAL } from './constants';
 import UnderlineInput from './components/UnderlineInput';
 import { INPUT_RULES, isValidText } from './validation';
 
@@ -30,6 +31,7 @@ function P01ProfilePage() {
   return (
     <OnboardingLayout
       title="프로필 만들기"
+      step={{ current: 1, total: ONBOARDING_STEP_TOTAL }}
       heading="어떤 캐릭터로 함께할까요?"
       description="같은 캐릭터여도 이름으로 구분돼요."
       footer={
