@@ -4,8 +4,7 @@ import StateView from '@/components/common/StateView';
 import { useMyProfile, useSaveProfile } from '@/hooks/useProfile';
 import { MYPAGE_PATHS } from '@/routes/mypagePaths';
 import { ONBOARDING_PATHS } from '@/routes/onboardingPaths';
-import { useOnboardingStore } from '@/stores/onboarding';
-import type { Profile } from '@/stores/profile';
+import { type Profile, useProfileStore } from '@/stores/profile';
 import { useToastStore } from '@/stores/toast';
 import type { CharacterId } from '@/types/member';
 import BottomButton from './components/BottomButton';
@@ -45,12 +44,11 @@ function ProfileForm({ mode, initial }: { mode: 'create' | 'edit'; initial: Prof
   const save = useSaveProfile();
   const isEdit = mode === 'edit';
 
-  // ① 진행 중 고른 캐릭터 (S-02·S-03 "나" 아바타에 사용)
-  const onboardingCharacter = useOnboardingStore((s) => s.character);
-  const setOnboardingCharacter = useOnboardingStore((s) => s.setCharacter);
+  // 만들기에서 뒤로 왔다가 다시 들어오면 저장해 둔 캐릭터로 시작
+  const storedCharacter = useProfileStore((s) => s.profile?.character);
 
   const [character, setCharacter] = useState<CharacterId>(
-    initial?.character ?? onboardingCharacter ?? DEFAULT_CHARACTER,
+    initial?.character ?? storedCharacter ?? DEFAULT_CHARACTER,
   );
   const [name, setName] = useState(initial?.nickname ?? '');
 
@@ -63,7 +61,6 @@ function ProfileForm({ mode, initial }: { mode: 'create' | 'edit'; initial: Prof
       showToast('프로필을 만들었어요');
       return navigate(MYPAGE_PATHS.my, { replace: true });
     }
-    setOnboardingCharacter(character);
     navigate(next === 'join' ? ONBOARDING_PATHS.join : ONBOARDING_PATHS.create);
   };
 

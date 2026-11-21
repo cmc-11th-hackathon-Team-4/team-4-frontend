@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router';
 import addCircleIcon from '@/assets/icons/add-circle.svg';
 import { ONBOARDING_PATHS } from '@/routes/onboardingPaths';
-import { useOnboardingStore } from '@/stores/onboarding';
+import { useProfileStore } from '@/stores/profile';
 import { MAX_MEMBERS } from '@/types/group';
 import BottomButton from './components/BottomButton';
 import CharacterImage from './components/CharacterImage';
@@ -11,14 +11,15 @@ import { ONBOARDING_STEP_TOTAL } from './constants';
 
 /**
  * S-02 초대장 만들기 (권한: 방장) — 피그마 비주얼 시안 기준
- * - 혼자일 때는 아바타에 "나"만 보여요 (명세 빈 상태). "나"의 캐릭터는 P-01에서 고른 값
+ * - 혼자일 때는 아바타에 "나"만 보여요 (명세 빈 상태). "나"의 캐릭터는 프로필 스토어 값
  * - TODO(API): 초대 코드 · 구성원 목록 조회 후 들어온 사람 표시 (GET 집 정보)
  * - TODO(API): [추가] · [초대장 보내기]는 초대 코드와 링크를 휴대폰 공유창으로 전송 (코드 발급 전까지 보류)
  * - × 빼기(방장 전용)는 부가 기능이라 보류
  */
 function S02InvitePage() {
   const navigate = useNavigate();
-  const myCharacter = useOnboardingStore((s) => s.character);
+  // 내 캐릭터: P-01에서 저장한 프로필 (④ 프로필 스토어 공용)
+  const myCharacter = useProfileStore((s) => s.profile?.character);
   const memberCount = 1; // TODO(API): 구성원 수
 
   return (

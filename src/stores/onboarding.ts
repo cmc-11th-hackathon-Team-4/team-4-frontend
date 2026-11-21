@@ -1,5 +1,4 @@
 import { create } from 'zustand';
-import type { CharacterId } from '@/types/member';
 
 /** 결산 주기 (S-06: 매주 / 2주 / 한 달) */
 export type SettlementCycle = 'weekly' | 'biweekly' | 'monthly';
@@ -12,8 +11,6 @@ export type SettlementCycle = 'weekly' | 'biweekly' | 'monthly';
  */
 interface OnboardingState {
   role: 'host' | 'guest' | null;
-  /** P-01에서 고른 캐릭터 (S-02·S-03 "나" 아바타). TODO(API): 서버 프로필 값으로 교체 */
-  character: CharacterId | null;
   houseName: string;
   selectedChores: string[];
   cycle: SettlementCycle;
@@ -21,7 +18,6 @@ interface OnboardingState {
   startDate: string;
 
   setRole: (role: 'host' | 'guest') => void;
-  setCharacter: (character: CharacterId) => void;
   setHouseName: (name: string) => void;
   setSelectedChores: (chores: string[]) => void;
   setCycle: (cycle: SettlementCycle) => void;
@@ -31,7 +27,6 @@ interface OnboardingState {
 
 const initialState = {
   role: null,
-  character: null,
   houseName: '',
   selectedChores: [],
   cycle: 'weekly' as const,
@@ -41,7 +36,6 @@ const initialState = {
 export const useOnboardingStore = create<OnboardingState>()((set) => ({
   ...initialState,
   setRole: (role) => set({ role }),
-  setCharacter: (character) => set({ character }),
   setHouseName: (houseName) => set({ houseName }),
   setSelectedChores: (selectedChores) => set({ selectedChores }),
   setCycle: (cycle) => set({ cycle }),
