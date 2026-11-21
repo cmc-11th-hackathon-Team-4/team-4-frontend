@@ -18,6 +18,7 @@ import { INVITE_CODE_LENGTH, normalizeInviteCode } from './validation';
  * S-13-C 이 집이 맞나요? (권한: 참여자) — 피그마 2-5 디자인 기준
  * - GET /api/v1/houses/invite/{code}: 집 이름 · 구성원 수 · 방장 이름 (S-13 에서 미리 불러온 값을 그대로 씀)
  * - [이 집에 들어가기]: POST /api/v1/houses/join → S-13-W. 그사이 정원이 찼거나 배분이 시작되면 토스트
+ * - 프로필이 없으면(USER-404) 참여 전에 P-01 → 만든 뒤 이 화면으로 돌아옴 (?next=confirm&code=)
  * - [다른 초대 코드 입력]: S-13 으로 돌아감
  * - 카드 캐릭터는 시안 그대로(주황 캐릭터). 미리보기 API 는 방장 캐릭터를 주지 않음
  */
@@ -27,6 +28,7 @@ function S13CJoinConfirmPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const showToast = useToastStore((s) => s.show);
+  const goProfile = () => navigate(`${ONBOARDING_PATHS.profileNew}?next=confirm&code=${code}`);
 
   const preview = useQuery({
     queryKey: onboardingKeys.invitePreview(code),
@@ -45,9 +47,7 @@ function S13CJoinConfirmPage() {
     onSuccess: goWaiting,
     onError: (e) => {
       if (e instanceof ApiError && e.code === 'HOUSE-409') return goWaiting();
-      if (isNoProfile(e)) {
-        return navigate(`${ONBOARDING_PATHS.profileNew}?next=join`, { replace: true });
-      }
+      if (isNoProfile(e)) return goProfile();
       showToast(toCodeErrorMessage(e));
     },
   });

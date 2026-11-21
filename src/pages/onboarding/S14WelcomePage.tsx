@@ -8,21 +8,19 @@ import { useMe } from './useMyHouse';
 /**
  * S-14 홈 · 집 없음 (권한: 모두)
  * - 집이 없을 때만 보이는 홈. 집 있음 → V5-01 분기는 가드에서 처리 (② 담당과 협의, API 필요)
- * - "프로필 있음?": 있으면 P-01을 건너뛰고 S-01 / S-13, 없으면 P-01을 먼저 거침
- *   (서버 기준 GET /api/v1/users/me. 아직 모르거나 실패하면 P-01 로 — P-01 은 이미 등록된 기기면 서버 프로필로 이어감)
+ * - [집 만들기]: 프로필 있음(서버 GET /users/me) → S-01, 없음 → P-01 먼저
+ * - [초대코드가 있어요]: 바로 S-13 코드 입력. 프로필이 없으면 S-13-C [이 집에 들어가기] 때 P-01 을 거침
  */
 function S14WelcomePage() {
   const navigate = useNavigate();
 
   const hasProfile = useMe().data !== undefined;
 
-  const goProfile = (next: 'create' | 'join') => {
-    if (hasProfile) {
-      navigate(next === 'join' ? ONBOARDING_PATHS.join : ONBOARDING_PATHS.create);
-      return;
-    }
-    navigate(`${ONBOARDING_PATHS.profileNew}?next=${next}`);
-  };
+  // [집 만들기]: 프로필이 있으면 S-01, 없으면 P-01 먼저
+  const goCreate = () =>
+    navigate(hasProfile ? ONBOARDING_PATHS.create : `${ONBOARDING_PATHS.profileNew}?next=create`);
+  // [초대코드가 있어요]: 바로 S-13 코드 입력 (프로필은 S-13-C 에서 참여 직전에)
+  const goJoin = () => navigate(ONBOARDING_PATHS.join);
 
   return (
     <OnboardingLayout
@@ -32,12 +30,12 @@ function S14WelcomePage() {
         <div className="flex flex-col items-center gap-4">
           <button
             type="button"
-            onClick={() => goProfile('join')}
+            onClick={goJoin}
             className="py-1 text-sm leading-[normal] font-medium text-gray-600 underline"
           >
             초대코드가 있어요
           </button>
-          <BottomButton onClick={() => goProfile('create')}>집 만들기</BottomButton>
+          <BottomButton onClick={goCreate}>집 만들기</BottomButton>
         </div>
       }
     >
