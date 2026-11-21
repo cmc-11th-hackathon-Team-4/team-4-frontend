@@ -11,6 +11,7 @@ import MemberRail from '@/components/main/MemberRail';
 import MoodBubble from '@/components/main/MoodBubble';
 import { MAIN_TEXT } from '@/constants/main';
 import { STATUS_BUBBLE } from '@/constants/status';
+import { useChoreRequests } from '@/hooks/useChoreRequests';
 import { useDevSession } from '@/hooks/useDevSession';
 import { useGroupBoard } from '@/hooks/useGroupBoard';
 import { useMainMutations } from '@/hooks/useMainMutations';
@@ -24,6 +25,7 @@ function MemberPage() {
   const navigate = useNavigate();
   const { group, myId, choresOf, pendingCountOf, isLoading, isError, refetch } = useGroupBoard();
   const { take } = useMainMutations();
+  const { toByChore } = useChoreRequests();
   const [pending, setPending] = useState<Chore | null>(null);
 
   if (isLoading || (!group && !isError)) return <StateView type="loading" />;
@@ -71,9 +73,21 @@ function MemberPage() {
           hint={MAIN_TEXT.memberChoresHint}
           emptyText={MAIN_TEXT.emptyMemberChores}
         >
-          {chores.map((chore) => (
-            <ChoreTile key={chore.id} name={chore.name} onClick={() => setPending(chore)} />
-          ))}
+          {chores.map((chore) =>
+            toByChore.has(chore.id) ? (
+              <ChoreTile
+                key={chore.id}
+                name={chore.name}
+                pendingTo={
+                  toByChore.get(chore.id) === myId
+                    ? MAIN_TEXT.meLabel
+                    : (group.members.find((m) => m.id === toByChore.get(chore.id))?.nickname ?? '')
+                }
+              />
+            ) : (
+              <ChoreTile key={chore.id} name={chore.name} onClick={() => setPending(chore)} />
+            ),
+          )}
         </ChorePanel>
       </main>
 
