@@ -4,4 +4,8 @@ export const MAIN_PATHS = {
   home: '/',
   /** V3-02 상대 메인 */
   member: (memberId: string) => `/member/${memberId}`,
+  /** V5-12 우리 집 설정 */
+  settings: '/settings',
+  /** V5-12 › 집안일 목록 */
+  choreList: '/settings/chores',
 } as const;

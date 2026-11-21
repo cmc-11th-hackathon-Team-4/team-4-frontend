@@ -6,6 +6,7 @@ import { STATUS_NOTICE } from '@/constants/status';
 import { useGroupBoard } from '@/hooks/useGroupBoard';
 import { useNotifications } from '@/hooks/useNotifications';
 import { MAIN_PATHS } from '@/routes/mainPaths';
+import { WEEKLY_PATHS } from '@/routes/weeklyPaths';
 import { useSeenNotificationStore } from '@/stores/seenNotification';
 import type { Group } from '@/types/group';
 import type { AppNotification } from '@/types/notification';
@@ -20,6 +21,7 @@ function toText(n: AppNotification, group: Group) {
   if (n.type === 'request') return MAIN_TEXT.requestedBy(from, chore);
   if (n.type === 'accept') return MAIN_TEXT.acceptedBy(from, chore);
   if (n.type === 'decline') return MAIN_TEXT.declinedBy(from, chore);
+  if (n.type === 'cycleEnd') return MAIN_TEXT.cycleEnded;
   if (n.status === 'unwilling') return STATUS_NOTICE.unwilling(from);
   return null;
 }
@@ -69,7 +71,7 @@ function NotificationBanner() {
           className="flex min-w-0 flex-1 items-center gap-3 text-left"
           onClick={() => {
             close();
-            navigate(MAIN_PATHS.home);
+            navigate(latest.type === 'cycleEnd' ? WEEKLY_PATHS.summary : MAIN_PATHS.home);
           }}
         >
           <span className="size-8 shrink-0 rounded-full border border-neutral-300 bg-neutral-100" />

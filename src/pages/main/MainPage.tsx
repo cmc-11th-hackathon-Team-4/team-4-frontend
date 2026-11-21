@@ -18,14 +18,12 @@ import { useGroupBoard } from '@/hooks/useGroupBoard';
 import { useMainMutations } from '@/hooks/useMainMutations';
 import { useNotifications } from '@/hooks/useNotifications';
 import { MAIN_PATHS } from '@/routes/mainPaths';
-import { useToastStore } from '@/stores/toast';
 import type { Chore } from '@/types/chore';
 
 /** V5-01 내 메인 (+ V5-02 기분 선택, V5-03~06 완료·짐 올리기, V5-10~11 부탁·하트) */
 function MainPage() {
   useDevSession();
   const navigate = useNavigate();
-  const showToast = useToastStore((s) => s.show);
   const { group, me, myId, choresOf, pendingCountOf, isLoading, isError, refetch } =
     useGroupBoard();
   const { pendingThanks, heartsReceived, heart } = useNotifications();
@@ -57,7 +55,7 @@ function MainPage() {
 
   return (
     <div className="flex flex-1 flex-col bg-neutral-50">
-      <MainHeader title={MAIN_TEXT.homeTitle} onSettings={() => showToast(MAIN_TEXT.preparing)} />
+      <MainHeader title={MAIN_TEXT.homeTitle} onSettings={() => navigate(MAIN_PATHS.settings)} />
 
       <main className="flex flex-1 flex-col gap-5 px-4 pb-6">
         <div className="relative">
