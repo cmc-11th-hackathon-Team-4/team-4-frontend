@@ -23,6 +23,9 @@ function sortMembers(members: DistributionResponse['members']) {
   return [...members].sort((a, b) => Number(b.isMe) - Number(a.isMe));
 }
 
+/** 참여자 화면은 사람마다 앞의 몇 개만 보이고 나머지는 "외 N개" (와이어 S-05 · 참여자) */
+const PARTICIPANT_PREVIEW_COUNT = 3;
+
 /** 모두 같은 개수일 때만 "각자 N개씩" */
 function getDescription(members: DistributionResponse['members']) {
   const counts = new Set(members.map((m) => m.chores.length));
@@ -32,11 +35,13 @@ function getDescription(members: DistributionResponse['members']) {
 }
 
 /**
- * S-05 랜덤 배분 (권한: 방장) — 명세 순서: S-04 → S-06 → S-05
+ * S-05 랜덤 배분 (권한: 방장 · 참여자 보기) — 명세 순서: S-04 → S-06 → S-05
  * - 결과: S-06 이 만든 배분(캐시), 없으면 GET /api/v1/houses/{id}/distribution
  * - [다시 섞기]: POST .../distribution/shuffle (몇 번이든, 섞는 동안 버튼 잠금)
  * - [확정하기]: POST /api/v1/houses/{id}/start → 진행 상태를 비우고 V5-01 내 메인
  * - 이미 시작된 집(ACTIVE)이면 내 메인으로
+ * - 참여자(S-13-W 에서 DISTRIBUTING 일 때): 버튼 없이 결과만, 하단에 "○○님이 확정하면 시작해요"
+ *   실시간 없음: 화면에 다시 돌아올 때 결과 · 집 상태를 다시 불러온다
  */
 function S05AssignPage() {
   const navigate = useNavigate();
@@ -74,12 +79,42 @@ function S05AssignPage() {
   if (isActive) return <Navigate to={HOME_PATH} replace />;
   if (me.isLoading || distribution.isLoading) return <StateView type="loading" />;
   if (me.isError || distribution.isError || !distribution.data) {
-    const retry = () => (me.isError ? me.refetch() : distribution.refetch());
+    const retry = () => {
+      me.refetch();
+      if (houseId) distribution.refetch();
+    };
     return <StateView type="error" message={LOAD_ERROR} retryLabel={RETRY_LABEL} onRetry={retry} />;
   }
 
   const members = sortMembers(distribution.data.members);
+  const isOwner = members.some((m) => m.isMe && m.role === 'OWNER');
+  const ownerName = members.find((m) => m.role === 'OWNER')?.name;
   const isBusy = shuffle.isPending || start.isPending;
+
+  if (!isOwner) {
+    return (
+      <OnboardingLayout
+        title="랜덤 배분"
+        heading={
+          <>
+            우리 집 집안일을
+            <br />
+            나눴어요
+          </>
+        }
+        description="각자 맡은 집안일을 언제든 서로 덜어줄 수 있어요."
+        footer={
+          ownerName && (
+            <p className="flex h-[54px] items-center justify-center rounded-[14px] bg-line-400 text-base font-medium text-gray-500">
+              {ownerName}님이 확정하면 시작해요
+            </p>
+          )
+        }
+      >
+        <MemberChoreList members={members} previewCount={PARTICIPANT_PREVIEW_COUNT} />
+      </OnboardingLayout>
+    );
+  }
 
   return (
     <OnboardingLayout
@@ -108,34 +143,54 @@ function S05AssignPage() {
         </div>
       }
     >
-      <ul className="mt-6 flex flex-col gap-6" aria-busy={shuffle.isPending}>
-        {members.map((member) => (
-          <li key={member.userId}>
-            <div className="flex items-center gap-3">
-              <CharacterImage
-                id={fromServerCharacter(member.characterType)}
-                size={36}
-                scale={1.8}
-                offset={0.21}
-                shape="square"
-              />
-              <span className="flex-1 font-semibold">
-                {member.name}
-                {member.isMe && ' (나)'}
-              </span>
-              <span className="text-sm text-neutral-500">{member.chores.length}개</span>
-            </div>
-            <ul className="mt-3 flex flex-col gap-3 pl-1">
-              {member.chores.map((chore) => (
-                <li key={chore.choreId} className="text-sm">
-                  {chore.name}
-                </li>
-              ))}
-            </ul>
-          </li>
-        ))}
-      </ul>
+      <div aria-busy={shuffle.isPending}>
+        <MemberChoreList members={members} />
+      </div>
     </OnboardingLayout>
+  );
+}
+
+/** 사람별 배분 결과. previewCount 를 주면 그만큼만 보이고 나머지는 "외 N개" */
+function MemberChoreList({
+  members,
+  previewCount,
+}: {
+  members: DistributionResponse['members'];
+  previewCount?: number;
+}) {
+  return (
+    <ul className="mt-6 flex flex-col gap-6">
+      {members.map((member) => (
+        <li key={member.userId}>
+          <div className="flex items-center gap-3">
+            <CharacterImage
+              id={fromServerCharacter(member.characterType)}
+              size={36}
+              scale={1.8}
+              offset={0.21}
+              shape="square"
+            />
+            <span className="flex-1 font-semibold">
+              {member.name}
+              {member.isMe && ' (나)'}
+            </span>
+            <span className="text-sm text-neutral-500">{member.chores.length}개</span>
+          </div>
+          <ul className="mt-3 flex flex-col gap-3 pl-1">
+            {member.chores.slice(0, previewCount).map((chore) => (
+              <li key={chore.choreId} className="text-sm">
+                {chore.name}
+              </li>
+            ))}
+            {previewCount !== undefined && member.chores.length > previewCount && (
+              <li className="text-sm text-neutral-500">
+                외 {member.chores.length - previewCount}개
+              </li>
+            )}
+          </ul>
+        </li>
+      ))}
+    </ul>
   );
 }
 

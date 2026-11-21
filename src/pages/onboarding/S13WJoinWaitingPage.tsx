@@ -1,7 +1,7 @@
 import { Navigate } from 'react-router';
 import StateView from '@/components/common/StateView';
 import { fromServerCharacter } from '@/constants/character';
-import { HOME_PATH } from '@/routes/onboardingPaths';
+import { HOME_PATH, ONBOARDING_PATHS } from '@/routes/onboardingPaths';
 import { useToastStore } from '@/stores/toast';
 import { LOAD_ERROR, RETRY_LABEL } from './apiMessages';
 import BottomButton from './components/BottomButton';
@@ -13,7 +13,7 @@ import { useMyHouse } from './useMyHouse';
  * - 상단 집 이름, 내 캐릭터, 방장이 집안일과 결산 주기를 정하는 중이라는 안내
  * - 실시간 없음: 화면에 들어올 때와 [새로고침] 때 집 상태(GET /api/v1/houses/{id})를 조회
  * - 상태가 ACTIVE(시작됨)면 내 메인으로
- * - TODO(API): DISTRIBUTING(배분됨) → S-05 랜덤 배분 · 참여자 (배분 결과 API 가 없어 보류)
+ * - 상태가 DISTRIBUTING(배분됨)이면 S-05 랜덤 배분 · 참여자 화면으로
  * - TODO: "앱을 껐다 켜도 이 화면부터" 는 앱 첫 화면 가드(② 담당과 협의)에서 처리
  */
 function S13WJoinWaitingPage() {
@@ -27,6 +27,7 @@ function S13WJoinWaitingPage() {
     );
   }
   if (house.status === 'ACTIVE') return <Navigate to={HOME_PATH} replace />;
+  if (house.status === 'DISTRIBUTING') return <Navigate to={ONBOARDING_PATHS.assign} replace />;
 
   const owner = house.members.find((m) => m.role === 'OWNER');
   const myCharacter = me ? fromServerCharacter(me.characterType) : null;
