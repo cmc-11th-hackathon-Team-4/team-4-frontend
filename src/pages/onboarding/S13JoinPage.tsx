@@ -3,7 +3,6 @@ import { useState } from 'react';
 import { Navigate, useNavigate } from 'react-router';
 import { ApiError } from '@/apis/error';
 import { joinHouse } from '@/apis/onboarding';
-import alertIcon from '@/assets/icons/alert.svg';
 import { ONBOARDING_PATHS } from '@/routes/onboardingPaths';
 import { useProfileStore } from '@/stores/profile';
 import BottomButton from './components/BottomButton';
@@ -81,15 +80,26 @@ function S13JoinPage() {
   return (
     <OnboardingLayout
       title="초대 코드 입력"
-      heading="받은 초대 코드를 입력해 주세요"
-      description="방장에게 받은 6자리 코드"
+      heading={
+        <>
+          받은 초대 코드를
+          <br />
+          입력해 주세요
+        </>
+      }
+      description="방장에게 받은 6자리 코드예요."
       footer={
         <BottomButton disabled={!canSubmit} onClick={() => join.mutate()}>
           입력 완료
         </BottomButton>
       }
     >
-      <div className="mt-8 flex h-15 items-center gap-2 rounded-[14px] border-2 border-gray-800 bg-white pr-2.5 pl-4">
+      {/* 피그마 2-5 S-13 · S-13-E: 56px 코드 칸(포커스 보라 · 에러 빨강), 붙여넣기 칩, 아래 12px 안내 */}
+      <div
+        className={`mt-10 flex h-14 items-center gap-2 rounded-xl border-2 bg-white pr-2.5 pl-3 ${
+          error ? 'border-[#fe4543]' : 'border-line-800 focus-within:border-primary-500'
+        }`}
+      >
         <input
           autoFocus
           value={code}
@@ -101,28 +111,23 @@ function S13JoinPage() {
           autoComplete="off"
           autoCorrect="off"
           spellCheck={false}
-          className="min-w-0 flex-1 bg-transparent text-[22px] leading-[normal] font-semibold tracking-[4px] text-gray-900 outline-none"
+          className="min-w-0 flex-1 bg-transparent text-lg leading-[normal] font-bold text-[#222329] outline-none"
         />
         <button
           type="button"
           onClick={paste}
-          className="h-8 shrink-0 rounded-lg border border-line-800 px-3 text-[13px] text-gray-800"
+          className="shrink-0 rounded px-3 py-2 text-xs leading-[normal] font-medium text-primary-500 bg-primary-100"
         >
           붙여넣기
         </button>
       </div>
 
-      {error ? (
-        <p
-          role="alert"
-          className="mt-3 flex items-center gap-1.5 text-sm font-medium text-gray-800"
-        >
-          <img src={alertIcon} alt="" width={18} height={18} />
-          {error}
-        </p>
-      ) : (
-        <p className="mt-3 text-[13px] text-gray-500">영문 대문자 · 숫자 6자리</p>
-      )}
+      <p
+        role={error ? 'alert' : undefined}
+        className={`mt-[13px] text-xs leading-[normal] ${error ? 'text-[#fe4543]' : 'text-[#878d99]'}`}
+      >
+        {error ?? '6자리 초대 코드를 입력해주세요.'}
+      </p>
     </OnboardingLayout>
   );
 }
