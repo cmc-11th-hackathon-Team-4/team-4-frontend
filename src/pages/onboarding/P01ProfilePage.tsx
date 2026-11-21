@@ -1,21 +1,23 @@
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import { ONBOARDING_PATHS } from '@/routes/onboardingPaths';
-import { CHARACTER_COUNT, type CharacterId } from '@/types/member';
+import { useOnboardingStore } from '@/stores/onboarding';
+import type { CharacterId } from '@/types/member';
 import BottomButton from './components/BottomButton';
-import InfoText from './components/InfoText';
+import CharacterPicker from './components/CharacterPicker';
 import OnboardingLayout from './components/OnboardingLayout';
-import { ONBOARDING_STEP_TOTAL } from './constants';
 import UnderlineInput from './components/UnderlineInput';
+import { ONBOARDING_STEP_TOTAL } from './constants';
 import { INPUT_RULES, isValidText } from './validation';
 
-/** 캐릭터 값 형식은 서버 확정 전까지 '1'~'4' */
-const CHARACTERS: CharacterId[] = Array.from({ length: CHARACTER_COUNT }, (_, i) => String(i + 1));
+/** 처음 보이는 캐릭터 (피그마 시안에서 선택된 보라 캐릭터) */
+const DEFAULT_CHARACTER: CharacterId = '5';
 
 /**
- * P-01 프로필 만들기 (권한: 모두)
+ * P-01 프로필 만들기 (권한: 모두) — 피그마 비주얼 시안 기준
  * - S-14에서 ?next=create → S-01 집 만들기, ?next=join → S-13 코드로 참여
- * - TODO(API): 프로필 저장 후 이동
+ * - 프로필 수정 모드(④ 마이)는 ④ 담당. CharacterPicker 재사용 가능
+ * - TODO(API): POST /api/v1/users 로 프로필 저장 후 이동
  */
 function P01ProfilePage() {
   const navigate = useNavigate();
@@ -23,48 +25,51 @@ function P01ProfilePage() {
   const nextPath =
     searchParams.get('next') === 'join' ? ONBOARDING_PATHS.join : ONBOARDING_PATHS.create;
 
-  const [character, setCharacter] = useState<CharacterId | null>(null);
+  const savedCharacter = useOnboardingStore((s) => s.character);
+  const saveCharacter = useOnboardingStore((s) => s.setCharacter);
+
+  const [character, setCharacter] = useState<CharacterId>(savedCharacter ?? DEFAULT_CHARACTER);
   const [name, setName] = useState('');
 
-  const canSubmit = character !== null && isValidText(name, INPUT_RULES.profileName);
+  const canSubmit = isValidText(name, INPUT_RULES.profileName);
+
+  const handleNext = () => {
+    saveCharacter(character);
+    navigate(nextPath);
+  };
 
   return (
     <OnboardingLayout
       title="프로필 만들기"
       step={{ current: 1, total: ONBOARDING_STEP_TOTAL }}
-      heading="어떤 캐릭터로 함께할까요?"
-      description="같은 캐릭터여도 이름으로 구분돼요."
+      heading={
+        <>
+          집안일에 참여하기 전
+          <br />
+          <span className="text-primary-500">닉네임</span>과{' '}
+          <span className="text-primary-500">캐릭터</span>를 정해주세요
+        </>
+      }
+      description="정한 이름과 캐릭터는 우리 집 구성원에게 보여요."
       footer={
-        <BottomButton disabled={!canSubmit} onClick={() => navigate(nextPath)}>
-          프로필 만들고 계속하기
+        <BottomButton disabled={!canSubmit} onClick={handleNext}>
+          다음
         </BottomButton>
       }
     >
-      <div className="mt-6 grid grid-cols-2 gap-3">
-        {CHARACTERS.map((id) => (
-          <button
-            key={id}
-            type="button"
-            aria-pressed={character === id}
-            onClick={() => setCharacter(id)}
-            className={`flex aspect-square flex-col items-center justify-center rounded-2xl border-2 bg-neutral-100 text-sm ${
-              character === id ? 'border-neutral-900' : 'border-transparent'
-            }`}
-          >
-            캐릭터 {id}
-          </button>
-        ))}
+      <div className="mt-8">
+        <CharacterPicker value={character} onChange={setCharacter} />
       </div>
 
       <UnderlineInput
-        className="mt-8"
+        className="mt-13"
         label="이름"
         value={name}
         onChange={setName}
         maxLength={INPUT_RULES.profileName.max}
-        placeholder="수아"
+        placeholder="이름을 정해주세요."
+        helperText="0~10글자 · 메인에서 캐릭터와 함께 보여요."
       />
-      <InfoText className="mt-2">1~10자 · 메인에서 캐릭터와 함께 보여요.</InfoText>
     </OnboardingLayout>
   );
 }

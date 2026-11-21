@@ -8,8 +8,8 @@ interface OnboardingLayoutProps {
   title?: string;
   /** 뒤로가기 표시 여부 */
   showBack?: boolean;
-  /** 큰 제목 */
-  heading?: string;
+  /** 큰 제목 (일부 단어 강조 가능) */
+  heading?: ReactNode;
   /** 제목 아래 설명 */
   description?: string;
   children?: ReactNode;
