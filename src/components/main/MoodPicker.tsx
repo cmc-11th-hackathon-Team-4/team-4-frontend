@@ -1,6 +1,5 @@
 import bubble from '@/assets/main/mood-bubble.svg';
-import { CHARACTER_IMAGES } from '@/constants/character';
-import { MOOD_FACES } from '@/constants/characterTheme';
+import { characterFace } from '@/constants/characterTheme';
 import { MAIN_TEXT } from '@/constants/main';
 import { STATUS_LABEL, STATUS_LIST } from '@/constants/status';
 import type { CharacterId, MemberStatus } from '@/types/member';
@@ -19,8 +18,6 @@ const FACE_LEFT = [17, 107, 197];
 
 /** V5-02 "오늘 기분은 어때요?" 말풍선 (캐릭터 위, 꼬리가 캐릭터를 가리킴) */
 function MoodPicker({ character, value, color, onChange, onClose }: MoodPickerProps) {
-  const faces = MOOD_FACES[character];
-
   return (
     <>
       <div className="fixed inset-0 z-20" onClick={onClose} />
@@ -60,7 +57,7 @@ function MoodPicker({ character, value, color, onChange, onClose }: MoodPickerPr
                 >
                   <span className="absolute inset-0 bg-[rgba(13,13,13,0.2)] shadow-[inset_0_8px_8px_#ccc2ff]" />
                   <img
-                    src={faces?.[status] ?? CHARACTER_IMAGES[character]}
+                    src={characterFace(character, status)}
                     alt=""
                     className="absolute top-[-24px] left-[-26px] size-[124px] max-w-none object-cover"
                   />

@@ -74,56 +74,64 @@ function MemberPage() {
         />
       </div>
 
-      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain">
-        <MainHero theme={theme} character={member.character} count={chores.length} />
-
-        <main className="flex flex-col gap-5 px-4 pb-6">
-          <MemberCard
-            members={group.members}
-            myId={myId}
-            activeId={member.id}
-            countOf={pendingCountOf}
-            onSelect={(id) =>
-              navigate(id === myId ? MAIN_PATHS.home : MAIN_PATHS.member(id), { replace: true })
-            }
+      {/* 가운데 스크롤: 위 고정 영역 아래로 20px 동안 부드럽게 사라짐 */}
+      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain [mask-image:linear-gradient(to_bottom,transparent,black_20px)]">
+        <div className="flex min-h-full flex-col" style={{ background: theme.contentBackground }}>
+          <MainHero
+            theme={theme}
+            character={member.character}
+            status={member.status}
+            count={chores.length}
           />
 
-          <SectionCard
-            title={MAIN_TEXT.memberChores(member.nickname)}
-            hint={MAIN_TEXT.memberChoresHint}
-          >
-            {chores.length === 0 ? (
-              <p className="py-6 text-center text-sm font-medium text-gray-400">
-                {MAIN_TEXT.emptyMemberChores}
-              </p>
-            ) : (
-              <div className="grid grid-cols-2 gap-x-4 gap-y-2.5">
-                {chores.map((chore) => {
-                  const toId = toByChore.get(chore.id);
-                  return toId ? (
-                    <ChoreCard
-                      key={chore.id}
-                      name={chore.name}
-                      caption={requestedTo(toId)}
-                      dimmed
-                    />
-                  ) : (
-                    <ChoreCard
-                      key={chore.id}
-                      name={chore.name}
-                      caption={dueCaption}
-                      onPress={() =>
-                        isMemberFull(group.chores, myId)
-                          ? showToast(MAIN_TEXT.memberFullToast)
-                          : setPending(chore)
-                      }
-                    />
-                  );
-                })}
-              </div>
-            )}
-          </SectionCard>
-        </main>
+          <main className="flex flex-col gap-5 px-4 pb-6">
+            <MemberCard
+              members={group.members}
+              myId={myId}
+              activeId={member.id}
+              countOf={pendingCountOf}
+              onSelect={(id) =>
+                navigate(id === myId ? MAIN_PATHS.home : MAIN_PATHS.member(id), { replace: true })
+              }
+            />
+
+            <SectionCard
+              title={MAIN_TEXT.memberChores(member.nickname)}
+              hint={MAIN_TEXT.memberChoresHint}
+            >
+              {chores.length === 0 ? (
+                <p className="py-6 text-center text-sm font-medium text-gray-400">
+                  {MAIN_TEXT.emptyMemberChores}
+                </p>
+              ) : (
+                <div className="grid grid-cols-2 gap-x-4 gap-y-2.5">
+                  {chores.map((chore) => {
+                    const toId = toByChore.get(chore.id);
+                    return toId ? (
+                      <ChoreCard
+                        key={chore.id}
+                        name={chore.name}
+                        caption={requestedTo(toId)}
+                        dimmed
+                      />
+                    ) : (
+                      <ChoreCard
+                        key={chore.id}
+                        name={chore.name}
+                        caption={dueCaption}
+                        onPress={() =>
+                          isMemberFull(group.chores, myId)
+                            ? showToast(MAIN_TEXT.memberFullToast)
+                            : setPending(chore)
+                        }
+                      />
+                    );
+                  })}
+                </div>
+              )}
+            </SectionCard>
+          </main>
+        </div>
       </div>
 
       <TabBar />

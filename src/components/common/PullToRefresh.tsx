@@ -6,13 +6,14 @@ const MAX_PULL = 96;
 interface PullToRefreshProps {
   onRefresh: () => Promise<unknown>;
   children: ReactNode;
+  className?: string;
 }
 
 /**
  * 맨 위에서 아래로 당기면 새로고침 (V5-01 명세). 터치 기기에서만 동작
  * 이 영역이 스크롤 영역 (위 · 아래 고정 영역 사이)
  */
-function PullToRefresh({ onRefresh, children }: PullToRefreshProps) {
+function PullToRefresh({ onRefresh, children, className = '' }: PullToRefreshProps) {
   const startY = useRef<number | null>(null);
   const [pull, setPull] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
@@ -46,7 +47,7 @@ function PullToRefresh({ onRefresh, children }: PullToRefreshProps) {
 
   return (
     <div
-      className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain"
+      className={`flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain ${className}`}
       onTouchStart={onTouchStart}
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}

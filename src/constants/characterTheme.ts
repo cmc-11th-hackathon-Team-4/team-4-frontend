@@ -4,9 +4,10 @@ import wave1Orange from '@/assets/main/wave1-orange.svg';
 import wave1Purple from '@/assets/main/wave1-purple.svg';
 import wave2Orange from '@/assets/main/wave2-orange.svg';
 import wave2Purple from '@/assets/main/wave2-purple.svg';
-import mood5Relaxed from '@/assets/moods/5-relaxed.png';
+import mood2Unwilling from '@/assets/moods/2-unwilling.png';
 import mood5Tired from '@/assets/moods/5-tired.png';
 import mood5Unwilling from '@/assets/moods/5-unwilling.png';
+import { CHARACTER_IMAGES } from '@/constants/character';
 import type { CharacterId, MemberStatus } from '@/types/member';
 
 /**
@@ -15,8 +16,13 @@ import type { CharacterId, MemberStatus } from '@/types/member';
  * - TODO(디자인): 빨강(1) · 노랑(3) · 파랑(4) 시안이 나오면 추가. 그전엔 보라 테마
  */
 export interface CharacterTheme {
-  /** 화면 배경 (라벤더 / 크림 피치) */
+  /** 화면 배경 (고정: 헤더 · 칩 뒤까지) */
   background: string;
+  /**
+   * 스크롤 내용 배경 (내용과 같이 움직임). 주황 시안의 크림 → 피치 경계선처럼
+   * 화면에 고정되면 카드 위로 선이 지나가는 배경은 여기에
+   */
+  contentBackground?: string;
   /** primary/100 · 400 · 500 */
   c100: string;
   c400: string;
@@ -79,8 +85,9 @@ const PURPLE: CharacterTheme = {
 };
 
 const ORANGE: CharacterTheme = {
-  // 시안: 위 크림(#fff9f5) · 아래 피치(#ffe9da)가 바로 바뀜 (화면 y 460 = 헤더 위 기준 398px)
-  background: 'linear-gradient(180deg, #fff9f5 398px, #ffe9da 398px)',
+  background: '#fff9f5',
+  // 시안: 위 크림(#fff9f5) · 아래 피치(#ffe9da)가 바로 바뀜 (화면 y 460 = 헤더 위 398px = 스크롤 내용 282px)
+  contentBackground: 'linear-gradient(180deg, #fff9f5 282px, #ffe9da 282px)',
   c100: '#fff2e9',
   c400: '#ff9658',
   c500: '#ff742c',
@@ -110,7 +117,16 @@ const THEMES: Record<string, CharacterTheme> = { '2': ORANGE, '5': PURPLE };
 
 export const themeOf = (character: CharacterId): CharacterTheme => THEMES[character] ?? PURPLE;
 
-/** V5-02 기분 말풍선 표정 (보라 캐릭터 시안만 있음. 없으면 기본 캐릭터 이미지) */
-export const MOOD_FACES: Record<string, Record<MemberStatus, string>> = {
-  '5': { relaxed: mood5Relaxed, tired: mood5Tired, unwilling: mood5Unwilling },
+/**
+ * 기분별 캐릭터 표정 (큰 캐릭터 · V5-02 말풍선 공용)
+ * - 쌩쌩 = 기본 캐릭터 이미지 (시안 파일과 같음)
+ * - 보라(5): 여유 · 지침 / 주황(2): 지침
+ * - TODO(디자인): 나머지 표정 시안이 나오면 추가 (없으면 기본 이미지)
+ */
+const MOOD_FACES: Record<string, Partial<Record<MemberStatus, string>>> = {
+  '2': { unwilling: mood2Unwilling },
+  '5': { tired: mood5Tired, unwilling: mood5Unwilling },
 };
+
+export const characterFace = (character: CharacterId, status: MemberStatus) =>
+  MOOD_FACES[character]?.[status] ?? CHARACTER_IMAGES[character];

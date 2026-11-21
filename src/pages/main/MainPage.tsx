@@ -82,7 +82,7 @@ function MainPage() {
       className="flex min-h-0 flex-1 flex-col overflow-hidden"
       style={{ background: theme.background }}
     >
-      <div className="shrink-0">
+      <div className="relative z-20 shrink-0">
         <Header
           title={MAIN_TEXT.homeTitle}
           right={<HeaderSettingButton onClick={() => navigate(MAIN_PATHS.settings)} />}
@@ -93,107 +93,118 @@ function MainPage() {
           count={myChores.length}
           onMoodClick={() => setMoodOpen((open) => !open)}
         />
+        {/* 기분 말풍선: 헤더 아래 기준 (시안 402px 가운데 정렬), 스크롤 영역 위에 뜸 */}
+        {moodOpen && (
+          <div className="absolute inset-x-0 top-14">
+            <div className="relative left-1/2 -ml-[201px] w-[402px]">
+              <MoodPicker
+                character={me.character}
+                value={me.status}
+                color={theme.c500}
+                onChange={(next) => status.mutate(next)}
+                onClose={() => setMoodOpen(false)}
+              />
+            </div>
+          </div>
+        )}
       </div>
 
-      <PullToRefresh onRefresh={refreshAll}>
-        <MainHero
-          theme={theme}
-          character={me.character}
-          count={myChores.length}
-          onMoodClick={() => setMoodOpen((open) => !open)}
-          heartBurstKey={heartBurst?.id}
-          onHeartBurstEnd={() => markPlayed(heartsReceived.map((n) => n.id))}
-        >
-          {moodOpen && (
-            <MoodPicker
-              character={me.character}
-              value={me.status}
-              color={theme.c500}
-              onChange={(next) => status.mutate(next)}
-              onClose={() => setMoodOpen(false)}
-            />
-          )}
-        </MainHero>
-
-        <main className="flex flex-col gap-5 px-4 pb-6">
-          <MemberCard
-            members={group.members}
-            myId={myId}
-            activeId={myId}
-            countOf={pendingCountOf}
-            onSelect={(id) => id !== myId && navigate(MAIN_PATHS.member(id))}
+      {/* 가운데 스크롤: 위 고정 영역 아래로 20px 동안 부드럽게 사라짐 */}
+      <PullToRefresh
+        onRefresh={refreshAll}
+        className="[mask-image:linear-gradient(to_bottom,transparent,black_20px)]"
+      >
+        <div className="flex min-h-full flex-col" style={{ background: theme.contentBackground }}>
+          <MainHero
+            theme={theme}
+            character={me.character}
+            status={me.status}
+            count={myChores.length}
+            onMoodClick={() => setMoodOpen((open) => !open)}
+            heartBurstKey={heartBurst?.id}
+            onHeartBurstEnd={() => markPlayed(heartsReceived.map((n) => n.id))}
           />
 
-          <SectionCard title={MAIN_TEXT.myChoresTitle} hint={MAIN_TEXT.myChoresHint}>
-            {requests.received.map((req) => (
-              <RequestNotice
-                key={req.id}
-                text={MAIN_TEXT.requestedBy(
-                  nameOf(req.fromId),
-                  req.choreName ?? choreNameOf(req.choreId),
-                )}
-                disabled={respond.isPending}
-                onAccept={() =>
-                  myFull
-                    ? showToast(MAIN_TEXT.memberFullToast)
-                    : respond.mutate({
-                        req,
-                        accept: true,
-                        choreName: req.choreName ?? choreNameOf(req.choreId),
-                      })
-                }
-                onDecline={() =>
-                  respond.mutate({
-                    req,
-                    accept: false,
-                    choreName: req.choreName ?? choreNameOf(req.choreId),
-                  })
-                }
-              />
-            ))}
-            {thanksTarget && (
-              <HeartNotice
-                text={MAIN_TEXT.takenBy(
-                  nameOf(thanksTarget.fromId),
-                  thanksTarget.choreName ?? choreNameOf(thanksTarget.choreId),
-                )}
-                disabled={heart.isPending}
-                onHeart={() =>
-                  heart.mutate({ notification: thanksTarget, name: nameOf(thanksTarget.fromId) })
-                }
-              />
-            )}
+          <main className="flex flex-col gap-5 px-4 pb-6">
+            <MemberCard
+              members={group.members}
+              myId={myId}
+              activeId={myId}
+              countOf={pendingCountOf}
+              onSelect={(id) => id !== myId && navigate(MAIN_PATHS.member(id))}
+            />
 
-            {myChores.length === 0 ? (
-              <p className="py-6 text-center text-sm font-medium text-gray-400">
-                {MAIN_TEXT.emptyMyChores}
-              </p>
-            ) : (
-              <div className="grid grid-cols-2 gap-x-4 gap-y-2.5">
-                {myChores.map((chore) => {
-                  const sent = sentByChore.get(chore.id);
-                  return sent ? (
-                    <ChoreCard
-                      key={chore.id}
-                      name={chore.name}
-                      caption={MAIN_TEXT.requesting(nameOf(sent.toId))}
-                      dimmed
-                      onPress={() => setCanceling(chore)}
-                    />
-                  ) : (
-                    <ChoreCard
-                      key={chore.id}
-                      name={chore.name}
-                      caption={dueCaption}
-                      onPress={() => setRequesting(chore)}
-                      onComplete={() => setCompleting(chore)}
-                    />
-                  );
-                })}
-              </div>
-            )}
-          </SectionCard>
-        </main>
+            <SectionCard title={MAIN_TEXT.myChoresTitle} hint={MAIN_TEXT.myChoresHint}>
+              {requests.received.map((req) => (
+                <RequestNotice
+                  key={req.id}
+                  text={MAIN_TEXT.requestedBy(
+                    nameOf(req.fromId),
+                    req.choreName ?? choreNameOf(req.choreId),
+                  )}
+                  disabled={respond.isPending}
+                  onAccept={() =>
+                    myFull
+                      ? showToast(MAIN_TEXT.memberFullToast)
+                      : respond.mutate({
+                          req,
+                          accept: true,
+                          choreName: req.choreName ?? choreNameOf(req.choreId),
+                        })
+                  }
+                  onDecline={() =>
+                    respond.mutate({
+                      req,
+                      accept: false,
+                      choreName: req.choreName ?? choreNameOf(req.choreId),
+                    })
+                  }
+                />
+              ))}
+              {thanksTarget && (
+                <HeartNotice
+                  text={MAIN_TEXT.takenBy(
+                    nameOf(thanksTarget.fromId),
+                    thanksTarget.choreName ?? choreNameOf(thanksTarget.choreId),
+                  )}
+                  disabled={heart.isPending}
+                  onHeart={() =>
+                    heart.mutate({ notification: thanksTarget, name: nameOf(thanksTarget.fromId) })
+                  }
+                />
+              )}
+
+              {myChores.length === 0 ? (
+                <p className="py-6 text-center text-sm font-medium text-gray-400">
+                  {MAIN_TEXT.emptyMyChores}
+                </p>
+              ) : (
+                <div className="grid grid-cols-2 gap-x-4 gap-y-2.5">
+                  {myChores.map((chore) => {
+                    const sent = sentByChore.get(chore.id);
+                    return sent ? (
+                      <ChoreCard
+                        key={chore.id}
+                        name={chore.name}
+                        caption={MAIN_TEXT.requesting(nameOf(sent.toId))}
+                        dimmed
+                        onPress={() => setCanceling(chore)}
+                      />
+                    ) : (
+                      <ChoreCard
+                        key={chore.id}
+                        name={chore.name}
+                        caption={dueCaption}
+                        onPress={() => setRequesting(chore)}
+                        onComplete={() => setCompleting(chore)}
+                      />
+                    );
+                  })}
+                </div>
+              )}
+            </SectionCard>
+          </main>
+        </div>
       </PullToRefresh>
 
       <TabBar />

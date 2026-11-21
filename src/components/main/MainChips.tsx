@@ -5,8 +5,11 @@ import { MAIN_TEXT } from '@/constants/main';
 import { STATUS_LABEL } from '@/constants/status';
 import type { MemberStatus } from '@/types/member';
 
-/** 칩 줄 높이 (위 여백 12 + 칩 36). 고정 영역에 들어가서 캐릭터 영역이 이만큼 위로 올라감 */
-export const CHIPS_HEIGHT = 48;
+/**
+ * 칩 줄 높이 (위 여백 12 + 칩 36 + 아래 배경 12).
+ * 고정 영역에 들어가서 캐릭터 영역이 이만큼 위로 올라감 (스크롤 0이면 시안 위치)
+ */
+export const CHIPS_HEIGHT = 60;
 
 interface MainChipsProps {
   theme: CharacterTheme;
@@ -26,7 +29,7 @@ function MainChips({ theme, status, count, ownerName, onMoodClick }: MainChipsPr
   const label = STATUS_LABEL[status];
 
   return (
-    <div className="flex gap-2 px-4 pt-3">
+    <div className="flex gap-2 px-4 py-3">
       <button
         type="button"
         disabled={!onMoodClick}
