@@ -12,7 +12,7 @@ interface MoodPickerProps {
   onOpenChange: (open: boolean) => void;
 }
 
-/** 게이지 아래 '기분 · 여유 >' 버튼 + '오늘 기분 어때?' 팝오버 (V5-02) */
+/** 게이지 아래 '기분 · 쌩쌩 >' 버튼 + '오늘 기분 어때?' 팝오버 (V5-02) */
 function MoodPicker({ value, onChange, open, onOpenChange }: MoodPickerProps) {
   const setOpen = onOpenChange;
 

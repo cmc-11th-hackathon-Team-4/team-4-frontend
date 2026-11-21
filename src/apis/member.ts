@@ -5,7 +5,7 @@ import { USE_MOCK } from './config';
 import { instance } from './instance';
 
 // TODO: 스웨거 확정되면 경로 맞추기
-/** 기분 변경. '고르기 싫음'으로 바뀌면 다른 구성원에게 상태 알림 (V5-02) */
+/** 기분 변경. '지침'(unwilling)으로 바뀌면 다른 구성원에게 상태 알림 */
 export async function updateStatus(memberId: Id, status: MemberStatus): Promise<void> {
   if (USE_MOCK) {
     await delay();
