@@ -7,7 +7,7 @@ import ChorePanel from '@/components/main/ChorePanel';
 import ChoreTile from '@/components/main/ChoreTile';
 import LoadGauge from '@/components/main/LoadGauge';
 import MainHeader from '@/components/main/MainHeader';
-import MemberRail from '@/components/main/MemberRail';
+import MemberRail, { RAIL_ITEM_HEIGHT } from '@/components/main/MemberRail';
 import MoodBubble from '@/components/main/MoodBubble';
 import { MAIN_TEXT } from '@/constants/main';
 import { STATUS_BUBBLE } from '@/constants/status';
@@ -50,7 +50,11 @@ function MemberPage() {
       <MainHeader showBack title={member.nickname} />
 
       <main className="flex flex-1 flex-col gap-5 px-4 pb-6">
-        <div className="relative">
+        <div
+          className="relative"
+          // TODO(디자인): 구성원이 많으면(최대 5명) 레일이 카드 영역과 겹치지 않게 임시로 높이 확보
+          style={{ minHeight: group.members.length * RAIL_ITEM_HEIGHT }}
+        >
           <div className="pt-2 pb-3">
             <LoadGauge count={chores.length} status={member.status} />
           </div>
