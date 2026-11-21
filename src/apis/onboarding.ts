@@ -109,3 +109,17 @@ export const createDistribution = (
   houseId: string,
   body: { settlementCycle: ServerSettlementCycle; startDate: string },
 ) => call<DistributionResponse>(instance.post(`/api/v1/houses/${houseId}/distribution`, body));
+
+/** S-05 배분 결과 (DISTRIBUTING 에서만, 아니면 HOUSE-409-3) */
+export const getDistribution = (houseId: string) =>
+  call<DistributionResponse>(instance.get(`/api/v1/houses/${houseId}/distribution`));
+
+/** S-05 [다시 섞기] (방장만, 몇 번이든) */
+export const shuffleDistribution = (houseId: string) =>
+  call<DistributionResponse>(instance.post(`/api/v1/houses/${houseId}/distribution/shuffle`));
+
+/** S-05 [확정하기] 집 시작 (방장만). 집 상태가 ACTIVE 로 바뀐다 */
+export const startHouse = (houseId: string) =>
+  call<{ houseId: number; status: HouseStatus; period: DistributionResponse['period'] }>(
+    instance.post(`/api/v1/houses/${houseId}/start`),
+  );
