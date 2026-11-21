@@ -1,3 +1,4 @@
+import type { CyclePeriod } from '@/types/cycle';
 import { josa } from '@/utils/josa';
 
 /** UX 라이팅 가이드: 문장 속 이름 뒤에는 '님' */
@@ -92,7 +93,7 @@ export const MAIN_TEXT = {
   choreCount: (count: number) => `${count}개`,
   sectionCycle: '결산 기간 · 방장',
   cycle: '결산 주기',
-  cyclePeriod: { weekly: '매주', biweekly: '2주', monthly: '한 달' },
+  cyclePeriod: { 7: '매주', 3: '3일', 1: '1일' } as Record<CyclePeriod, string>,
   cycleUntil: (date: string) => `${date}까지`,
   extendCycle: '이번 기간 늘리기',
   sectionMembers: '구성원',

@@ -1,10 +1,24 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { isApiError } from '@/apis/error';
+import { ME_QUERY_KEY } from '@/hooks/useProfile';
 import { getHouse, getMe } from '@/apis/onboarding';
 import { onboardingKeys } from './queryKeys';
 
 /** 서버에 프로필이 없음 (등록되지 않은 기기, USER-404) */
 export const isNoProfile = (error: unknown) => isApiError(error, 'USER-404');
+
+/**
+ * 프로필 · 집 상태가 바뀐 뒤 내 정보를 새로 받게 함
+ * - ① 캐시(['onboarding','me'])는 다시 불러오고, ②·④ 가 쓰는 ['me'] 캐시는 지움
+ *   (예전 "프로필 없음 · 집 없음" 값이 남아 있으면 ② 메인이 /welcome 으로 보낼 수 있음)
+ */
+export function useRefreshMe() {
+  const queryClient = useQueryClient();
+  return () => {
+    queryClient.invalidateQueries({ queryKey: onboardingKeys.me });
+    queryClient.removeQueries({ queryKey: ME_QUERY_KEY });
+  };
+}
 
 /** 내 정보 + 소속 집 (GET /users/me). 플로우 ① 화면은 집 id 와 "프로필 있음?" 을 서버 기준으로 쓴다 */
 export function useMe() {
