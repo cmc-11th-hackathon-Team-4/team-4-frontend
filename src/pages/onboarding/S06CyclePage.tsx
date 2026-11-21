@@ -6,7 +6,7 @@ import { useOnboardingStore, type SettlementCycle } from '@/stores/onboarding';
 import { useToastStore } from '@/stores/toast';
 import { errorMessage } from './apiMessages';
 import BottomButton from './components/BottomButton';
-import InfoText from './components/InfoText';
+import SelectUnderline from './components/SelectUnderline';
 import OnboardingLayout from './components/OnboardingLayout';
 import { ONBOARDING_STEP_TOTAL } from './constants';
 import { formatDate, parseDate, todayString, weekdayOf } from './date';
@@ -73,7 +73,13 @@ function S06CyclePage() {
     <OnboardingLayout
       title="집안일 배분하기"
       step={{ current: 6, total: ONBOARDING_STEP_TOTAL }}
-      heading="언제마다 새로 나눌까요?"
+      heading={
+        <>
+          언제마다
+          <br />
+          새로 나눌까요?
+        </>
+      }
       description="주기가 끝나면 결산하고 다시 나눠요."
       footer={
         <BottomButton disabled={!houseId || save.isPending} onClick={handleStart}>
@@ -81,12 +87,16 @@ function S06CyclePage() {
         </BottomButton>
       }
     >
-      <label className="mt-8 flex flex-col">
-        <span className="text-sm text-neutral-500">결산 주기</span>
+      <SelectUnderline
+        className="mt-10"
+        label="결산 주기"
+        value={CYCLE_OPTIONS.find((o) => o.value === cycle)?.label ?? ''}
+        helperText="주기는 우리 집 설정에서 바꿀 수 있어요."
+      >
         <select
           value={cycle}
           onChange={(e) => setCycle(e.target.value as SettlementCycle)}
-          className="h-12 appearance-none border-b-2 border-neutral-300 bg-transparent text-xl font-semibold outline-none focus:border-neutral-900"
+          aria-label="결산 주기"
         >
           {CYCLE_OPTIONS.map(({ value, label }) => (
             <option key={value} value={value}>
@@ -94,28 +104,22 @@ function S06CyclePage() {
             </option>
           ))}
         </select>
-      </label>
+      </SelectUnderline>
 
-      <label className="relative mt-8 flex flex-col">
-        <span className="text-sm text-neutral-500">시작 날짜</span>
-        <span className="flex h-12 items-center border-b-2 border-neutral-300 text-xl font-semibold">
-          {formatDate(startDate)}
-        </span>
-        {/* 표시는 위 텍스트, 선택은 투명한 날짜 입력으로 (기기 기본 날짜 선택기) */}
+      <SelectUnderline
+        className="mt-10"
+        label="시작 날짜"
+        value={formatDate(startDate)}
+        helperText={getCycleGuide(cycle, startDate)}
+      >
         <input
           type="date"
           value={startDate}
           min={today}
           onChange={(e) => e.target.value >= today && setStartDate(e.target.value)}
           aria-label="시작 날짜"
-          className="absolute inset-x-0 bottom-0 h-12 opacity-0"
         />
-      </label>
-
-      <div className="mt-3 flex flex-col gap-2">
-        <InfoText>{getCycleGuide(cycle, startDate)}</InfoText>
-        <InfoText>주기는 우리 집 설정에서 바꿀 수 있어요.</InfoText>
-      </div>
+      </SelectUnderline>
     </OnboardingLayout>
   );
 }
