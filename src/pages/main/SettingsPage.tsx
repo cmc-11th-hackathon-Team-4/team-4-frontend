@@ -43,12 +43,18 @@ function SettingsPage() {
 
   // 완료한 짐은 빼고 셈: 한 집 10개, 한 사람 5개
   const choreCount = pendingChores(group.chores).length;
-  const cannotAdd = isHouseFull(group.chores) || isMemberFull(group.chores, me.id);
+  const houseFull = isHouseFull(group.chores);
+  const memberFull = isMemberFull(group.chores, me.id);
+  /** 다 찼으면 흐리게 보이고, 누르면 이유를 토스트로 안내 */
+  const openAddChore = () => {
+    if (houseFull) showToast(MAIN_TEXT.houseFullToast);
+    else if (memberFull) showToast(MAIN_TEXT.memberFullToast);
+    else setAdding(true);
+  };
 
   const copyInviteCode = async () => {
     try {
       await navigator.clipboard.writeText(group.inviteCode);
-      showToast(MAIN_TEXT.inviteCopied);
     } catch {
       showToast(MAIN_TEXT.error);
     }
@@ -62,8 +68,8 @@ function SettingsPage() {
         <SettingsSection title={MAIN_TEXT.sectionChores}>
           <SettingsRow
             label={MAIN_TEXT.addChore}
-            disabled={cannotAdd}
-            onClick={() => setAdding(true)}
+            dimmed={houseFull || memberFull}
+            onClick={openAddChore}
           />
           <SettingsRow
             label={MAIN_TEXT.choreList}

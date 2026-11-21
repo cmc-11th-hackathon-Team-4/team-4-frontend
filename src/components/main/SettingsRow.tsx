@@ -7,12 +7,14 @@ interface SettingsRowProps {
   /** 없으면 눌리지 않는 표시용 줄 */
   onClick?: () => void;
   disabled?: boolean;
+  /** 흐리게 보이지만 눌림 (눌렀을 때 안내 토스트용) */
+  dimmed?: boolean;
   /** 오른쪽 아이콘 (기본: 화살표) */
   trailing?: ReactNode;
 }
 
 /** V5-12 설정 목록 한 줄 */
-function SettingsRow({ label, value, onClick, disabled, trailing }: SettingsRowProps) {
+function SettingsRow({ label, value, onClick, disabled, dimmed, trailing }: SettingsRowProps) {
   const content = (
     <>
       <span className="flex-1 text-left">{label}</span>
@@ -27,7 +29,8 @@ function SettingsRow({ label, value, onClick, disabled, trailing }: SettingsRowP
     <button
       type="button"
       disabled={disabled}
-      className={`${base} active:bg-neutral-100 disabled:opacity-40`}
+      aria-disabled={dimmed || undefined}
+      className={`${base} active:bg-neutral-100 disabled:opacity-40 ${dimmed ? 'opacity-40' : ''}`}
       onClick={onClick}
     >
       {content}

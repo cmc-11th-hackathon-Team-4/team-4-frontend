@@ -77,7 +77,6 @@ export const MAIN_TEXT = {
   extendCycle: '이번 기간 늘리기',
   sectionMembers: '구성원',
   inviteCode: '초대 코드',
-  inviteCopied: '초대 코드를 복사했어요',
   members: '구성원',
   memberCount: (count: number, max: number) => `${count} / ${max}명`,
   sectionDemo: '시연',
@@ -103,6 +102,7 @@ export const MAIN_TEXT = {
 
   // TODO(문구 확정 필요): 짐 5개 제한 · 부탁 취소
   memberFullToast: '짐은 한 사람당 5개까지 가질 수 있어요',
+  houseFullToast: '집안일은 한 집에 10개까지 추가할 수 있어요',
   memberFullTag: '짐 5개 가득',
   cancelRequestTitle: '부탁을 취소할까요?',
   cancelRequestDesc: (chore: string) => `${josa(chore, '은/는')} 다시 내 짐으로 돌아와요.`,
