@@ -1,7 +1,7 @@
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { Navigate, useLocation } from 'react-router';
 import type { UserMeResponse } from '@/apis/onboarding';
-import StateView from '@/components/common/StateView';
+import SplashScreen from '@/components/common/SplashScreen';
 import { ONBOARDING_PATHS } from '@/routes/onboardingPaths';
 import { isNoProfile, useMe } from './useMyHouse';
 
@@ -27,7 +27,11 @@ function getStartPath(me: UserMeResponse | undefined, error: unknown): string | 
  * - 집 WAITING: 방장 → S-03 대기실, 참여자 → S-13-W
  * - 집 DISTRIBUTING → S-05 랜덤 배분 / ACTIVE → 그대로 내 메인
  * - `/` 가 아닌 주소로 열었거나 ② 시연 파라미터가 있으면 건너뜀
+ * - 확인하는 동안 스플래시(최소 1.2초)를 보여줌
  */
+/** 스플래시 최소 노출 시간 (서버 응답이 빨라도 이만큼은 보여줌) */
+const SPLASH_MIN_MS = 1200;
+
 type GateState = { phase: 'checking' } | { phase: 'redirect'; to: string } | { phase: 'done' };
 
 function isRootStart() {
@@ -38,9 +42,17 @@ function isRootStart() {
 function StartGate({ children }: { children: ReactNode }) {
   const location = useLocation();
   const me = useMe();
+  const [startAtRoot] = useState(isRootStart);
   const [gate, setGate] = useState<GateState>(() =>
-    isRootStart() ? { phase: 'checking' } : { phase: 'done' },
+    startAtRoot ? { phase: 'checking' } : { phase: 'done' },
   );
+  // `/` 로 열었을 때만 스플래시를 최소 SPLASH_MIN_MS 동안 보여줌
+  const [splashDone, setSplashDone] = useState(!startAtRoot);
+  useEffect(() => {
+    if (splashDone) return;
+    const timer = setTimeout(() => setSplashDone(true), SPLASH_MIN_MS);
+    return () => clearTimeout(timer);
+  }, [splashDone]);
 
   // 렌더 중 상태 조정 (React 문서의 "이전 렌더 정보 저장" 방식): 한 번 정하면 다시 분기하지 않음
   if (gate.phase === 'checking' && !me.isLoading) {
@@ -49,7 +61,7 @@ function StartGate({ children }: { children: ReactNode }) {
   }
   if (gate.phase === 'redirect' && location.pathname === gate.to) setGate({ phase: 'done' });
 
-  if (gate.phase === 'checking') return <StateView type="loading" />;
+  if (gate.phase === 'checking' || !splashDone) return <SplashScreen />;
   if (gate.phase === 'redirect') return <Navigate to={gate.to} replace />;
   return children;
 }

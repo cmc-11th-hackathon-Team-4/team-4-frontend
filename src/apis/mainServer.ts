@@ -192,9 +192,6 @@ export const toNotification = (n: ServerNotification, myId: Id): AppNotification
   message: n.message,
 });
 
-const CYCLE: Record<string, CyclePeriod> = {
-  WEEKLY: 'weekly',
-  BIWEEKLY: 'biweekly',
-  MONTHLY: 'monthly',
-};
-export const toCyclePeriod = (value: string | null): CyclePeriod => CYCLE[value ?? ''] ?? 'weekly';
+/** 서버 결산 주기(일 1 · 3 · 7) → 화면 값. 모르는 값이면 매주(7) */
+export const toCyclePeriod = (value: number | null): CyclePeriod =>
+  value === 1 || value === 3 || value === 7 ? value : 7;

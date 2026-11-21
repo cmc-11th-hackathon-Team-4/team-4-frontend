@@ -1,10 +1,11 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
+import { isApiError } from '@/apis/error';
 import { getChorePresets, saveChores } from '@/apis/onboarding';
 import StateView from '@/components/common/StateView';
 import { MAIN_TEXT, MAX_CHORES } from '@/constants/main';
-import { ONBOARDING_PATHS } from '@/routes/onboardingPaths';
+import { HOME_PATH, ONBOARDING_PATHS } from '@/routes/onboardingPaths';
 import checkboxDefaultIcon from '@/assets/icons/checkbox-default.svg';
 import checkboxSelectIcon from '@/assets/icons/checkbox-select.svg';
 import { useOnboardingStore } from '@/stores/onboarding';
@@ -23,6 +24,7 @@ import { INPUT_RULES, isValidText } from './validation';
  * - 기본 목록 체크 + 직접 추가, 1개 이상 골라야 [N개 선택 완료]가 눌리고 S-06으로 이동
  * - 기본 목록: GET /api/v1/chore-presets (못 불러오면 "다시 시도")
  * - [N개 선택 완료]: PUT /api/v1/houses/{id}/chores 로 저장 (보낸 목록이 최종 목록) 후 S-06
+ * - 이미 배분을 만든 집(HOUSE-409-2)이면 저장된 목록으로 S-06, 이미 시작된 집(HOUSE-409-4)이면 내 메인
  * - 최대 10개 (Swagger: 11개 이상이면 COMMON-400). 넘게 고르거나 추가하면 ② 와 같은 토스트 "집안일은 한 집에 10개까지 추가할 수 있어요"
  * - 참여자와 함께 고르기는 부가 기능이라 보류
  */
@@ -88,7 +90,14 @@ function ChoreForm({ presets, houseId }: { presets: string[]; houseId: string })
       setSelectedChores(selected);
       navigate(ONBOARDING_PATHS.cycle);
     },
-    onError: (error) => showToast(errorMessage(error)),
+    onError: (error) => {
+      // 집안일은 WAITING 에서만 바꿀 수 있음 (Swagger PUT /chores 409)
+      // 배분을 만든 뒤 뒤로 와서 다시 누른 경우: 이미 저장된 목록으로 S-06 진행
+      if (isApiError(error, 'HOUSE-409-2')) return navigate(ONBOARDING_PATHS.cycle);
+      // 이미 시작된 집: 내 메인으로
+      if (isApiError(error, 'HOUSE-409-4')) return navigate(HOME_PATH, { replace: true });
+      showToast(errorMessage(error));
+    },
   });
 
   const handleNext = () => save.mutate();

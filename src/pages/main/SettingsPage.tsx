@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
+import ConfirmModal from '@/components/common/ConfirmModal';
 import StateView from '@/components/common/StateView';
 import TabBar from '@/components/common/TabBar';
 import AddChoreSheet from '@/components/main/AddChoreSheet';
@@ -18,6 +19,7 @@ import { isHouseFull, isMemberFull, pendingChores } from '@/apis/limits';
 import ExtendCycleSheet from '@/components/main/ExtendCycleSheet';
 import { useCycle } from '@/hooks/useCycle';
 import { formatMonthDay } from '@/utils/date';
+import { resetDevice } from '@/utils/resetDevice';
 
 /** 시연 메뉴 노출 여부 (기본 보임) */
 const SHOW_DEMO_MENU = import.meta.env.VITE_DEMO_MENU !== 'false';
@@ -33,6 +35,7 @@ function SettingsPage() {
   const { data: cycle } = useCycle();
   const [adding, setAdding] = useState(false);
   const [extending, setExtending] = useState(false);
+  const [resetting, setResetting] = useState(false);
 
   if (isLoading || (!group && !isError)) return <StateView type="loading" />;
   if (isError || !group || !me) {
@@ -134,6 +137,15 @@ function SettingsPage() {
               <span className="flex-1 text-left">{MAIN_TEXT.endCycle}</span>
               <span className="text-xs text-neutral-400">{MAIN_TEXT.endCycleTag}</span>
             </button>
+            {/* 시연용: 이 기기를 새 사용자로 (누구나, 서버 데이터는 그대로) */}
+            <button
+              type="button"
+              className="mt-2 flex h-14 w-full items-center rounded-2xl border border-dashed border-neutral-300 px-4"
+              onClick={() => setResetting(true)}
+            >
+              <span className="flex-1 text-left">{MAIN_TEXT.resetDevice}</span>
+              <span className="text-xs text-neutral-400">{MAIN_TEXT.endCycleTag}</span>
+            </button>
           </section>
         )}
       </main>
@@ -147,6 +159,16 @@ function SettingsPage() {
           onSubmit={(days) => extend.mutateAsync(days)}
         />
       )}
+
+      <ConfirmModal
+        open={resetting}
+        title={MAIN_TEXT.resetDeviceTitle}
+        description={MAIN_TEXT.resetDeviceDesc}
+        confirmLabel={MAIN_TEXT.resetDeviceOk}
+        cancelLabel={MAIN_TEXT.cancel}
+        onConfirm={resetDevice}
+        onCancel={() => setResetting(false)}
+      />
 
       {adding && (
         <AddChoreSheet

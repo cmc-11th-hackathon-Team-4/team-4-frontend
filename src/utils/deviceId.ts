@@ -18,3 +18,13 @@ export function getDeviceId() {
     return memoryId;
   }
 }
+
+/** 시연용 초기화: 저장된 기기 UUID를 지움 → 다음 요청부터 새 사용자 */
+export function clearDeviceId() {
+  memoryId = null;
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+  } catch {
+    // 저장소를 못 쓰는 환경: 메모리 값만 지움
+  }
+}

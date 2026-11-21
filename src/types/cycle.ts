@@ -1,5 +1,6 @@
 /** 결산 기간 정보 (V5-12 결산 주기 · V5-14 기간 늘리기) */
-export type CyclePeriod = 'weekly' | 'biweekly' | 'monthly';
+/** 결산 주기(일): 매주 7 · 3일 · 1일 (서버 settlementCycle 값 그대로) */
+export type CyclePeriod = 7 | 3 | 1;
 
 export interface CycleInfo {
   period: CyclePeriod;
