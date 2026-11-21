@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { useNavigate } from 'react-router';
+import Header from '@/components/common/Header';
 import StateView from '@/components/common/StateView';
 import TabBar from '@/components/common/TabBar';
 import { IconChevronRight, IconHome, IconUser } from '@/components/common/icons';
@@ -43,11 +44,11 @@ function M01MyPage() {
 
   return (
     <div className="flex flex-1 flex-col">
-      <main className="flex flex-1 flex-col px-5 pt-6 pb-6">
-        <h1 className="text-[28px] font-bold text-gray-900">마이</h1>
+      <Header variant="main" title="마이" />
 
+      <main className="flex flex-1 flex-col px-5 pb-6">
         {/* 프로필 카드 */}
-        <section className="mt-6 flex items-center gap-4 rounded-2xl bg-line-400 p-4">
+        <section className="mt-4 flex items-center gap-4 rounded-2xl bg-line-400 p-4">
           {profile && hasImage(profile.character) ? (
             <CharacterImage id={profile.character} size={72} />
           ) : (
