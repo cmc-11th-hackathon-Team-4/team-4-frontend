@@ -1,5 +1,6 @@
 import type { RouteObject } from 'react-router';
 import M01MyPage from '@/pages/mypage/M01MyPage';
+import V512HouseSettingsPage from '@/pages/mypage/V512HouseSettingsPage';
 import P01ProfilePage from '@/pages/onboarding/P01ProfilePage';
 import { MYPAGE_PATHS as P } from './mypagePaths';
 
@@ -8,4 +9,5 @@ export const mypageRoutes: RouteObject[] = [
   { path: P.my, element: <M01MyPage /> },
   // P-01은 만들기·수정 공용 화면
   { path: P.profileEdit, element: <P01ProfilePage mode="edit" /> },
+  { path: P.settings, element: <V512HouseSettingsPage /> },
 ];

@@ -4,4 +4,6 @@ export const MYPAGE_PATHS = {
   my: '/my',
   /** P-01 프로필 수정 (P-01 만들기와 같은 화면) */
   profileEdit: '/profile/edit',
+  /** V5-12 우리 집 설정 (M-01 [우리 집 설정], V5-01 톱니) */
+  settings: '/settings',
 } as const;

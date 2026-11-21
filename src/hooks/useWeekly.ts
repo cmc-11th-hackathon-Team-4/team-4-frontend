@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   getNextCycle,
   getSettlement,
+  postEndCycle,
   postCarryOver,
   postReassign,
   postStartNextCycle,
@@ -58,6 +59,16 @@ export function useReassign() {
   return useMutation({
     mutationFn: () => postReassign(groupId),
     onSuccess: (data) => queryClient.setQueryData(weeklyKeys.next(groupId), data),
+  });
+}
+
+/** 시연용 기간 종료 → 결산 다시 조회 */
+export function useEndCycle() {
+  const { groupId } = useWeeklySession();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => postEndCycle(groupId),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['weekly'] }),
   });
 }
 

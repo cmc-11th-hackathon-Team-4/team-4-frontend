@@ -16,8 +16,9 @@ const chore = (id: Id, name: string, ownerId: Id, done: boolean): Chore => ({
   done,
 });
 
+// 처음엔 기간 진행 중. V5-12 시연 메뉴 [기간 종료하기]를 누르면 ended
 const settlement: WeeklySettlement = {
-  status: 'ended',
+  status: 'ongoing',
   startDate: '2026-11-17',
   endDate: '2026-11-23',
   members: [
@@ -112,6 +113,12 @@ export const mockWeeklyApi = {
 
   start: () => {
     nextCycle = { ...nextCycle, started: true };
+    return delay(undefined);
+  },
+
+  /** 시연: 기간 종료 (V5-12) */
+  endCycle: () => {
+    settlement.status = 'ended';
     return delay(undefined);
   },
 };
