@@ -1,64 +1,42 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Navigate, useNavigate } from 'react-router';
-import { ApiError } from '@/apis/error';
-import { joinHouse } from '@/apis/onboarding';
+import { getInvitePreview } from '@/apis/onboarding';
 import { ONBOARDING_PATHS } from '@/routes/onboardingPaths';
-import { useProfileStore } from '@/stores/profile';
 import BottomButton from './components/BottomButton';
 import OnboardingLayout from './components/OnboardingLayout';
+import { toCodeErrorMessage } from './inviteErrors';
 import { onboardingKeys } from './queryKeys';
+import { isNoProfile, useMe } from './useMyHouse';
 import { INVITE_CODE_LENGTH, normalizeInviteCode } from './validation';
-
-/** S-13-E 에러 종류별 문구 (유저플로우 최신 UX 라이팅) */
-const CODE_ERROR_MESSAGE = {
-  notFound: '없는 초대 코드예요. 다시 확인해 주세요.',
-  full: '이 집은 구성원이 다 찼어요.',
-  network: '연결이 불안정해요. 다시 시도해 주세요.',
-} as const;
-
-/** 서버 에러 → 입력란 아래 문구 (명세 3종 외에는 서버 문구) */
-function toCodeErrorMessage(error: unknown) {
-  if (error instanceof ApiError) {
-    if (error.code === 'HOUSE-404-1') return CODE_ERROR_MESSAGE.notFound;
-    if (error.code === 'HOUSE-409-1') return CODE_ERROR_MESSAGE.full;
-    if (error.code !== 'NETWORK' && error.message) return error.message;
-  }
-  return CODE_ERROR_MESSAGE.network;
-}
 
 /**
  * S-13 초대 코드 입력 (+ S-13-E 코드 에러) (권한: 참여자) — 기능명세서 · 와이어 기준
  * - 영문 대문자 · 숫자 6자리. 소문자로 쳐도 대문자로 바꿔 보여줌, [붙여넣기]로 한 번에 넣기
  * - 6자리가 다 차야 [입력 완료]가 눌림. 들어오면 키보드가 바로 열림 (입력란 자동 포커스)
- * - 프로필이 없으면 P-01을 먼저 거침
+ * - 서버에 프로필이 없으면(GET /users/me · USER-404) P-01을 먼저 거침
  * - S-13-E: 에러는 입력란 아래 한 줄, 입력값은 남기고 다시 입력하면 에러를 지움
- * - [입력 완료]: POST /api/v1/houses/join → 성공 시 S-13-W, 실패 시 에러 종류(틀린 코드 HOUSE-404-1 · 정원 초과 HOUSE-409-1 · 연결) 표시
- * - 이미 집이 있으면(HOUSE-409) 그 집의 S-13-W 로
- * - TODO(API): S-13-C 이 집이 맞나요? 는 참여 전에 코드로 집을 조회하는 API 가 없어 보류 (지금은 바로 참여)
+ * - [입력 완료]: GET /api/v1/houses/invite/{code} 미리보기 → 성공 시 S-13-C 이 집이 맞나요?
+ *   실패 시 에러 종류(틀린 코드 HOUSE-404-1 · 정원 초과 HOUSE-409-1 · 배분 중 HOUSE-409-2 서버 문구 · 연결) 표시
+ * - 참여(POST /join)는 S-13-C [이 집에 들어가기]에서
  */
 function S13JoinPage() {
-  const hasProfile = useProfileStore((s) => s.profile !== null);
+  const me = useMe();
   const [code, setCode] = useState('');
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const goWaiting = () => {
-    queryClient.invalidateQueries({ queryKey: onboardingKeys.me });
-    navigate(ONBOARDING_PATHS.joinWaiting, { replace: true });
-  };
-
-  const join = useMutation({
-    mutationFn: () => joinHouse(code),
-    onSuccess: goWaiting,
-    onError: (e) => {
-      if (e instanceof ApiError && e.code === 'HOUSE-409') return goWaiting();
-      setError(toCodeErrorMessage(e));
+  const check = useMutation({
+    mutationFn: () => getInvitePreview(code),
+    onSuccess: (preview) => {
+      queryClient.setQueryData(onboardingKeys.invitePreview(code), preview);
+      navigate(`${ONBOARDING_PATHS.joinConfirm}?code=${code}`);
     },
+    onError: (e) => setError(toCodeErrorMessage(e)),
   });
 
-  if (!hasProfile) {
+  if (isNoProfile(me.error)) {
     return <Navigate to={`${ONBOARDING_PATHS.profileNew}?next=join`} replace />;
   }
 
@@ -75,7 +53,7 @@ function S13JoinPage() {
     }
   };
 
-  const canSubmit = code.length === INVITE_CODE_LENGTH && !join.isPending;
+  const canSubmit = code.length === INVITE_CODE_LENGTH && !check.isPending;
 
   return (
     <OnboardingLayout
@@ -89,7 +67,7 @@ function S13JoinPage() {
       }
       description="방장에게 받은 6자리 코드예요."
       footer={
-        <BottomButton disabled={!canSubmit} onClick={() => join.mutate()}>
+        <BottomButton disabled={!canSubmit} onClick={() => check.mutate()}>
           입력 완료
         </BottomButton>
       }

@@ -127,3 +127,15 @@ export const startHouse = (houseId: string) =>
 /** S-02 구성원 빼기 (방장만, WAITING 에서만). 빠진 사람은 집 없는 상태로 돌아간다 */
 export const removeMember = (houseId: string, userId: number) =>
   call<null>(instance.delete(`/api/v1/houses/${houseId}/members/${userId}`));
+
+export interface HouseInvitePreviewResponse {
+  name: string;
+  memberCount: number;
+  maxMemberCount: number;
+  ownerName: string;
+  status: HouseStatus;
+}
+
+/** S-13-C 참여 전 초대 코드로 집 미리보기. 참여할 수 없는 집이면 참여 API 와 같은 에러 (HOUSE-404-1 · 409-1 · 409-2) */
+export const getInvitePreview = (inviteCode: string) =>
+  call<HouseInvitePreviewResponse>(instance.get(`/api/v1/houses/invite/${inviteCode}`));

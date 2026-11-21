@@ -12,6 +12,8 @@ export const ONBOARDING_PATHS = {
   invite: '/onboarding/invite',
   /** S-13 초대 코드 입력 */
   join: '/onboarding/join',
+  /** S-13-C 이 집이 맞나요? (?code=초대 코드) */
+  joinConfirm: '/onboarding/join/confirm',
   /** S-13-W 방장 기다리는 중 (참여자) */
   joinWaiting: '/onboarding/join/waiting',
   /** S-03 대기실 */

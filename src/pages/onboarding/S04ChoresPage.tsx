@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { getChorePresets, saveChores } from '@/apis/onboarding';
 import StateView from '@/components/common/StateView';
+import { MAIN_TEXT, MAX_CHORES } from '@/constants/main';
 import { ONBOARDING_PATHS } from '@/routes/onboardingPaths';
 import checkboxDefaultIcon from '@/assets/icons/checkbox-default.svg';
 import checkboxSelectIcon from '@/assets/icons/checkbox-select.svg';
@@ -22,6 +23,7 @@ import { INPUT_RULES, isValidText } from './validation';
  * - 기본 목록 체크 + 직접 추가, 1개 이상 골라야 [N개 선택 완료]가 눌리고 S-06으로 이동
  * - 기본 목록: GET /api/v1/chore-presets (못 불러오면 "다시 시도")
  * - [N개 선택 완료]: PUT /api/v1/houses/{id}/chores 로 저장 (보낸 목록이 최종 목록) 후 S-06
+ * - 최대 10개 (Swagger: 11개 이상이면 COMMON-400). 넘게 고르거나 추가하면 ② 와 같은 토스트 "집안일은 한 집에 10개까지 추가할 수 있어요"
  * - 참여자와 함께 고르기는 부가 기능이라 보류
  */
 function S04ChoresPage() {
@@ -58,16 +60,22 @@ function ChoreForm({ presets, houseId }: { presets: string[]; houseId: string })
   const [isAdding, setIsAdding] = useState(false);
   const [draft, setDraft] = useState('');
 
-  const toggle = (chore: string) =>
-    setSelected((prev) =>
-      prev.includes(chore) ? prev.filter((c) => c !== chore) : [...prev, chore],
-    );
+  // 서버 한도: 한 집 집안일 최대 10개 (PUT /chores 11개 이상이면 COMMON-400)
+  const isFull = selected.length >= MAX_CHORES;
+  const warnFull = () => showToast(MAIN_TEXT.houseFullToast);
+
+  const toggle = (chore: string) => {
+    if (selected.includes(chore)) return setSelected((prev) => prev.filter((c) => c !== chore));
+    if (isFull) return warnFull();
+    setSelected((prev) => [...prev, chore]);
+  };
 
   const trimmedDraft = draft.trim();
   const canAdd = isValidText(draft, INPUT_RULES.choreName) && !options.includes(trimmedDraft);
 
   const addCustom = () => {
     if (!canAdd) return;
+    if (isFull) return warnFull();
     setOptions((prev) => [...prev, trimmedDraft]);
     setSelected((prev) => [...prev, trimmedDraft]);
     setDraft('');
