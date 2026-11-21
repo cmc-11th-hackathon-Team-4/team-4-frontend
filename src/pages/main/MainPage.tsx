@@ -15,7 +15,8 @@ import { STATUS_BUBBLE, STATUS_NOTICE } from '@/constants/status';
 import { useDevSession } from '@/hooks/useDevSession';
 import { useGroupBoard } from '@/hooks/useGroupBoard';
 import { useMainMutations } from '@/hooks/useMainMutations';
-import { PATHS } from '@/routes/paths';
+import { MAIN_PATHS } from '@/routes/mainPaths';
+import { ONBOARDING_PATHS } from '@/routes/onboardingPaths';
 import { MAX_MEMBERS } from '@/types/group';
 import type { Member } from '@/types/member';
 
@@ -58,7 +59,7 @@ function MainPage() {
       <MainHeader
         title={MAIN_TEXT.homeTitle}
         inviteLabel={MAIN_TEXT.invite(group.members.length, MAX_MEMBERS)}
-        onInvite={() => navigate(PATHS.onboarding.invite)}
+        onInvite={() => navigate(ONBOARDING_PATHS.invite)}
       />
 
       <main className="flex flex-1 flex-col gap-4 px-4 pb-4">
@@ -79,7 +80,7 @@ function MainPage() {
               myId={myId}
               activeId={myId}
               countOf={pendingCountOf}
-              onSelect={(id) => id !== myId && navigate(PATHS.member(id))}
+              onSelect={(id) => id !== myId && navigate(MAIN_PATHS.member(id))}
             />
           </div>
         </div>
@@ -93,7 +94,7 @@ function MainPage() {
           <NoticeCard
             title={STATUS_NOTICE[needHelp.status as keyof typeof STATUS_NOTICE](needHelp.nickname)}
             count={pendingCountOf(needHelp.id)}
-            onClick={() => navigate(PATHS.member(needHelp.id))}
+            onClick={() => navigate(MAIN_PATHS.member(needHelp.id))}
           />
         )}
 

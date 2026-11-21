@@ -23,7 +23,8 @@ import { STATUS_BUBBLE } from '@/constants/status';
 import { useDevSession } from '@/hooks/useDevSession';
 import { useGroupBoard } from '@/hooks/useGroupBoard';
 import { useMainMutations } from '@/hooks/useMainMutations';
-import { PATHS } from '@/routes/paths';
+import { MAIN_PATHS } from '@/routes/mainPaths';
+import { ONBOARDING_PATHS } from '@/routes/onboardingPaths';
 import { useTakeStore } from '@/stores/take';
 import type { Chore } from '@/types/chore';
 import { MAX_MEMBERS } from '@/types/group';
@@ -62,7 +63,7 @@ function MemberPage() {
   }
 
   const member = group.members.find((m) => m.id === memberId);
-  if (!member || member.id === myId) return <Navigate to={PATHS.home} replace />;
+  if (!member || member.id === myId) return <Navigate to={MAIN_PATHS.home} replace />;
 
   const chores = choresOf(member.id).filter((c) => !c.done);
   const visible = expanded ? chores : chores.slice(0, VISIBLE_CHORES);
@@ -88,7 +89,7 @@ function MemberPage() {
           showBack
           title={member.nickname}
           inviteLabel={MAIN_TEXT.invite(group.members.length, MAX_MEMBERS)}
-          onInvite={() => navigate(PATHS.onboarding.invite)}
+          onInvite={() => navigate(ONBOARDING_PATHS.invite)}
         />
 
         <main className="flex flex-1 flex-col gap-4 px-4 pb-4">
@@ -112,7 +113,7 @@ function MemberPage() {
                 droppable
                 dragging={!!dragging}
                 onSelect={(id) =>
-                  navigate(id === myId ? PATHS.home : PATHS.member(id), { replace: true })
+                  navigate(id === myId ? MAIN_PATHS.home : MAIN_PATHS.member(id), { replace: true })
                 }
               />
             </div>

@@ -7,10 +7,10 @@ const initialGroup = (): Group => ({
   name: '우리 집',
   inviteCode: 'ABCD12',
   members: [
-    { id: 'm1', nickname: '수아', status: 'relaxed', isHost: true },
-    { id: 'm2', nickname: '민지', status: 'unwilling', isHost: false },
-    { id: 'm3', nickname: '준호', status: 'relaxed', isHost: false },
-    { id: 'm4', nickname: '엄마', status: 'relaxed', isHost: false },
+    { id: 'm1', nickname: '수아', status: 'relaxed', isHost: true, character: '1' },
+    { id: 'm2', nickname: '민지', status: 'unwilling', isHost: false, character: '2' },
+    { id: 'm3', nickname: '준호', status: 'relaxed', isHost: false, character: '3' },
+    { id: 'm4', nickname: '엄마', status: 'relaxed', isHost: false, character: '4' },
   ],
   chores: [
     chore('c1', '빨래 널기', 'm1'),
