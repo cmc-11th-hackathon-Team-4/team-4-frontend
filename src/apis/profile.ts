@@ -1,14 +1,13 @@
+import { fromServerCharacter, toServerCharacter } from '@/constants/character';
 import type { Profile } from '@/stores/profile';
 import type { Id } from '@/types/common';
 import type { CharacterId } from '@/types/member';
-import { getDeviceId } from '@/utils/deviceId';
 import { isApiError } from './error';
 import { instance } from './instance';
+import { createUser, getHouse, getMe as fetchMe } from './onboarding';
 
-// ④ 프로필 · 내 정보 API (Swagger 기준, 경로 앞 /api/v1)
-// characterType 'CHARACTER_1' ↔ CharacterId '1', 서버 id(number) → Id(string)
-
-const BASE = '/api/v1';
+// ④ 프로필 · 내 정보 API (Swagger 기준)
+// 서버 호출은 ①의 apis/onboarding을 재사용하고, 여기서는 화면용 모양으로만 바꿈
 
 /** 내 정보 + 소속 집 (GET /users/me) */
 export interface MyInfo extends Profile {
@@ -23,25 +22,14 @@ export interface MyHouse {
   members: { id: Id; nickname: string; character: CharacterId; isHost: boolean; isMe: boolean }[];
 }
 
-interface ServerUser {
-  id: number;
-  name: string;
-  characterType: string;
-}
-
-const toCharacter = (type: string): CharacterId => type.replace('CHARACTER_', '');
-const toServerCharacter = (id: CharacterId) => `CHARACTER_${id}`;
-
 /** 내 정보 + 소속 집. 프로필이 없으면(USER-404) null */
 export async function getMe(): Promise<MyInfo | null> {
   try {
-    const { data } = await instance.get<
-      ServerUser & { house: { id: number; name: string; role: 'OWNER' | 'MEMBER' } | null }
-    >(`${BASE}/users/me`);
+    const data = await fetchMe();
     return {
       id: String(data.id),
       nickname: data.name,
-      character: toCharacter(data.characterType),
+      character: fromServerCharacter(data.characterType),
       house: data.house
         ? { id: String(data.house.id), name: data.house.name, isHost: data.house.role === 'OWNER' }
         : null,
@@ -52,10 +40,9 @@ export async function getMe(): Promise<MyInfo | null> {
   }
 }
 
-/** P-01 프로필 만들기 (POST /users, 헤더 없이 본문 deviceId로 기기 등록) */
+/** P-01 프로필 만들기 (POST /users) */
 export async function createProfile(profile: Profile) {
-  await instance.post(`${BASE}/users`, {
-    deviceId: getDeviceId(),
+  await createUser({
     name: profile.nickname,
     characterType: toServerCharacter(profile.character),
   });
@@ -63,7 +50,7 @@ export async function createProfile(profile: Profile) {
 
 /** P-01 프로필 수정 (PATCH /users/me, 보낸 필드만 수정) */
 export async function updateProfile(profile: Profile) {
-  await instance.patch(`${BASE}/users/me`, {
+  await instance.patch('/api/v1/users/me', {
     name: profile.nickname,
     characterType: toServerCharacter(profile.character),
   });
@@ -71,16 +58,13 @@ export async function updateProfile(profile: Profile) {
 
 /** M-01 집 이름 · 구성원 (GET /houses/{houseId}) */
 export async function getMyHouse(houseId: Id): Promise<MyHouse> {
-  const { data } = await instance.get<{
-    name: string;
-    members: { userId: number; name: string; characterType: string; role: string; isMe: boolean }[];
-  }>(`${BASE}/houses/${houseId}`);
+  const data = await getHouse(houseId);
   return {
     name: data.name,
     members: data.members.map((m) => ({
       id: String(m.userId),
       nickname: m.name,
-      character: toCharacter(m.characterType),
+      character: fromServerCharacter(m.characterType),
       isHost: m.role === 'OWNER',
       isMe: m.isMe,
     })),

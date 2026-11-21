@@ -1,5 +1,5 @@
+import { fromServerCharacter } from '@/constants/character';
 import type { Id } from '@/types/common';
-import type { CharacterId } from '@/types/member';
 import type {
   CarryChoice,
   CarryOverChoice,
@@ -66,12 +66,11 @@ interface ServerNextPeriod {
 }
 
 // ---------- 변환 ----------
-const toCharacter = (type: string): CharacterId => type.replace('CHARACTER_', '');
 
 const toMember = (u: ServerUser): WeeklyMember => ({
   id: String(u.userId),
   nickname: u.name,
-  character: toCharacter(u.characterType),
+  character: fromServerCharacter(u.characterType),
 });
 
 const toPeriod = (p: ServerPeriod): WeeklyPeriod => ({ ...p, id: String(p.id) });
