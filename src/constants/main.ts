@@ -4,7 +4,6 @@ import { josa } from '@/utils/josa';
 export const MAIN_TEXT = {
   homeTitle: '우리집',
   settings: '설정',
-  preparing: '준비 중이에요',
   meLabel: '나',
   moodButton: (label: string) => `기분 · ${label}`,
   moodTitle: '오늘 기분 어때?',
@@ -65,11 +64,52 @@ export const MAIN_TEXT = {
   doneNo: '아니요',
   doneToast: (chore: string) => `${chore} 완료!`,
 
+  // V5-12 우리 집 설정
+  settingsTitle: '우리 집 설정',
+  sectionChores: '집안일',
+  addChore: '집안일 추가',
+  choreList: '집안일 목록',
+  choreCount: (count: number) => `${count}개`,
+  sectionCycle: '결산 기간 · 방장',
+  cycle: '결산 주기',
+  cycleWeekly: '매주',
+  extendCycle: '이번 기간 늘리기',
+  sectionMembers: '구성원',
+  inviteCode: '초대 코드',
+  inviteCopied: '초대 코드를 복사했어요',
+  members: '구성원',
+  memberCount: (count: number, max: number) => `${count} / ${max}명`,
+  sectionDemo: '시연',
+  endCycle: '기간 종료하기',
+  endCycleTag: '시연용',
+
+  // V5-12 › 집안일 목록
+  deleteChore: (chore: string) => `${chore} 삭제`,
+  deleteTitle: '집안일을 삭제할까요?',
+  deleteDesc: (chore: string) => `${josa(chore, '을/를')} 목록에서 지워요.`,
+  deleteOk: '삭제하기',
+  deletedToast: (chore: string) => `${josa(chore, '을/를')} 삭제했어요`,
+  doneTag: '완료',
+  emptyChoreList: '아직 집안일이 없어요',
+
+  // V5-13 집안일 추가
+  addTitle: '집안일 추가',
+  addLabel: '이름',
+  addPlaceholder: '베란다 청소',
+  addInfo: '추가한 일은 내 짐으로 들어가요. 힘들면 짐 올리기로 부탁할 수 있어요.',
+  addOk: '추가하기',
+
+  // 기간 종료 알림 (홈 배너 › S-08)
+  cycleEnded: '이번 기간이 끝났어요. 결산을 확인해요',
+
   close: '닫기',
   error: '잠시 후 다시 시도해 주세요',
   loadError: '정보를 불러오지 못했어요',
   retry: '다시 시도',
 } as const;
 
+/** 한 집당 짐 최대 10개 (게이지 기준 · 집안일 추가 제한) */
+export const MAX_CHORES = 10;
+
 /** 게이지 기준: 내가 맡은 짐 개수 / 한 집당 짐 최대 10개 */
-export const MAX_LOAD = 10;
+export const MAX_LOAD = MAX_CHORES;

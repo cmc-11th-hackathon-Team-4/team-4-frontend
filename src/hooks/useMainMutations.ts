@@ -1,5 +1,13 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { completeChore, requestChore, respondChoreRequest, takeChore } from '@/apis/chore';
+import {
+  completeChore,
+  createChore,
+  deleteChore,
+  requestChore,
+  respondChoreRequest,
+  takeChore,
+} from '@/apis/chore';
+import { endCycle } from '@/apis/cycle';
 import { updateStatus } from '@/apis/member';
 import { queryKeys } from '@/apis/queryKeys';
 import { MAIN_TEXT } from '@/constants/main';
@@ -40,6 +48,7 @@ const updateChore = (choreId: string, change: Partial<Chore>) => (group: Group) 
 export function useMainMutations() {
   const cache = useGroupCache();
   const memberId = useSessionStore((s) => s.memberId) ?? '';
+  const groupId = useSessionStore((s) => s.groupId) ?? '';
   const showToast = useToastStore((s) => s.show);
   const onError = (_e: unknown, _v: unknown, context?: { prev?: Group }) => {
     cache.rollback(context?.prev);
@@ -97,5 +106,28 @@ export function useMainMutations() {
     onSettled: cache.refresh,
   });
 
-  return { take, request, respond, complete, status };
+  /** V5-13 집안일 추가 (실패 시 입력값은 시트에 그대로) */
+  const add = useMutation({
+    mutationFn: (name: string) => createChore(groupId, memberId, name),
+    onError: () => showToast(MAIN_TEXT.error),
+    onSettled: cache.refresh,
+  });
+
+  /** V5-12 집안일 목록 › 삭제 */
+  const remove = useMutation({
+    mutationFn: (chore: Chore) => deleteChore(chore.id),
+    onMutate: (chore) =>
+      cache.patch((g) => ({ ...g, chores: g.chores.filter((c) => c.id !== chore.id) })),
+    onSuccess: (_d, chore) => showToast(MAIN_TEXT.deletedToast(chore.name)),
+    onError,
+    onSettled: cache.refresh,
+  });
+
+  /** V5-12 시연용 · 기간 종료하기 */
+  const end = useMutation({
+    mutationFn: () => endCycle(groupId, memberId),
+    onError: () => showToast(MAIN_TEXT.error),
+  });
+
+  return { take, request, respond, complete, status, add, remove, end };
 }
