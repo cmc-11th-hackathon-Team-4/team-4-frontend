@@ -1,0 +1,125 @@
+import { isAxiosError } from 'axios';
+import { instance } from './instance';
+import { getDeviceId } from './device';
+
+/**
+ * 플로우 ① 그룹 생성 API (Swagger: https://niturnnaeturn.duckdns.org/swagger-ui)
+ * - 서버 응답 { success, code, message, data } 에서 data 를 꺼내고, 실패하면 OnboardingApiError 를 던진다
+ * - 공용 axios 인스턴스(X-Device-Id 헤더 포함)를 쓰고, 응답 처리는 이 파일 안에서만 한다
+ */
+
+interface ApiResponse<T> {
+  success: boolean;
+  code: string;
+  message: string;
+  data: T;
+}
+
+/** 서버 에러: code 예) USER-404, HOUSE-404-1(초대 코드 틀림), HOUSE-409-1(정원 초과). 연결 실패는 NETWORK */
+export class OnboardingApiError extends Error {
+  readonly code: string;
+  readonly status?: number;
+  constructor(code: string, message: string, status?: number) {
+    super(message);
+    this.code = code;
+    this.status = status;
+  }
+}
+
+async function call<T>(request: Promise<{ data: ApiResponse<T> }>): Promise<T> {
+  try {
+    const { data } = await request;
+    if (!data.success) throw new OnboardingApiError(data.code, data.message);
+    return data.data;
+  } catch (error) {
+    if (error instanceof OnboardingApiError) throw error;
+    if (isAxiosError<ApiResponse<unknown>>(error)) {
+      const body = error.response?.data;
+      if (body?.code) throw new OnboardingApiError(body.code, body.message, error.response?.status);
+      throw new OnboardingApiError('NETWORK', error.message, error.response?.status);
+    }
+    throw error;
+  }
+}
+
+/* ── 서버 값 ── */
+export type HouseStatus = 'WAITING' | 'DISTRIBUTING' | 'ACTIVE';
+export type HouseRole = 'OWNER' | 'MEMBER';
+export type ServerSettlementCycle = 'WEEKLY' | 'BIWEEKLY' | 'MONTHLY';
+
+export interface UserResponse {
+  id: number;
+  name: string;
+  characterType: string;
+  mood: string;
+}
+
+export interface UserMeResponse extends UserResponse {
+  /** 소속 집이 없으면 null */
+  house: { id: number; name: string; status: HouseStatus; role: HouseRole } | null;
+}
+
+export interface HouseMemberResponse {
+  userId: number;
+  name: string;
+  characterType: string;
+  role: HouseRole;
+  isMe: boolean;
+}
+
+export interface HouseDetailResponse {
+  id: number;
+  name: string;
+  inviteCode: string;
+  status: HouseStatus;
+  settlementCycle: ServerSettlementCycle | null;
+  memberCount: number;
+  maxMemberCount: number;
+  choreCount: number;
+  members: HouseMemberResponse[];
+}
+
+/* ── 사용자 ── */
+
+/** P-01 프로필 만들기 (헤더 대신 본문 deviceId). 이미 등록된 기기면 USER-409 */
+export const createUser = (body: { name: string; characterType: string }) =>
+  call<UserResponse>(instance.post('/api/v1/users', { deviceId: getDeviceId(), ...body }));
+
+/** 내 정보 + 소속 집. 프로필이 없으면 USER-404 */
+export const getMe = () => call<UserMeResponse>(instance.get('/api/v1/users/me'));
+
+/* ── 집 ── */
+
+/** S-01 집 만들기 (만든 사람이 방장, WAITING 으로 시작) */
+export const createHouse = (name: string) =>
+  call<{ id: number; name: string; inviteCode: string; status: HouseStatus }>(
+    instance.post('/api/v1/houses', { name }),
+  );
+
+/** S-13 초대 코드로 참여. 틀린 코드 HOUSE-404-1, 정원 초과 HOUSE-409-1, 배분 진행 중 HOUSE-409-2 */
+export const joinHouse = (inviteCode: string) =>
+  call<{ id: number; name: string; status: HouseStatus }>(
+    instance.post('/api/v1/houses/join', { inviteCode }),
+  );
+
+/** 집 정보 · 구성원 (S-02 · S-03 · S-13-W). 대기실은 이 API 를 주기적으로 다시 부른다 */
+export const getHouse = (houseId: string) =>
+  call<HouseDetailResponse>(instance.get(`/api/v1/houses/${houseId}`));
+
+/** S-06 결산 주기 저장 (방장만) */
+export const updateSettlementCycle = (houseId: string, settlementCycle: ServerSettlementCycle) =>
+  call<{ id: number; name: string; settlementCycle: ServerSettlementCycle }>(
+    instance.patch(`/api/v1/houses/${houseId}`, { settlementCycle }),
+  );
+
+/* ── 집안일 ── */
+
+/** S-04 기본 집안일 목록 (서버 상수) */
+export const getChorePresets = () =>
+  call<{ presets: string[] }>(instance.get('/api/v1/chore-presets')).then((d) => d.presets);
+
+/** S-04 고른 집안일 저장 (방장, WAITING 에서만. 보낸 목록이 최종 목록) */
+export const saveChores = (houseId: string, names: string[]) =>
+  call<{ chores: { id: number; name: string }[] }>(
+    instance.put(`/api/v1/houses/${houseId}/chores`, { names }),
+  );
