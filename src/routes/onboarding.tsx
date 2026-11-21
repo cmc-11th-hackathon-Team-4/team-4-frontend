@@ -6,6 +6,7 @@ import S03WaitingPage from '@/pages/onboarding/S03WaitingPage';
 import S04ChoresPage from '@/pages/onboarding/S04ChoresPage';
 import S05AssignPage from '@/pages/onboarding/S05AssignPage';
 import S06CyclePage from '@/pages/onboarding/S06CyclePage';
+import S13CJoinConfirmPage from '@/pages/onboarding/S13CJoinConfirmPage';
 import S13JoinPage from '@/pages/onboarding/S13JoinPage';
 import S13WJoinWaitingPage from '@/pages/onboarding/S13WJoinWaitingPage';
 import S14WelcomePage from '@/pages/onboarding/S14WelcomePage';
@@ -18,6 +19,7 @@ export const onboardingRoutes: RouteObject[] = [
   { path: P.create, element: <S01CreateHousePage /> },
   { path: P.invite, element: <S02InvitePage /> },
   { path: P.join, element: <S13JoinPage /> },
+  { path: P.joinConfirm, element: <S13CJoinConfirmPage /> },
   { path: P.joinWaiting, element: <S13WJoinWaitingPage /> },
   { path: P.waiting, element: <S03WaitingPage /> },
   { path: P.chores, element: <S04ChoresPage /> },
