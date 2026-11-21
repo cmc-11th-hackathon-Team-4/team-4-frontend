@@ -1,32 +1,31 @@
 import { useEffect, useRef } from 'react';
 import { Navigate, useNavigate } from 'react-router';
 import { isApiError } from '@/apis/error';
-import BottomButton from '@/components/common/BottomButton';
 import StateView from '@/components/common/StateView';
 import {
   useCreateNextPeriod,
   useNextPeriod,
   useStartNextPeriod,
   useWeeklyHouse,
-  useWeeklySettlement,
 } from '@/hooks/useWeekly';
+import ChoreIcon from '@/pages/onboarding/components/ChoreIcon';
 import { HOME_PATH } from '@/routes/onboardingPaths';
 import { WEEKLY_PATHS } from '@/routes/weeklyPaths';
 import { useToastStore } from '@/stores/toast';
-import { formatPeriod, withSubject } from '@/utils/weekly';
-import Avatar from './components/Avatar';
-import WeeklyLayout from './components/WeeklyLayout';
+import type { NextPeriodMember } from '@/types/weekly';
+import { formatPeriod } from '@/utils/weekly';
+import WeeklyLayout, { WeeklyButton } from './components/WeeklyLayout';
+import { WEEKLY_STEP } from './steps';
 
 /**
- * S-12 다음 주기
- * - 방장: 들어오면 배분을 만들고(POST periods/next) 다시 나누기 · 이대로 시작하기
- * - 구성원: 방장이 배분을 만들 때까지 "준비 중"(prepared=false), 3초마다 다시 조회
+ * S-12 다음 주기 — 피그마 ③ 디자인
+ * - 방장: 들어오면 배분을 만들고(POST periods/next) 다시 나누기 · 다음(시작하기)
+ * - 구성원: 방장이 배분을 만들 때까지 "준비 중"(prepared=false), 3초마다 다시 조회 → 홈으로
  * - 다음 기간이 이미 시작됐으면(PERIOD-409-2) 홈으로
  */
 function S12NextPage() {
   const navigate = useNavigate();
   const showToast = useToastStore((s) => s.show);
-  const state = useWeeklySettlement();
   const house = useWeeklyHouse();
   const me = house.data?.find((m) => m.isMe);
   const host = house.data?.find((m) => m.isHost);
@@ -65,17 +64,16 @@ function S12NextPage() {
     );
   }
 
-  const skipCarryOver = state.data?.settlement?.myUndone.length === 0;
-  const hostName = withSubject(host?.nickname ?? '방장');
+  const hostName = `${host?.nickname ?? '방장'}님`;
 
   // 구성원: 방장이 배분을 만들기 전엔 대기 / 방장: 만드는 중
   if (!next.data.prepared || !next.data.period) {
     return (
-      <WeeklyLayout step="next" skipCarryOver={skipCarryOver}>
+      <WeeklyLayout step={WEEKLY_STEP.next}>
         {isHost ? (
           <StateView type="loading" />
         ) : (
-          <StateView type="error" message={`${hostName} 다음 주를 준비 중이에요`} />
+          <StateView type="error" message={`${hostName}이 다음 주를 준비 중이에요`} />
         )}
       </WeeklyLayout>
     );
@@ -84,18 +82,16 @@ function S12NextPage() {
   const { period, totalCount, members } = next.data;
   const mine = members.find((m) => m.isMe);
   const myChores = mine?.chores ?? [];
-  const others = members.filter((m) => !m.isMe).map((m) => `${m.nickname}도 ${m.chores.length}개`);
-  const subtitle = [
-    formatPeriod(period.startDate, period.endDate),
-    `우리 집 ${totalCount}개`,
-    ...others,
-  ].join(' · ');
+  const range = formatPeriod(period.startDate, period.endDate);
+  const description = isHost
+    ? [range, `우리 집 ${totalCount}개`, ...othersSummary(members)].join(' · ')
+    : `${range} · ${hostName}이 나눴어요`;
   const busy = create.isPending || start.isPending;
 
   const footer = isHost ? (
     <>
-      <BottomButton
-        variant="outline"
+      <WeeklyButton
+        variant="secondary"
         disabled={busy}
         onClick={() =>
           create.mutate(undefined, {
@@ -103,10 +99,9 @@ function S12NextPage() {
           })
         }
       >
-        ↻ 다시 나누기
-      </BottomButton>
-      <BottomButton
-        variant="solid"
+        다시 나누기
+      </WeeklyButton>
+      <WeeklyButton
         disabled={busy}
         onClick={() =>
           start.mutate(undefined, {
@@ -115,38 +110,50 @@ function S12NextPage() {
           })
         }
       >
-        {start.isPending ? '시작하는 중' : '이대로 시작하기'}
-      </BottomButton>
+        {start.isPending ? '시작하는 중' : '다음'}
+      </WeeklyButton>
     </>
   ) : (
-    <BottomButton variant="solid" onClick={() => navigate(HOME_PATH)}>
-      홈으로
-    </BottomButton>
+    <WeeklyButton onClick={() => navigate(HOME_PATH)}>홈으로</WeeklyButton>
   );
 
   return (
-    <WeeklyLayout step="next" skipCarryOver={skipCarryOver} footer={footer}>
-      <div className="flex flex-col items-center">
-        <Avatar character={me.character} size={68} />
-        <h2 className="mt-4 text-2xl font-bold">다음 주 내 집안일 {myChores.length}개</h2>
-        <p className="mt-2 text-center text-sm text-neutral-500">{subtitle}</p>
-      </div>
-
+    <WeeklyLayout
+      step={WEEKLY_STEP.next}
+      title={`다음 주\n내 집안일 ${myChores.length}개`}
+      description={description}
+      footer={footer}
+    >
       {/* 이월된 짐이 맨 앞 (서버 정렬) */}
-      <ul className="mt-5 grid grid-cols-2 gap-2">
+      <ul className="mt-9 grid grid-cols-2 gap-3">
         {myChores.map((c) => (
-          <li key={c.id} className="flex h-20 flex-col gap-2 rounded-2xl bg-neutral-100 p-4">
-            <span className="text-sm font-medium">{c.name}</span>
-            {c.carriedOver && (
-              <span className="w-fit rounded-md border border-neutral-300 bg-white px-2 py-0.5 text-xs text-neutral-500">
-                이월
+          <li
+            key={c.id}
+            className="flex flex-col gap-2 rounded-xl border border-primary-100 bg-white py-3 pr-2 pl-3 shadow-[0_1px_1.5px_rgba(113,113,113,0.25)]"
+          >
+            <div className="flex items-center justify-between">
+              <span className="flex size-10 items-center justify-center overflow-visible rounded-xl bg-primary-200">
+                <ChoreIcon name={c.name} />
               </span>
-            )}
+              {c.carriedOver && (
+                <span className="flex h-[30px] items-center rounded px-2 text-[10px] leading-[normal] font-semibold text-primary-500 bg-primary-100">
+                  이월
+                </span>
+              )}
+            </div>
+            <span className="truncate text-base leading-[normal] font-semibold text-gray-800">
+              {c.name}
+            </span>
           </li>
         ))}
       </ul>
     </WeeklyLayout>
   );
+}
+
+/** "민지님 5개" (나 제외 구성원별 개수) */
+function othersSummary(members: NextPeriodMember[]) {
+  return members.filter((m) => !m.isMe).map((m) => `${m.nickname}님 ${m.chores.length}개`);
 }
 
 export default S12NextPage;

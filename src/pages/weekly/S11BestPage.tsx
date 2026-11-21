@@ -1,16 +1,17 @@
-import { Fragment } from 'react';
 import { Navigate, useNavigate } from 'react-router';
-import BottomButton from '@/components/common/BottomButton';
+import heartIcon from '@/assets/icons/heart.svg';
 import StateView from '@/components/common/StateView';
-import { useWeeklySettlement } from '@/hooks/useWeekly';
+import { CHARACTER_IMAGES } from '@/constants/character';
+import { useMyId, useWeeklySettlement } from '@/hooks/useWeekly';
 import { WEEKLY_PATHS } from '@/routes/weeklyPaths';
-import { withSubject } from '@/utils/weekly';
-import Avatar from './components/Avatar';
-import WeeklyLayout from './components/WeeklyLayout';
+import type { KindnessRank } from '@/types/weekly';
+import WeeklyLayout, { WeeklyButton } from './components/WeeklyLayout';
+import { WEEKLY_STEP } from './steps';
 
-/** S-11 이번 주 배려왕 (배려왕 · 횟수 · 하트는 서버 결산 그대로) */
+/** S-11 이번 주 배려왕 — 피그마 ③ 디자인 (배려왕 · 횟수 · 하트는 서버 결산 그대로) */
 function S11BestPage() {
   const navigate = useNavigate();
+  const myId = useMyId();
   const { data, isPending, isError, refetch } = useWeeklySettlement();
 
   if (isPending) return <StateView type="loading" />;
@@ -26,54 +27,69 @@ function S11BestPage() {
   }
   if (!data.settlement) return <Navigate to={WEEKLY_PATHS.summary} replace />;
 
-  const { ranking, kingIds, myUndone } = data.settlement;
-  const kings = ranking.filter((r) => kingIds.includes(r.id));
+  const { ranking, kingIds } = data.settlement;
+  const isKing = (r: KindnessRank) => kingIds.includes(r.id);
+  const nameOf = (r: KindnessRank) => (r.id === myId ? '나' : r.nickname);
+  // 배려왕이 왼쪽 (피그마: 배려왕 vs 나머지)
+  const ordered = [...ranking].sort((a, b) => Number(isKing(b)) - Number(isKing(a)));
+  const kings = ordered.filter(isKing);
+  const soleKing = kings.length === 1 ? kings[0] : null;
 
-  // ♡ 옆 숫자는 덜어준 횟수가 아니라 이번 기간에 받은 하트 수
-  const message =
+  const title =
     kings.length === 0
-      ? '이번 주는 배려왕이 없어요'
-      : kings.length === 1
-        ? `${withSubject(kings[0].nickname)} 배려왕이에요 ♡ ${kings[0].receivedHeartCount}`
-        : `${kings.map((k) => k.nickname).join(' · ')} 공동 배려왕이에요`;
+      ? '이번 주는\n배려왕이 없어요'
+      : soleKing
+        ? `이번 주 배려왕은\n${soleKing.id === myId ? '나예요' : `${soleKing.nickname}님이에요`}`
+        : '이번 주는\n공동 배려왕이에요';
 
   return (
     <WeeklyLayout
-      step="best"
-      skipCarryOver={myUndone.length === 0}
-      footer={
-        <BottomButton variant="solid" onClick={() => navigate(WEEKLY_PATHS.next)}>
-          다음
-        </BottomButton>
-      }
+      step={WEEKLY_STEP.best}
+      title={title}
+      description="서로 덜어준 횟수예요."
+      footer={<WeeklyButton onClick={() => navigate(WEEKLY_PATHS.next)}>다음</WeeklyButton>}
     >
-      <h2 className="text-center text-2xl font-bold">이번 주 배려왕</h2>
-      <p className="mt-2 text-center text-sm text-neutral-500">서로 덜어준 횟수</p>
-
-      <div className="mt-5 flex flex-wrap items-center justify-center gap-x-4 gap-y-6 rounded-2xl bg-neutral-100 px-4 py-6">
-        {ranking.map((r, i) => {
-          const isKing = kingIds.includes(r.id);
-          return (
-            <Fragment key={r.id}>
-              {i > 0 && ranking.length === 2 && (
-                <span className="text-sm text-neutral-400">vs</span>
-              )}
-              <div className="flex flex-col items-center">
-                <span className={`h-6 text-xl ${isKing ? '' : 'invisible'}`} aria-hidden>
-                  ♛
-                </span>
-                <Avatar character={r.character} size={88} />
-                <span className="mt-3 text-sm font-semibold">{r.nickname}</span>
-                <span className={`mt-1 text-3xl font-bold ${isKing ? '' : 'text-neutral-400'}`}>
-                  {r.helpedCount}
-                </span>
-              </div>
-            </Fragment>
-          );
-        })}
+      {/* 비교 카드: 2명이면 vs, 그 이상이면 줄바꿈 */}
+      <div className="relative mt-9 flex flex-wrap justify-around gap-y-4 rounded-3xl bg-line-400 px-2.5 pb-8">
+        {ordered.map((r) => (
+          <div key={r.id} className="flex w-40 flex-col items-center">
+            {CHARACTER_IMAGES[r.character] ? (
+              <img src={CHARACTER_IMAGES[r.character]} alt="" className="size-40 object-cover" />
+            ) : (
+              <span aria-hidden className="block size-40" />
+            )}
+            <span
+              className={`-mt-[9px] text-lg leading-[normal] font-semibold ${isKing(r) ? 'text-gray-800' : 'text-gray-600'}`}
+            >
+              {nameOf(r)}
+            </span>
+            <span
+              className={`mt-[5px] text-[32px] leading-[normal] font-bold ${isKing(r) ? 'text-primary-500' : 'text-gray-400'}`}
+            >
+              {r.helpedCount}
+            </span>
+          </div>
+        ))}
+        {ordered.length === 2 && (
+          <span className="absolute top-[114px] left-1/2 -translate-x-1/2 text-sm leading-[normal] font-medium text-gray-400">
+            vs
+          </span>
+        )}
       </div>
 
-      <p className="mt-5 text-center text-sm text-neutral-500">{message}</p>
+      {/* 배려왕이 받은 하트 (한 명일 때만) */}
+      {soleKing && (
+        <div className="mt-5 flex justify-center">
+          <span className="flex h-11 items-center gap-3 rounded-[22px] bg-primary-100 px-3">
+            <span className="flex size-6 items-center justify-center rounded-full bg-fail">
+              <img src={heartIcon} alt="" width={14.4} height={14.4} />
+            </span>
+            <span className="text-sm leading-[normal] font-medium text-primary-500">
+              받은 하트 {soleKing.receivedHeartCount}개
+            </span>
+          </span>
+        </div>
+      )}
     </WeeklyLayout>
   );
 }

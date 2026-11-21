@@ -13,13 +13,13 @@ export function getDaysLeft(endDate: string, today = new Date()) {
   return Math.max(0, Math.round((end.getTime() - start.getTime()) / 86_400_000));
 }
 
-/** "2026-11-17", "2026-11-23" → "11.17 – 11.23" */
-export function formatPeriod(startDate: string, endDate: string) {
+/** "2026-11-17", "2026-11-23" → "11.17 – 11.23" (S-08은 separator "~" → "11.17~11.23") */
+export function formatPeriod(startDate: string, endDate: string, separator = ' – ') {
   const short = (date: string) => {
     const [, m, d] = date.split('-');
     return `${Number(m)}.${d}`;
   };
-  return `${short(startDate)} – ${short(endDate)}`;
+  return `${short(startDate)}${separator}${short(endDate)}`;
 }
 
 /** 이름 + 이/가 ("민지가", "지민이") */
