@@ -1,7 +1,9 @@
 import { useNavigate } from 'react-router';
+import { WEEKLY_PATHS } from '@/routes/weeklyPaths';
 
-// S-10 못 한 일 이월 — 디자인 확정 전 뼈대
-function WeeklyCarryOverPage() {
+/** S-10 못 한 일 이월 */
+// 디자인 확정 전 뼈대. 스타일은 임시 무채색
+function S10CarryOverPage() {
   const navigate = useNavigate();
 
   return (
@@ -12,7 +14,7 @@ function WeeklyCarryOverPage() {
         <button
           type="button"
           className="rounded-xl bg-neutral-900 py-3 text-white"
-          onClick={() => navigate('/weekly/best')}
+          onClick={() => navigate(WEEKLY_PATHS.best)}
         >
           이월하기
         </button>
@@ -21,4 +23,4 @@ function WeeklyCarryOverPage() {
   );
 }
 
-export default WeeklyCarryOverPage;
+export default S10CarryOverPage;

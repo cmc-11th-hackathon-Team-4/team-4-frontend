@@ -1,7 +1,9 @@
 import { useNavigate } from 'react-router';
+import { WEEKLY_PATHS } from '@/routes/weeklyPaths';
 
-// S-11 이번 주 배려왕 — 디자인 확정 전 뼈대
-function WeeklyBestPage() {
+/** S-11 이번 주 배려왕 */
+// 디자인 확정 전 뼈대. 스타일은 임시 무채색
+function S11BestPage() {
   const navigate = useNavigate();
 
   return (
@@ -12,7 +14,7 @@ function WeeklyBestPage() {
         <button
           type="button"
           className="rounded-xl bg-neutral-900 py-3 text-white"
-          onClick={() => navigate('/weekly/next')}
+          onClick={() => navigate(WEEKLY_PATHS.next)}
         >
           다음 주기 보기
         </button>
@@ -21,4 +23,4 @@ function WeeklyBestPage() {
   );
 }
 
-export default WeeklyBestPage;
+export default S11BestPage;

@@ -1,24 +1,26 @@
 import { useNavigate } from 'react-router';
+import { HOME_PATH } from '@/routes/weeklyPaths';
 
-// S-08 주간 결산 — 디자인 확정 전 뼈대
-function WeeklySummaryPage() {
+/** S-12 다음 주기 · 재배분 */
+// 디자인 확정 전 뼈대. 스타일은 임시 무채색
+function S12NextPage() {
   const navigate = useNavigate();
 
   return (
     <div className="flex flex-1 flex-col p-5">
-      <h1 className="text-xl font-bold">S-08 주간 결산</h1>
+      <h1 className="text-xl font-bold">S-12 다음 주기 · 재배분</h1>
       <div className="flex-1" />
       <div className="flex flex-col gap-2">
         <button
           type="button"
           className="rounded-xl bg-neutral-900 py-3 text-white"
-          onClick={() => navigate('/weekly/result')}
+          onClick={() => navigate(HOME_PATH)}
         >
-          결과 보기
+          메인으로
         </button>
       </div>
     </div>
   );
 }
 
-export default WeeklySummaryPage;
+export default S12NextPage;
