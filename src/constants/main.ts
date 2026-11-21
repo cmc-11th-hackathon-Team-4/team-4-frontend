@@ -14,12 +14,12 @@ export const MAIN_TEXT = {
   myChoresHint: '카드를 누르면 짐 올리기 · X를 누르면 완료',
   thisWeek: '이번 주',
   requesting: (name: string) => `${name}에게 요청 중`,
-  emptyMyChores: '오늘 할 집안일이 없어요',
+  emptyMyChores: '오늘 할 일을 다 했어요',
 
   // 상대 상세 (V5-07)
   memberChores: (name: string) => `${name}의 짐`,
   memberChoresHint: '카드를 누르면 내 짐으로 가져와요',
-  emptyMemberChores: '남은 짐이 없어요',
+  emptyMemberChores: '덜어갈 짐이 없어요',
 
   // A · 덜어주기 (V5-08, V5-09)
   takeTitle: '정말 가져갈까요?',
@@ -44,6 +44,7 @@ export const MAIN_TEXT = {
   requestMemberInfo: (status: string, count: number) => `${status} · 짐 ${count}개`,
   requestTip: '짐이 적거나 여유 있는 사람에게 부탁하면 좋아요.',
   requestOk: '부탁하기',
+  requestNoMember: '아직 부탁할 사람이 없어요',
   requestedToast: '짐 올리기를 요청했어요',
   requestedBy: (name: string, chore: string) =>
     `${josa(name, '이/가')} ${josa(chore, '을/를')} 부탁했어요`,
