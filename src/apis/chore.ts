@@ -80,3 +80,30 @@ export async function completeChore(choreId: Id): Promise<void> {
   }
   await instance.patch(`/chores/${choreId}`, { done: true });
 }
+
+/** V5-12 집안일 목록 › 삭제 (부탁 중이던 요청도 함께 정리) */
+export async function deleteChore(choreId: Id): Promise<void> {
+  if (USE_MOCK) {
+    await delay();
+    updateDb((db) => {
+      db.group.chores = db.group.chores.filter((c) => c.id !== choreId);
+      db.requests = db.requests.filter((r) => r.choreId !== choreId);
+    });
+    return;
+  }
+  await instance.delete(`/chores/${choreId}`);
+}
+
+/** V5-13 집안일 추가: 추가한 사람이 담당자 */
+export async function createChore(groupId: Id, ownerId: Id, name: string): Promise<Chore> {
+  if (USE_MOCK) {
+    await delay();
+    const created: Chore = { id: newId('c'), name, ownerId, done: false };
+    updateDb((db) => {
+      db.group.chores.push(created);
+    });
+    return created;
+  }
+  const { data } = await instance.post<Chore>(`/groups/${groupId}/chores`, { name, ownerId });
+  return data;
+}

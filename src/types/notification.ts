@@ -4,8 +4,10 @@ import type { MemberStatus } from './member';
 /**
  * status: 상태 알림 / take: 덜어감 알림 / heart: 하트 알림
  * request: 부탁 알림 / accept: 수락 알림 / decline: 거절 알림 (짐 올리기)
+ * cycleEnd: 기간 종료 알림 (V5-12 시연 › S-08 결산 홈 배너)
  */
-export type NotificationType = 'status' | 'take' | 'heart' | 'request' | 'accept' | 'decline';
+export type NotificationType =
+  'status' | 'take' | 'heart' | 'request' | 'accept' | 'decline' | 'cycleEnd';
 
 export interface AppNotification {
   id: Id;
