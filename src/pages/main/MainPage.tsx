@@ -7,6 +7,7 @@ import PullToRefresh from '@/components/common/PullToRefresh';
 import StateView from '@/components/common/StateView';
 import TabBar from '@/components/common/TabBar';
 import ChoreCard from '@/components/main/ChoreCard';
+import MainChips from '@/components/main/MainChips';
 import MainHero from '@/components/main/MainHero';
 import MemberCard from '@/components/main/MemberCard';
 import MoodPicker from '@/components/main/MoodPicker';
@@ -76,17 +77,28 @@ function MainPage() {
   const thanksTarget = pendingThanks.at(-1);
 
   return (
-    <div className="flex flex-1 flex-col" style={{ background: theme.background }}>
-      <Header
-        title={MAIN_TEXT.homeTitle}
-        right={<HeaderSettingButton onClick={() => navigate(MAIN_PATHS.settings)} />}
-      />
+    // 위(헤더 · 칩) · 아래(탭바) 고정, 가운데만 스크롤 (피그마 iPhone 18 Pro - 1)
+    <div
+      className="flex min-h-0 flex-1 flex-col overflow-hidden"
+      style={{ background: theme.background }}
+    >
+      <div className="shrink-0">
+        <Header
+          title={MAIN_TEXT.homeTitle}
+          right={<HeaderSettingButton onClick={() => navigate(MAIN_PATHS.settings)} />}
+        />
+        <MainChips
+          theme={theme}
+          status={me.status}
+          count={myChores.length}
+          onMoodClick={() => setMoodOpen((open) => !open)}
+        />
+      </div>
 
       <PullToRefresh onRefresh={refreshAll}>
         <MainHero
           theme={theme}
           character={me.character}
-          status={me.status}
           count={myChores.length}
           onMoodClick={() => setMoodOpen((open) => !open)}
           heartBurstKey={heartBurst?.id}

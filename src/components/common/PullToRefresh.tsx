@@ -8,14 +8,17 @@ interface PullToRefreshProps {
   children: ReactNode;
 }
 
-/** 맨 위에서 아래로 당기면 새로고침 (V5-01 명세). 터치 기기에서만 동작 */
+/**
+ * 맨 위에서 아래로 당기면 새로고침 (V5-01 명세). 터치 기기에서만 동작
+ * 이 영역이 스크롤 영역 (위 · 아래 고정 영역 사이)
+ */
 function PullToRefresh({ onRefresh, children }: PullToRefreshProps) {
   const startY = useRef<number | null>(null);
   const [pull, setPull] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
 
   const onTouchStart = (e: TouchEvent) => {
-    startY.current = window.scrollY <= 0 && !refreshing ? e.touches[0].clientY : null;
+    startY.current = e.currentTarget.scrollTop <= 0 && !refreshing ? e.touches[0].clientY : null;
   };
 
   const onTouchMove = (e: TouchEvent) => {
@@ -43,7 +46,7 @@ function PullToRefresh({ onRefresh, children }: PullToRefreshProps) {
 
   return (
     <div
-      className="flex flex-1 flex-col"
+      className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain"
       onTouchStart={onTouchStart}
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
