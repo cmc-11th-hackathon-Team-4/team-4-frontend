@@ -123,3 +123,7 @@ export const startHouse = (houseId: string) =>
   call<{ houseId: number; status: HouseStatus; period: DistributionResponse['period'] }>(
     instance.post(`/api/v1/houses/${houseId}/start`),
   );
+
+/** S-02 구성원 빼기 (방장만, WAITING 에서만). 빠진 사람은 집 없는 상태로 돌아간다 */
+export const removeMember = (houseId: string, userId: number) =>
+  call<null>(instance.delete(`/api/v1/houses/${houseId}/members/${userId}`));

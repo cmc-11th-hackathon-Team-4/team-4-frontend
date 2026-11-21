@@ -1,11 +1,13 @@
+import { useMutation } from '@tanstack/react-query';
 import { useNavigate } from 'react-router';
+import { removeMember } from '@/apis/onboarding';
 import addCircleIcon from '@/assets/icons/add-circle.svg';
 import StateView from '@/components/common/StateView';
 import { fromServerCharacter } from '@/constants/character';
 import { ONBOARDING_PATHS } from '@/routes/onboardingPaths';
 import { useToastStore } from '@/stores/toast';
 import { MAX_MEMBERS } from '@/types/group';
-import { COMMON_ERROR, LOAD_ERROR, RETRY_LABEL } from './apiMessages';
+import { COMMON_ERROR, errorMessage, LOAD_ERROR, RETRY_LABEL } from './apiMessages';
 import BottomButton from './components/BottomButton';
 import InfoText from './components/InfoText';
 import MemberAvatar from './components/MemberAvatar';
@@ -22,12 +24,20 @@ const REFETCH_MS = 3000;
  * - GET /api/v1/houses/{id}: 초대 코드 · 구성원 목록 (들어온 사람은 바로 위 목록에 보이도록 주기적으로 다시 불러옴)
  * - [추가] · [초대장 보내기]: 휴대폰 공유창으로 초대 코드와 링크 전송, 공유창이 없으면 초대 코드 복사
  * - [초대장 보내기]는 보낸 뒤 S-03 대기실로
- * - × 빼기(방장 전용, DELETE members)는 부가 기능이라 보류
+ * - × 빼기(방장 전용): DELETE /api/v1/houses/{id}/members/{userId} 후 목록 다시 불러오기, 실패 시 토스트
  */
 function S02InvitePage() {
   const navigate = useNavigate();
   const showToast = useToastStore((s) => s.show);
-  const { house, isLoading, isError, refetch } = useMyHouse({ refetchInterval: REFETCH_MS });
+  const { houseId, house, isLoading, isError, refetch } = useMyHouse({
+    refetchInterval: REFETCH_MS,
+  });
+
+  const remove = useMutation({
+    mutationFn: (userId: number) => removeMember(houseId!, userId),
+    onSuccess: () => refetch(),
+    onError: (error) => showToast(errorMessage(error)),
+  });
 
   if (isLoading) return <StateView type="loading" />;
   if (isError || !house) {
@@ -53,7 +63,13 @@ function S02InvitePage() {
     <OnboardingLayout
       title="초대장 만들기"
       step={{ current: 3, total: ONBOARDING_STEP_TOTAL }}
-      heading="같이 사는 사람에게 초대장을 보내주세요"
+      heading={
+        <>
+          같이 사는 사람에게
+          <br />
+          초대장을 보내주세요
+        </>
+      }
       description="초대 코드를 받은 사람만 들어올 수 있어요."
       footer={<BottomButton onClick={() => share(true)}>초대장 보내기</BottomButton>}
     >
@@ -78,6 +94,7 @@ function S02InvitePage() {
               label={m.isMe ? '나' : m.name}
               character={fromServerCharacter(m.characterType)}
               isMe={m.isMe}
+              onRemove={m.isMe || remove.isPending ? undefined : () => remove.mutate(m.userId)}
             />
           </li>
         ))}
