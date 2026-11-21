@@ -33,18 +33,18 @@ function TabBar() {
             // 상대 상세(/member/…)도 홈 탭 (피그마 V5-07)
             const isActive = linkActive || (to === MAIN_PATHS.home && isHomeSub);
             return (
-            <>
-              <span className="mt-0.5 flex h-6 items-center justify-center">
-                <img src={isActive ? activeIcon : icon} alt="" />
-              </span>
-              <span
-                className={`mt-[3px] text-xs leading-[18px] ${
-                  isActive ? 'font-bold text-primary-500' : 'text-gray-300'
-                }`}
-              >
-                {label}
-              </span>
-            </>
+              <>
+                <span className="mt-0.5 flex h-6 items-center justify-center">
+                  <img src={isActive ? activeIcon : icon} alt="" />
+                </span>
+                <span
+                  className={`mt-[3px] text-xs leading-[18px] ${
+                    isActive ? 'font-bold text-primary-500' : 'text-gray-300'
+                  }`}
+                >
+                  {label}
+                </span>
+              </>
             );
           }}
         </NavLink>

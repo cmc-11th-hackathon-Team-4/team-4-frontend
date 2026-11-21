@@ -8,7 +8,7 @@ import {
   respondChoreRequest,
   takeChore,
 } from '@/apis/chore';
-import { endCycle, extendCycle } from '@/apis/cycle';
+import { extendCycle } from '@/apis/cycle';
 import { isApiError } from '@/apis/error';
 import { updateStatus } from '@/apis/member';
 import { queryKeys } from '@/apis/queryKeys';
@@ -71,7 +71,7 @@ export function useMainMutations() {
 
   /** A · 덜어주기 */
   const take = useMutation({
-    mutationFn: (chore: Chore) => takeChore(chore.id, memberId),
+    mutationFn: (chore: Chore) => takeChore(chore.id),
     onMutate: (chore) => cache.patch(updateChore(chore.id, { ownerId: memberId })),
     onSuccess: (_d, chore) => showToast(MAIN_TEXT.takenToast(chore.name)),
     onError,
@@ -80,8 +80,7 @@ export function useMainMutations() {
 
   /** B · 짐 올리기 요청 */
   const request = useMutation({
-    mutationFn: ({ chore, toId }: { chore: Chore; toId: string }) =>
-      requestChore(chore.id, memberId, toId),
+    mutationFn: ({ chore, toId }: { chore: Chore; toId: string }) => requestChore(chore.id, toId),
     onSuccess: () => showToast(MAIN_TEXT.requestedToast),
     onError: onPlainError,
     onSettled: cache.refresh,
@@ -110,7 +109,7 @@ export function useMainMutations() {
 
   /** 기분 선택 */
   const status = useMutation({
-    mutationFn: (next: MemberStatus) => updateStatus(memberId, next),
+    mutationFn: (next: MemberStatus) => updateStatus(next),
     onMutate: (next) =>
       cache.patch((g) => ({
         ...g,
@@ -137,12 +136,6 @@ export function useMainMutations() {
     onSettled: cache.refresh,
   });
 
-  /** V5-12 시연용 · 기간 종료하기 */
-  const end = useMutation({
-    mutationFn: () => endCycle(memberId),
-    onError: onPlainError,
-  });
-
   /** B · 부탁 취소 → 카드가 원래대로 */
   const cancelRequest = useMutation({
     mutationFn: (req: ChoreRequest) => cancelChoreRequest(req.id),
@@ -153,10 +146,10 @@ export function useMainMutations() {
 
   /** V5-14 이번 기간 늘리기 */
   const extend = useMutation({
-    mutationFn: (days: number) => extendCycle(groupId, memberId, days),
+    mutationFn: (days: number) => extendCycle(groupId, days),
     onError: onPlainError,
     onSettled: () => queryClient.invalidateQueries({ queryKey: queryKeys.cycle(groupId) }),
   });
 
-  return { take, request, respond, complete, status, add, remove, end, cancelRequest, extend };
+  return { take, request, respond, complete, status, add, remove, cancelRequest, extend };
 }

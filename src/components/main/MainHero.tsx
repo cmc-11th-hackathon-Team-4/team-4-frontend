@@ -3,10 +3,9 @@ import glass from '@/assets/main/glass.svg';
 import sparkle10 from '@/assets/main/sparkle-10.svg';
 import sparkle16 from '@/assets/main/sparkle-16.svg';
 import sparkle16b from '@/assets/main/sparkle-16b.svg';
-import { CHARACTER_IMAGES } from '@/constants/character';
-import type { CharacterTheme } from '@/constants/characterTheme';
+import { type CharacterTheme, characterFace } from '@/constants/characterTheme';
 import { MAIN_TEXT } from '@/constants/main';
-import type { CharacterId } from '@/types/member';
+import type { CharacterId, MemberStatus } from '@/types/member';
 import { CHIPS_HEIGHT } from './MainChips';
 import HeartBurst from './HeartBurst';
 import LoadGauge from './LoadGauge';
@@ -17,6 +16,8 @@ const HERO_HEIGHT = 425;
 interface MainHeroProps {
   theme: CharacterTheme;
   character: CharacterId;
+  /** 기분: 큰 캐릭터 표정 */
+  status: MemberStatus;
   /** 맡은 짐 수 (게이지) */
   count: number;
   /** 캐릭터를 누르면 기분 말풍선 (내 메인만) */
@@ -36,6 +37,7 @@ interface MainHeroProps {
 function MainHero({
   theme,
   character,
+  status,
   count,
   onMoodClick,
   heartBurstKey,
@@ -98,7 +100,7 @@ function MainHero({
             className="absolute inset-[18%] rounded-full disabled:cursor-default"
           />
           <img
-            src={CHARACTER_IMAGES[character]}
+            src={characterFace(character, status)}
             alt=""
             className="pointer-events-none absolute inset-0 size-full object-cover"
           />
