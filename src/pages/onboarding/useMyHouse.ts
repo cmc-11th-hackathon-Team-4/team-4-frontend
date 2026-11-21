@@ -27,6 +27,7 @@ export function useMyHouse(options?: { refetchInterval?: number }) {
     house: house.data,
     isLoading: me.isLoading || (houseId !== null && house.isLoading),
     isError: me.isError || house.isError,
+    isFetching: me.isFetching || house.isFetching,
     refetch: () => (me.isError ? me.refetch() : house.refetch()),
   };
 }

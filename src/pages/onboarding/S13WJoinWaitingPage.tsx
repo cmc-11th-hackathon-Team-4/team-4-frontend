@@ -1,16 +1,18 @@
 import { Navigate } from 'react-router';
+import loadingRingIcon from '@/assets/icons/loading-ring.svg';
 import StateView from '@/components/common/StateView';
 import { fromServerCharacter } from '@/constants/character';
 import { HOME_PATH, ONBOARDING_PATHS } from '@/routes/onboardingPaths';
 import { useToastStore } from '@/stores/toast';
 import { LOAD_ERROR, RETRY_LABEL } from './apiMessages';
 import BottomButton from './components/BottomButton';
-import CharacterImage from './components/CharacterImage';
+import MemberAvatar from './components/MemberAvatar';
+import OnboardingLayout from './components/OnboardingLayout';
 import { useMyHouse } from './useMyHouse';
 
 /**
- * S-13-W 방장 기다리는 중 (권한: 참여자) — 기능명세서 · 유저플로우 와이어 기준
- * - 상단 집 이름, 내 캐릭터, 방장이 집안일과 결산 주기를 정하는 중이라는 안내
+ * S-13-W 방장 기다리는 중 (권한: 참여자) — 피그마 2-5 디자인 기준
+ * - 상단 집 이름, 구성원 아바타(방장 먼저 · 나는 "나"), 방장이 집안일과 결산 주기를 정하는 중이라는 안내
  * - 실시간 없음: 화면에 들어올 때와 [새로고침] 때 집 상태(GET /api/v1/houses/{id})를 조회
  * - 상태가 ACTIVE(시작됨)면 내 메인으로
  * - 상태가 DISTRIBUTING(배분됨)이면 S-05 랜덤 배분 · 참여자 화면으로
@@ -18,7 +20,7 @@ import { useMyHouse } from './useMyHouse';
  */
 function S13WJoinWaitingPage() {
   const showToast = useToastStore((s) => s.show);
-  const { me, house, isLoading, isError, refetch } = useMyHouse();
+  const { house, isLoading, isError, isFetching, refetch } = useMyHouse();
 
   if (isLoading) return <StateView type="loading" />;
   if (isError || !house) {
@@ -30,7 +32,10 @@ function S13WJoinWaitingPage() {
   if (house.status === 'DISTRIBUTING') return <Navigate to={ONBOARDING_PATHS.assign} replace />;
 
   const owner = house.members.find((m) => m.role === 'OWNER');
-  const myCharacter = me ? fromServerCharacter(me.characterType) : null;
+  // 시안: 방장 먼저, 그다음 들어온 순서
+  const members = [...house.members].sort(
+    (a, b) => Number(b.role === 'OWNER') - Number(a.role === 'OWNER'),
+  );
 
   const handleRefresh = async () => {
     const result = await refetch();
@@ -38,36 +43,39 @@ function S13WJoinWaitingPage() {
   };
 
   return (
-    <div className="flex flex-1 flex-col">
-      <header className="flex h-14 items-center px-4">
-        <h1 className="text-xl leading-[normal] font-bold text-gray-800">{house.name}</h1>
-      </header>
-
-      <main className="flex flex-1 flex-col items-center px-4 pt-14 text-center break-keep">
-        {myCharacter ? (
-          <CharacterImage id={myCharacter} size={160} offset={0.2} />
-        ) : (
-          <span aria-hidden className="block size-40 rounded-full bg-line-400" />
-        )}
-        <h2 className="mt-8 text-2xl leading-[normal] font-semibold text-gray-800">
-          우리 집에 들어왔어요
-        </h2>
-        {owner && (
-          <p className="mt-3 text-base leading-[normal] font-medium text-gray-500">
-            {owner.name}님이 집안일과 결산 주기를
-            <br />
-            정하고 있어요
-          </p>
-        )}
-        <p className="mt-10 text-sm leading-[normal] text-gray-400">방장을 기다리는 중</p>
-      </main>
-
-      <footer className="sticky bottom-0 bg-white p-4">
-        <BottomButton variant="outline" onClick={handleRefresh}>
+    <OnboardingLayout
+      title={house.name}
+      heading={
+        <>
+          우리 집에
+          <br />
+          들어왔어요
+        </>
+      }
+      description={owner ? `${owner.name}님이 집안일과 결산 주기를 정하고 있어요.` : undefined}
+      footer={
+        <BottomButton disabled={isFetching} onClick={handleRefresh}>
           새로고침
         </BottomButton>
-      </footer>
-    </div>
+      }
+    >
+      {/* 피그마 2-5 S-13-W: 80px 아바타 줄, 아래 로딩 링 + "방장을 기다리는 중이에요" */}
+      <ul className="mt-10 flex flex-wrap gap-4">
+        {members.map((m) => (
+          <li key={m.userId}>
+            <MemberAvatar
+              label={m.isMe ? '나' : m.name}
+              character={fromServerCharacter(m.characterType)}
+              isMe={m.isMe}
+            />
+          </li>
+        ))}
+      </ul>
+      <p className="mt-[38px] flex items-center gap-2 text-sm leading-[normal] text-gray-500">
+        <img src={loadingRingIcon} alt="" width={16} height={16} className="animate-spin" />
+        방장을 기다리는 중이에요
+      </p>
+    </OnboardingLayout>
   );
 }
 
