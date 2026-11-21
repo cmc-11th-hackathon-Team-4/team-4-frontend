@@ -26,7 +26,7 @@ interface P01ProfilePageProps {
  * P-01 프로필 만들기 · 수정 (권한: 모두, 만들기/수정 공용 화면) — 피그마 비주얼 시안 기준
  * - 만들기: S-14에서 ?next=create → S-01, ?next=join → S-13, M-01에서 ?next=my → 마이로 복귀
  * - 수정: 저장 후 마이로 복귀
- * - TODO(API): POST /api/v1/users (만들기) · PATCH /api/v1/users/me (수정)로 저장
+ * - 저장: 프로필이 없으면 POST /api/v1/users, 있으면 PATCH /api/v1/users/me (useSaveProfile)
  */
 function P01ProfilePage({ mode = 'create' }: P01ProfilePageProps) {
   const { profile, isLoading } = useMyProfile();
