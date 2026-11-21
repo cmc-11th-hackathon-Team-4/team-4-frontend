@@ -144,7 +144,7 @@ function SettingsPage() {
         <ExtendCycleSheet
           endDate={cycle.endDate}
           onClose={() => setExtending(false)}
-          onSubmit={(endDate) => extend.mutateAsync(endDate)}
+          onSubmit={(days) => extend.mutateAsync(days)}
         />
       )}
 

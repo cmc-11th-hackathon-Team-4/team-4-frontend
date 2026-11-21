@@ -3,8 +3,8 @@ import type { Id } from '@/types/common';
 import type { MemberStatus } from '@/types/member';
 import { USE_MOCK } from './config';
 import { instance } from './instance';
+import { API, toServerMood } from './mainServer';
 
-// TODO: 스웨거 확정되면 경로 맞추기
 /** 기분 변경. '지침'(unwilling)으로 바뀌면 다른 구성원에게 상태 알림 */
 export async function updateStatus(memberId: Id, status: MemberStatus): Promise<void> {
   if (USE_MOCK) {
@@ -30,5 +30,6 @@ export async function updateStatus(memberId: Id, status: MemberStatus): Promise<
     });
     return;
   }
-  await instance.patch(`/members/${memberId}/status`, { status });
+  // '고르기 싫음'(NO_CHOICE)으로 바뀌면 서버가 구성원에게 MOOD_NO_CHOICE 알림을 보냄
+  await instance.patch(`${API}/users/me/mood`, { mood: toServerMood(status) });
 }

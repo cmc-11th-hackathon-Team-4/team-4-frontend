@@ -7,7 +7,8 @@ import { addDays, formatMonthDayWeekday } from '@/utils/date';
 interface ExtendCycleSheetProps {
   endDate: string;
   onClose: () => void;
-  onSubmit: (endDate: string) => Promise<unknown>;
+  /** 늘릴 일수 (1 · 3 · 7) */
+  onSubmit: (days: number) => Promise<unknown>;
 }
 
 /** V5-14 이번 기간 늘리기 (방장). 부모에서 열 때만 렌더 */
@@ -17,10 +18,10 @@ function ExtendCycleSheet({ endDate, onClose, onSubmit }: ExtendCycleSheetProps)
   const nextEndDate = days === null ? null : addDays(endDate, days);
 
   const submit = async () => {
-    if (!nextEndDate || saving) return;
+    if (days === null || saving) return;
     setSaving(true);
     try {
-      await onSubmit(nextEndDate);
+      await onSubmit(days);
       onClose();
     } catch {
       setSaving(false);

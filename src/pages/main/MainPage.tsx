@@ -44,12 +44,11 @@ function MainPage() {
   const [moodOpen, setMoodOpen] = useState(false);
   const [canceling, setCanceling] = useState<Chore | null>(null);
   const queryClient = useQueryClient();
-  /** 당겨서 새로고침: 그룹 · 알림 · 부탁 다시 불러오기 */
+  /** 당겨서 새로고침: 그룹(부탁 포함) · 알림 다시 불러오기 */
   const refreshAll = () =>
     Promise.all([
       queryClient.refetchQueries({ queryKey: ['group'] }),
       queryClient.refetchQueries({ queryKey: ['notifications'] }),
-      queryClient.refetchQueries({ queryKey: ['requests'] }),
     ]);
 
   if (isLoading || (!group && !isError)) return <StateView type="loading" />;
@@ -120,15 +119,26 @@ function MainPage() {
                 {requests.received.map((req) => (
                   <RequestNotice
                     key={req.id}
-                    text={MAIN_TEXT.requestedBy(nameOf(req.fromId), choreNameOf(req.choreId))}
+                    text={MAIN_TEXT.requestedBy(
+                      nameOf(req.fromId),
+                      req.choreName ?? choreNameOf(req.choreId),
+                    )}
                     disabled={respond.isPending}
                     onAccept={() =>
                       myFull
                         ? showToast(MAIN_TEXT.memberFullToast)
-                        : respond.mutate({ req, accept: true, choreName: choreNameOf(req.choreId) })
+                        : respond.mutate({
+                            req,
+                            accept: true,
+                            choreName: req.choreName ?? choreNameOf(req.choreId),
+                          })
                     }
                     onDecline={() =>
-                      respond.mutate({ req, accept: false, choreName: choreNameOf(req.choreId) })
+                      respond.mutate({
+                        req,
+                        accept: false,
+                        choreName: req.choreName ?? choreNameOf(req.choreId),
+                      })
                     }
                   />
                 ))}
@@ -136,7 +146,7 @@ function MainPage() {
                   <HeartNotice
                     text={MAIN_TEXT.takenBy(
                       nameOf(thanksTarget.fromId),
-                      choreNameOf(thanksTarget.choreId),
+                      thanksTarget.choreName ?? choreNameOf(thanksTarget.choreId),
                     )}
                     disabled={heart.isPending}
                     onHeart={() =>

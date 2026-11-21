@@ -3,33 +3,36 @@ import type { Id } from '@/types/common';
 import type { AppNotification } from '@/types/notification';
 import { USE_MOCK } from './config';
 import { instance } from './instance';
+import { API, type ServerNotification, toNotification } from './mainServer';
 
-// TODO: 스웨거 확정되면 경로 맞추기
-/** 내가 받거나 보낸 알림 전체 (오래된 순) */
+/** 내가 받거나 보낸 알림 전체 (오래된 순). 실서버는 받은 알림 최신 50개 (읽음 포함) */
 export async function getNotifications(memberId: Id): Promise<AppNotification[]> {
   if (USE_MOCK) {
     await delay(100);
     return readDb().notifications.filter((n) => n.toId === memberId || n.fromId === memberId);
   }
-  const { data } = await instance.get<AppNotification[]>(`/members/${memberId}/notifications`);
-  return data;
+  const { data } = await instance.get<{ notifications: ServerNotification[] }>(
+    `${API}/notifications`,
+    { params: { unreadOnly: false } },
+  );
+  return data.notifications.map((n) => toNotification(n, memberId)).reverse();
 }
 
-/** 하트 보내기: 내 짐을 덜어간 사람에게 */
-export async function sendHeart(fromId: Id, toId: Id, choreId: Id): Promise<void> {
+/** 하트 보내기: 내 짐을 덜어간 사람에게 (덜어감 알림 기준) */
+export async function sendHeart(memberId: Id, notification: AppNotification): Promise<void> {
   if (USE_MOCK) {
     await delay();
     updateDb((db) =>
       db.notifications.push({
         id: newId('n'),
         type: 'heart',
-        fromId,
-        toId,
-        choreId,
+        fromId: memberId,
+        toId: notification.fromId,
+        choreId: notification.choreId,
         createdAt: new Date().toISOString(),
       }),
     );
     return;
   }
-  await instance.post('/hearts', { fromId, toId, choreId });
+  await instance.post(`${API}/transfers/${notification.transferId}/heart`);
 }

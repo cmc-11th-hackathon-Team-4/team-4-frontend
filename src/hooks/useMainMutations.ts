@@ -9,6 +9,7 @@ import {
   takeChore,
 } from '@/apis/chore';
 import { endCycle, extendCycle } from '@/apis/cycle';
+import { isApiError } from '@/apis/error';
 import { updateStatus } from '@/apis/member';
 import { queryKeys } from '@/apis/queryKeys';
 import { MAIN_TEXT } from '@/constants/main';
@@ -22,7 +23,7 @@ import type { ChoreRequest } from '@/types/request';
 /** 그룹 캐시를 바로 고쳐서(낙관적 업데이트) 화면이 즉시 바뀌게 함 */
 function useGroupCache() {
   const queryClient = useQueryClient();
-  const { groupId, memberId } = useSessionStore();
+  const groupId = useSessionStore((s) => s.groupId);
   const key = queryKeys.group(groupId ?? '');
 
   const patch = async (updater: (group: Group) => Group) => {
@@ -32,14 +33,20 @@ function useGroupCache() {
     return { prev };
   };
   const rollback = (prev?: Group) => prev && queryClient.setQueryData(key, prev);
-  const refresh = () =>
-    Promise.all([
-      queryClient.invalidateQueries({ queryKey: key }),
-      queryClient.invalidateQueries({ queryKey: queryKeys.requests(memberId ?? '') }),
-    ]);
+  const refresh = () => queryClient.invalidateQueries({ queryKey: key });
 
   return { patch, rollback, refresh };
 }
+
+/** 서버 에러 코드 → 토스트 문구 (짐 5개 · 집 10개 제한 등) */
+const ERROR_TOAST: Record<string, string> = {
+  'ASSIGNMENT-409-2': MAIN_TEXT.memberFullToast,
+  'CHORE-409-1': MAIN_TEXT.houseFullToast,
+  'CHORE-409': MAIN_TEXT.duplicateChoreToast,
+  'ASSIGNMENT-409-1': MAIN_TEXT.alreadyRequestedToast,
+};
+const errorToast = (error: unknown) =>
+  (isApiError(error) && ERROR_TOAST[error.code]) || MAIN_TEXT.error;
 
 const updateChore = (choreId: string, change: Partial<Chore>) => (group: Group) => ({
   ...group,
@@ -52,10 +59,11 @@ export function useMainMutations() {
   const memberId = useSessionStore((s) => s.memberId) ?? '';
   const groupId = useSessionStore((s) => s.groupId) ?? '';
   const showToast = useToastStore((s) => s.show);
-  const onError = (_e: unknown, _v: unknown, context?: { prev?: Group }) => {
+  const onError = (error: unknown, _v: unknown, context?: { prev?: Group }) => {
     cache.rollback(context?.prev);
-    showToast(MAIN_TEXT.error);
+    showToast(errorToast(error));
   };
+  const onPlainError = (error: unknown) => showToast(errorToast(error));
 
   /** A · 덜어주기 */
   const take = useMutation({
@@ -71,7 +79,7 @@ export function useMainMutations() {
     mutationFn: ({ chore, toId }: { chore: Chore; toId: string }) =>
       requestChore(chore.id, memberId, toId),
     onSuccess: () => showToast(MAIN_TEXT.requestedToast),
-    onError: () => showToast(MAIN_TEXT.error),
+    onError: onPlainError,
     onSettled: cache.refresh,
   });
 
@@ -111,13 +119,13 @@ export function useMainMutations() {
   /** V5-13 집안일 추가 (실패 시 입력값은 시트에 그대로) */
   const add = useMutation({
     mutationFn: (name: string) => createChore(groupId, memberId, name),
-    onError: () => showToast(MAIN_TEXT.error),
+    onError: onPlainError,
     onSettled: cache.refresh,
   });
 
   /** V5-12 집안일 목록 › 삭제 */
   const remove = useMutation({
-    mutationFn: (chore: Chore) => deleteChore(chore.id),
+    mutationFn: (chore: Chore) => deleteChore(groupId, chore),
     onMutate: (chore) =>
       cache.patch((g) => ({ ...g, chores: g.chores.filter((c) => c.id !== chore.id) })),
     onSuccess: (_d, chore) => showToast(MAIN_TEXT.deletedToast(chore.name)),
@@ -127,22 +135,22 @@ export function useMainMutations() {
 
   /** V5-12 시연용 · 기간 종료하기 */
   const end = useMutation({
-    mutationFn: () => endCycle(groupId, memberId),
-    onError: () => showToast(MAIN_TEXT.error),
+    mutationFn: () => endCycle(memberId),
+    onError: onPlainError,
   });
 
   /** B · 부탁 취소 → 카드가 원래대로 */
   const cancelRequest = useMutation({
     mutationFn: (req: ChoreRequest) => cancelChoreRequest(req.id),
     onSuccess: () => showToast(MAIN_TEXT.canceledToast),
-    onError: () => showToast(MAIN_TEXT.error),
+    onError: onPlainError,
     onSettled: cache.refresh,
   });
 
   /** V5-14 이번 기간 늘리기 */
   const extend = useMutation({
-    mutationFn: (endDate: string) => extendCycle(groupId, memberId, endDate),
-    onError: () => showToast(MAIN_TEXT.error),
+    mutationFn: (days: number) => extendCycle(groupId, memberId, days),
+    onError: onPlainError,
     onSettled: () => queryClient.invalidateQueries({ queryKey: queryKeys.cycle(groupId) }),
   });
 

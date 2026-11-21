@@ -4,6 +4,5 @@ import type { Id } from '@/types/common';
 export const queryKeys = {
   group: (groupId: Id) => ['group', groupId] as const,
   notifications: (memberId: Id) => ['notifications', memberId] as const,
-  requests: (memberId: Id) => ['requests', memberId] as const,
   cycle: (groupId: Id) => ['cycle', groupId] as const,
 };
