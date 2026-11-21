@@ -32,7 +32,7 @@ interface P01ProfilePageProps {
  * - 만들기: S-14에서 ?next=create → S-01, ?next=join → S-13, M-01에서 ?next=my → 마이로 복귀
  * - 수정: 저장 후 마이로 복귀
  * - 만들기: POST /api/v1/users 로 서버에 저장 (이미 등록된 기기면 서버 프로필을 그대로 사용)
- * - 수정: ④ 담당 useSaveProfile (TODO: PATCH /api/v1/users/me)
+ * - 수정: ④ 담당 useSaveProfile (PATCH /api/v1/users/me)
  */
 function P01ProfilePage({ mode = 'create' }: P01ProfilePageProps) {
   const { profile, isLoading } = useMyProfile();

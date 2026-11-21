@@ -1,5 +1,5 @@
+import { fromServerCharacter } from '@/constants/character';
 import type { Id } from '@/types/common';
-import type { CharacterId } from '@/types/member';
 import type {
   CarryChoice,
   CarryOverChoice,
@@ -11,9 +11,7 @@ import type {
   WeeklySettlement,
   WeeklyState,
 } from '@/types/weekly';
-import { USE_MOCK } from './config';
 import { instance } from './instance';
-import { mockWeeklyApi } from './weeklyMock';
 
 // ③ 주간 결산 API (Swagger 기준, 경로 앞 /api/v1)
 // 서버 id(number) → Id(string), characterType 'CHARACTER_1' → CharacterId '1'
@@ -68,12 +66,11 @@ interface ServerNextPeriod {
 }
 
 // ---------- 변환 ----------
-const toCharacter = (type: string): CharacterId => type.replace('CHARACTER_', '');
 
 const toMember = (u: ServerUser): WeeklyMember => ({
   id: String(u.userId),
   nickname: u.name,
-  character: toCharacter(u.characterType),
+  character: fromServerCharacter(u.characterType),
 });
 
 const toPeriod = (p: ServerPeriod): WeeklyPeriod => ({ ...p, id: String(p.id) });
@@ -126,9 +123,7 @@ function toNextPeriod(n: ServerNextPeriod): NextPeriod {
  * 1) GET /houses/{houseId}/home 의 period (READY 제외 가장 최근 기간)
  * 2) ENDED면 GET /periods/{periodId}/settlement
  */
-export async function getWeeklyState(houseId: Id, memberId: Id): Promise<WeeklyState> {
-  if (USE_MOCK) return mockWeeklyApi.getState(memberId);
-
+export async function getWeeklyState(houseId: Id): Promise<WeeklyState> {
   const { data: home } = await instance.get<{ period: ServerPeriod | null }>(
     `${BASE}/houses/${houseId}/home`,
   );
@@ -141,9 +136,7 @@ export async function getWeeklyState(houseId: Id, memberId: Id): Promise<WeeklyS
 }
 
 /** 방장 · 나 구분 (GET /houses/{houseId}) */
-export async function getHouseMembers(houseId: Id, memberId: Id): Promise<WeeklyHouseMember[]> {
-  if (USE_MOCK) return mockWeeklyApi.getHouseMembers(memberId);
-
+export async function getHouseMembers(houseId: Id): Promise<WeeklyHouseMember[]> {
   const { data } = await instance.get<{
     members: (ServerUser & { role: 'OWNER' | 'MEMBER'; isMe: boolean })[];
   }>(`${BASE}/houses/${houseId}`);
@@ -152,39 +145,29 @@ export async function getHouseMembers(houseId: Id, memberId: Id): Promise<Weekly
 
 /** S-10 못 한 일 이월 선택 저장 (PUT /periods/{periodId}/carry-overs) */
 export async function putCarryOvers(periodId: Id, choices: CarryOverChoice[]) {
-  if (USE_MOCK) return mockWeeklyApi.saveCarryOver(choices);
-
   await instance.put(`${BASE}/periods/${periodId}/carry-overs`, {
     choices: choices.map((c) => ({ assignmentId: Number(c.assignmentId), choice: c.choice })),
   });
 }
 
 /** S-12 다음 주기 배분 조회 (GET /houses/{houseId}/periods/next). 다음 기간이 시작됐으면 PERIOD-409-2 */
-export async function getNextPeriod(houseId: Id, memberId: Id): Promise<NextPeriod> {
-  if (USE_MOCK) return mockWeeklyApi.getNext(memberId);
-
+export async function getNextPeriod(houseId: Id): Promise<NextPeriod> {
   const { data } = await instance.get<ServerNextPeriod>(`${BASE}/houses/${houseId}/periods/next`);
   return toNextPeriod(data);
 }
 
 /** S-12 다음 주기 배분 만들기 · 다시 나누기 (방장, POST /houses/{houseId}/periods/next) */
-export async function postNextPeriod(houseId: Id, memberId: Id): Promise<NextPeriod> {
-  if (USE_MOCK) return mockWeeklyApi.createNext(memberId);
-
+export async function postNextPeriod(houseId: Id): Promise<NextPeriod> {
   const { data } = await instance.post<ServerNextPeriod>(`${BASE}/houses/${houseId}/periods/next`);
   return toNextPeriod(data);
 }
 
 /** S-12 이대로 시작하기 (방장, POST /houses/{houseId}/periods/next/start) */
-export async function postStartNextPeriod(houseId: Id, memberId: Id) {
-  if (USE_MOCK) return mockWeeklyApi.startNext(memberId);
-
+export async function postStartNextPeriod(houseId: Id) {
   await instance.post(`${BASE}/houses/${houseId}/periods/next/start`);
 }
 
 /** 시연용 기간 종료 (V5-12 시연 메뉴, 방장, POST /houses/{houseId}/periods/current/end) */
-export async function postEndPeriod(houseId: Id, memberId: Id) {
-  if (USE_MOCK) return mockWeeklyApi.endPeriod(memberId);
-
+export async function postEndPeriod(houseId: Id) {
   await instance.post(`${BASE}/houses/${houseId}/periods/current/end`);
 }

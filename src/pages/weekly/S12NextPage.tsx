@@ -3,7 +3,6 @@ import { Navigate, useNavigate } from 'react-router';
 import { isApiError } from '@/apis/error';
 import BottomButton from '@/components/common/BottomButton';
 import StateView from '@/components/common/StateView';
-import { useDevSession } from '@/hooks/useDevSession';
 import {
   useCreateNextPeriod,
   useNextPeriod,
@@ -25,7 +24,6 @@ import WeeklyLayout from './components/WeeklyLayout';
  * - 다음 기간이 이미 시작됐으면(PERIOD-409-2) 홈으로
  */
 function S12NextPage() {
-  useDevSession();
   const navigate = useNavigate();
   const showToast = useToastStore((s) => s.show);
   const state = useWeeklySettlement();
