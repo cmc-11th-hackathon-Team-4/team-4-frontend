@@ -9,7 +9,7 @@ interface LoadGaugeProps {
   hearts?: number;
 }
 
-/** 캐릭터 + 오른쪽 반원 게이지: 짐이 많을수록 위에서부터 참 */
+/** 캐릭터 + 오른쪽 반원 게이지: 내가 맡은 짐이 많을수록 위에서부터 참 (최대 10개) */
 function LoadGauge({ count, status, hearts = 0 }: LoadGaugeProps) {
   const ratio = Math.min(count / MAX_LOAD, 1);
   const Face = STATUS_ICON[status];
