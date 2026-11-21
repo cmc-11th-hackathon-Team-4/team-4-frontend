@@ -39,6 +39,7 @@ function S09ResultPage() {
   const visible = expanded ? list : list.slice(0, PREVIEW_COUNT);
 
   const nickname = (id: string) => data.members.find((m) => m.id === id)?.nickname ?? '';
+  const characterOf = (id: string) => data.members.find((m) => m.id === id)?.character;
   const reliefBy = (choreId: string) => data.reliefs.find((r) => r.choreId === choreId);
 
   const changeTab = (next: 'done' | 'undone') => {
@@ -94,7 +95,7 @@ function S09ResultPage() {
             const relief = tab === 'done' ? reliefBy(c.id) : undefined;
             return (
               <li key={c.id} className="flex items-center gap-3 border-b border-neutral-100 py-2.5">
-                <Avatar />
+                <Avatar character={characterOf(c.ownerId)} />
                 <span className="flex-1 text-base">{c.name}</span>
                 {relief && (
                   <span className="rounded-md border border-neutral-300 px-2 py-1 text-xs text-neutral-500">

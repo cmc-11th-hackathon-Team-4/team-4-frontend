@@ -65,7 +65,7 @@ function S11BestPage() {
                 <span className={`h-6 text-xl ${isBest ? '' : 'invisible'}`} aria-hidden>
                   ♛
                 </span>
-                <Avatar className="size-22" />
+                <Avatar character={m.character} size={88} />
                 <span className="mt-3 text-sm font-semibold">{m.nickname}</span>
                 <span className={`mt-1 text-3xl font-bold ${isBest ? '' : 'text-neutral-400'}`}>
                   {counts.get(m.id) ?? 0}
