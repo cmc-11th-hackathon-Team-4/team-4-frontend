@@ -43,10 +43,13 @@ function ChoreTile({ name, onClick, onComplete, pendingTo }: ChoreTileProps) {
         <button
           type="button"
           aria-label={`${name} 완료`}
-          className="absolute top-2.5 right-2.5 flex size-7 items-center justify-center rounded-full border border-neutral-900 bg-white"
+          className="absolute top-0 right-0 flex size-11 items-center justify-center"
           onClick={onComplete}
         >
-          <IconX size={14} strokeWidth={2.4} />
+          {/* 보이는 원은 28px, 누르는 영역은 44px */}
+          <span className="flex size-7 items-center justify-center rounded-full border border-neutral-900 bg-white">
+            <IconX size={14} strokeWidth={2.4} />
+          </span>
         </button>
       )}
     </div>
