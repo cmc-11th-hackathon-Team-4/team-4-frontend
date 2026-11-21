@@ -1,27 +1,25 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
-import { Navigate, useNavigate } from 'react-router';
+import { useNavigate } from 'react-router';
 import { getInvitePreview } from '@/apis/onboarding';
 import { ONBOARDING_PATHS } from '@/routes/onboardingPaths';
 import BottomButton from './components/BottomButton';
 import OnboardingLayout from './components/OnboardingLayout';
 import { toCodeErrorMessage } from './inviteErrors';
 import { onboardingKeys } from './queryKeys';
-import { isNoProfile, useMe } from './useMyHouse';
 import { INVITE_CODE_LENGTH, normalizeInviteCode } from './validation';
 
 /**
  * S-13 초대 코드 입력 (+ S-13-E 코드 에러) (권한: 참여자) — 기능명세서 · 와이어 기준
  * - 영문 대문자 · 숫자 6자리. 소문자로 쳐도 대문자로 바꿔 보여줌, [붙여넣기]로 한 번에 넣기
  * - 6자리가 다 차야 [입력 완료]가 눌림. 들어오면 키보드가 바로 열림 (입력란 자동 포커스)
- * - 서버에 프로필이 없으면(GET /users/me · USER-404) P-01을 먼저 거침
+ * - 프로필이 없어도 코드 입력 · 미리보기 가능 (미리보기 API 는 기기 정보 없이 호출). 프로필은 S-13-C 에서 참여 직전에
  * - S-13-E: 에러는 입력란 아래 한 줄, 입력값은 남기고 다시 입력하면 에러를 지움
  * - [입력 완료]: GET /api/v1/houses/invite/{code} 미리보기 → 성공 시 S-13-C 이 집이 맞나요?
  *   실패 시 에러 종류(틀린 코드 HOUSE-404-1 · 정원 초과 HOUSE-409-1 · 배분 중 HOUSE-409-2 서버 문구 · 연결) 표시
  * - 참여(POST /join)는 S-13-C [이 집에 들어가기]에서
  */
 function S13JoinPage() {
-  const me = useMe();
   const [code, setCode] = useState('');
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -35,10 +33,6 @@ function S13JoinPage() {
     },
     onError: (e) => setError(toCodeErrorMessage(e)),
   });
-
-  if (isNoProfile(me.error)) {
-    return <Navigate to={`${ONBOARDING_PATHS.profileNew}?next=join`} replace />;
-  }
 
   const changeCode = (value: string) => {
     setCode(normalizeInviteCode(value));

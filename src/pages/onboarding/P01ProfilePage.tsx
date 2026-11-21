@@ -1,4 +1,4 @@
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import { ApiError } from '@/apis/error';
@@ -17,6 +17,7 @@ import OnboardingLayout from './components/OnboardingLayout';
 import UnderlineInput from './components/UnderlineInput';
 import { errorMessage } from './apiMessages';
 import { ONBOARDING_STEP_TOTAL } from './constants';
+import { onboardingKeys } from './queryKeys';
 import { INPUT_RULES, isValidText } from './validation';
 
 /** 처음 보이는 캐릭터 (피그마 시안에서 선택된 보라 캐릭터) */
@@ -29,7 +30,7 @@ interface P01ProfilePageProps {
 
 /**
  * P-01 프로필 만들기 · 수정 (권한: 모두, 만들기/수정 공용 화면) — 피그마 비주얼 시안 기준
- * - 만들기: S-14에서 ?next=create → S-01, ?next=join → S-13, M-01에서 ?next=my → 마이로 복귀
+ * - 만들기: S-14에서 ?next=create → S-01, S-13-C에서 ?next=confirm&code= → S-13-C로 복귀, ?next=join → S-13, M-01에서 ?next=my → 마이로 복귀
  * - 수정: 저장 후 마이로 복귀
  * - 만들기: POST /api/v1/users 로 서버에 저장 (이미 등록된 기기면 서버 프로필을 그대로 사용)
  * - 수정: ④ 담당 useSaveProfile (PATCH /api/v1/users/me)
@@ -53,6 +54,7 @@ function ProfileForm({ mode, initial }: { mode: 'create' | 'edit'; initial: Prof
   // 만들기에서 뒤로 왔다가 다시 들어오면 저장해 둔 캐릭터로 시작
   const storedCharacter = useProfileStore((s) => s.profile?.character);
   const setProfile = useProfileStore((s) => s.setProfile);
+  const queryClient = useQueryClient();
 
   // 만들기: 서버에 프로필 등록. 이미 등록된 기기(USER-409)면 서버에 있는 프로필을 불러와 이어서 진행
   const create = useMutation({
@@ -71,7 +73,11 @@ function ProfileForm({ mode, initial }: { mode: 'create' | 'edit'; initial: Prof
         throw error;
       }
     },
-    onSuccess: setProfile,
+    onSuccess: (profile) => {
+      setProfile(profile);
+      // ① 화면의 "프로필 있음?" 판단(GET /users/me)을 새로 받게 함
+      queryClient.invalidateQueries({ queryKey: onboardingKeys.me });
+    },
   });
 
   const [character, setCharacter] = useState<CharacterId>(
@@ -88,6 +94,11 @@ function ProfileForm({ mode, initial }: { mode: 'create' | 'edit'; initial: Prof
     if (next === 'my') {
       showToast('프로필을 만들었어요');
       return navigate(MYPAGE_PATHS.my, { replace: true });
+    }
+    if (next === 'confirm') {
+      // S-13-C 에서 참여 직전에 온 경우: 프로필을 만든 뒤 그 집 확인 화면으로 돌아감
+      const code = searchParams.get('code') ?? '';
+      return navigate(`${ONBOARDING_PATHS.joinConfirm}?code=${code}`, { replace: true });
     }
     navigate(next === 'join' ? ONBOARDING_PATHS.join : ONBOARDING_PATHS.create);
   };
