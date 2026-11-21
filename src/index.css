@@ -1,6 +1,37 @@
 @import 'tailwindcss';
 
-/* 모바일 앱 기본 설정 (디자인 토큰은 시안 확정 후 추가) */
+/*
+ * 디자인 시스템 컬러 토큰 (피그마 2-6 디자인 시스템 · 2-7 컴포넌트 변수 기준)
+ * - 추가만 함: 기존 neutral-* 등 다른 스타일에는 영향 없음
+ * - 사용 예: bg-primary-500, text-gray-800, border-line-700
+ */
+@theme {
+  --color-primary-500: #7f68f1;
+  --color-primary-400: #a594f6;
+  --color-primary-300: #c1b6f9;
+  --color-primary-200: #ded8fc;
+  --color-primary-100: #f2efff;
+
+  --color-gray-900: #17181c;
+  --color-gray-800: #292b31;
+  --color-gray-700: #454750;
+  --color-gray-600: #60636d;
+  --color-gray-500: #7b7e88;
+  --color-gray-400: #9699a3;
+  --color-gray-300: #b4b7c0;
+  --color-gray-200: #d0d2d9;
+
+  /* Line & bg */
+  --color-line-900: #a5a8b2;
+  --color-line-800: #c5c8d1;
+  --color-line-700: #dbdde4;
+  --color-line-600: #e7e8ed;
+  --color-line-500: #f0f1f4;
+  --color-line-400: #f5f5f7;
+  --color-line-300: #fafafb;
+}
+
+/* 모바일 앱 기본 설정 */
 :root {
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-right: env(safe-area-inset-right, 0px);
