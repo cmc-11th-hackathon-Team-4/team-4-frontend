@@ -66,6 +66,7 @@ function S03WaitingPage() {
   return (
     <OnboardingLayout
       title="대기실"
+      backTo={ONBOARDING_PATHS.invite}
       step={{ current: 4, total: ONBOARDING_STEP_TOTAL }}
       heading={heading}
       description={description}

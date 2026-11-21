@@ -64,6 +64,7 @@ function S06CyclePage() {
   return (
     <OnboardingLayout
       title="집안일 배분하기"
+      backTo={ONBOARDING_PATHS.chores}
       step={{ current: 6, total: ONBOARDING_STEP_TOTAL }}
       heading={
         <>

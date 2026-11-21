@@ -105,6 +105,7 @@ function ChoreForm({ presets, houseId }: { presets: string[]; houseId: string })
   return (
     <OnboardingLayout
       title="집안일 고르기"
+      backTo={ONBOARDING_PATHS.waiting}
       step={{ current: 5, total: ONBOARDING_STEP_TOTAL }}
       heading={
         <>

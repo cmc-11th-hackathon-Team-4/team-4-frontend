@@ -62,6 +62,7 @@ function S02InvitePage() {
   return (
     <OnboardingLayout
       title="초대장 만들기"
+      backTo={ONBOARDING_PATHS.create}
       step={{ current: 3, total: ONBOARDING_STEP_TOTAL }}
       heading={
         <>

@@ -72,6 +72,7 @@ function S13CJoinConfirmPage() {
   return (
     <OnboardingLayout
       title="초대 코드 입력"
+      backTo={ONBOARDING_PATHS.join}
       heading={
         <>
           들어갈 집이

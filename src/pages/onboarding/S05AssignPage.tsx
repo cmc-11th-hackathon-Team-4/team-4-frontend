@@ -8,7 +8,7 @@ import {
 } from '@/apis/onboarding';
 import StateView from '@/components/common/StateView';
 import { fromServerCharacter } from '@/constants/character';
-import { HOME_PATH } from '@/routes/onboardingPaths';
+import { HOME_PATH, ONBOARDING_PATHS } from '@/routes/onboardingPaths';
 import { useOnboardingStore } from '@/stores/onboarding';
 import { useToastStore } from '@/stores/toast';
 import { errorMessage, LOAD_ERROR, RETRY_LABEL } from './apiMessages';
@@ -95,6 +95,7 @@ function S05AssignPage() {
     return (
       <OnboardingLayout
         title="집안일 배분하기"
+        backTo={ONBOARDING_PATHS.joinWaiting}
         heading={
           <>
             집안일을
@@ -119,6 +120,7 @@ function S05AssignPage() {
   return (
     <OnboardingLayout
       title="집안일 배분하기"
+      backTo={ONBOARDING_PATHS.cycle}
       step={{ current: 7, total: ONBOARDING_STEP_TOTAL }}
       heading={
         <>

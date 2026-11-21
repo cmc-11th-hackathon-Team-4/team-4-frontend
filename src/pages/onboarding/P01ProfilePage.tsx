@@ -5,6 +5,7 @@ import { ApiError } from '@/apis/error';
 import { createUser, getMe } from '@/apis/onboarding';
 import StateView from '@/components/common/StateView';
 import { fromServerCharacter, toServerCharacter } from '@/constants/character';
+import { useGoBack } from '@/hooks/useGoBack';
 import { useMyProfile, useSaveProfile } from '@/hooks/useProfile';
 import { MYPAGE_PATHS } from '@/routes/mypagePaths';
 import { ONBOARDING_PATHS } from '@/routes/onboardingPaths';
@@ -49,6 +50,7 @@ function EditProfile() {
 
 function ProfileForm({ mode, initial }: { mode: 'create' | 'edit'; initial: Profile | null }) {
   const navigate = useNavigate();
+  const goBack = useGoBack(MYPAGE_PATHS.my);
   const [searchParams] = useSearchParams();
   const showToast = useToastStore((s) => s.show);
   const save = useSaveProfile();
@@ -92,7 +94,7 @@ function ProfileForm({ mode, initial }: { mode: 'create' | 'edit'; initial: Prof
     isValidText(name, INPUT_RULES.profileName) && !save.isPending && !create.isPending;
 
   const afterSave = () => {
-    if (isEdit) return navigate(-1);
+    if (isEdit) return goBack();
     const next = searchParams.get('next');
     if (next === 'my') {
       showToast('프로필을 만들었어요');
@@ -126,6 +128,7 @@ function ProfileForm({ mode, initial }: { mode: 'create' | 'edit'; initial: Prof
   return (
     <OnboardingLayout
       title={isEdit ? '프로필 수정' : '프로필 만들기'}
+      backTo={isEdit ? MYPAGE_PATHS.my : ONBOARDING_PATHS.welcome}
       step={isEdit ? undefined : { current: 1, total: ONBOARDING_STEP_TOTAL }}
       heading={
         isEdit ? (

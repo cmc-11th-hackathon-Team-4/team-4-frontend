@@ -1,6 +1,6 @@
-import { useNavigate } from 'react-router';
 import { IconChevronLeft, IconGear } from '@/components/common/icons';
 import { MAIN_TEXT } from '@/constants/main';
+import { useGoBack } from '@/hooks/useGoBack';
 
 interface MainHeaderProps {
   title: string;
@@ -10,7 +10,7 @@ interface MainHeaderProps {
 }
 
 function MainHeader({ title, showBack = false, onSettings }: MainHeaderProps) {
-  const navigate = useNavigate();
+  const goBack = useGoBack('/');
 
   if (showBack) {
     return (
@@ -19,7 +19,7 @@ function MainHeader({ title, showBack = false, onSettings }: MainHeaderProps) {
           type="button"
           aria-label="뒤로가기"
           className="absolute left-3 p-1"
-          onClick={() => navigate(-1)}
+          onClick={goBack}
         >
           <IconChevronLeft size={24} />
         </button>
