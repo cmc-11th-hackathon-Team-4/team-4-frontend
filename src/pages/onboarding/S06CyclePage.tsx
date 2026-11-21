@@ -11,7 +11,7 @@ import OnboardingLayout from './components/OnboardingLayout';
 import { ONBOARDING_STEP_TOTAL } from './constants';
 import { formatDate, parseDate, todayString, weekdayOf } from './date';
 import { onboardingKeys } from './queryKeys';
-import { useMe } from './useMyHouse';
+import { useMe, useRefreshMe } from './useMyHouse';
 
 const CYCLE_OPTIONS: { value: SettlementCycle; label: string }[] = [
   { value: 'weekly', label: '매주' },
@@ -55,13 +55,14 @@ function S06CyclePage() {
   const houseId = me.data?.house ? String(me.data.house.id) : null;
 
   const queryClient = useQueryClient();
+  const refreshMe = useRefreshMe();
 
   const save = useMutation({
     mutationFn: () =>
       createDistribution(houseId!, { settlementCycle: SERVER_CYCLE[cycle], startDate }),
     onSuccess: (distribution) => {
       queryClient.setQueryData(onboardingKeys.distribution(houseId!), distribution);
-      queryClient.invalidateQueries({ queryKey: onboardingKeys.me });
+      refreshMe();
       navigate(ONBOARDING_PATHS.assign);
     },
     onError: (error) => showToast(errorMessage(error)),

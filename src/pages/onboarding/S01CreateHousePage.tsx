@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { ApiError } from '@/apis/error';
@@ -10,8 +10,7 @@ import BottomButton from './components/BottomButton';
 import OnboardingLayout from './components/OnboardingLayout';
 import { errorMessage } from './apiMessages';
 import { ONBOARDING_STEP_TOTAL } from './constants';
-import { onboardingKeys } from './queryKeys';
-import { isNoProfile } from './useMyHouse';
+import { isNoProfile, useRefreshMe } from './useMyHouse';
 import UnderlineInput from './components/UnderlineInput';
 import { INPUT_RULES, isValidText } from './validation';
 
@@ -29,14 +28,14 @@ function S01CreateHousePage() {
   const setRole = useOnboardingStore((s) => s.setRole);
 
   const showToast = useToastStore((s) => s.show);
-  const queryClient = useQueryClient();
+  const refreshMe = useRefreshMe();
 
   const [name, setName] = useState(savedName);
 
   const goNext = () => {
     setHouseName(name.trim());
     setRole('host');
-    queryClient.invalidateQueries({ queryKey: onboardingKeys.me });
+    refreshMe();
     navigate(ONBOARDING_PATHS.invite);
   };
 
