@@ -6,7 +6,6 @@ import { IconChevronRight, IconHome, IconSmile, IconUser } from '@/components/co
 import { useMyProfile } from '@/hooks/useProfile';
 import { MYPAGE_PATHS } from '@/routes/mypagePaths';
 import { ONBOARDING_PATHS } from '@/routes/onboardingPaths';
-import { useToastStore } from '@/stores/toast';
 
 /** TODO: 배포 버전 정해지면 package.json과 맞추기 */
 const APP_VERSION = '1.0.0';
@@ -19,7 +18,6 @@ const APP_VERSION = '1.0.0';
  */
 function M01MyPage() {
   const navigate = useNavigate();
-  const showToast = useToastStore((s) => s.show);
   const { profile, hasHouse, group, me, isLoading, isError, refetch } = useMyProfile();
 
   if (isLoading) return <StateView type="loading" />;
@@ -136,8 +134,7 @@ function M01MyPage() {
             <SectionLabel>앱</SectionLabel>
             <button
               type="button"
-              // TODO: V5-12 우리 집 설정(②) 경로 생기면 연결
-              onClick={() => showToast('준비 중이에요')}
+              onClick={() => navigate(MYPAGE_PATHS.settings)}
               className="flex items-center justify-between py-3 text-base font-medium text-gray-900"
             >
               우리 집 설정
