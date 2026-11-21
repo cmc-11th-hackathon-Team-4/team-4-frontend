@@ -5,9 +5,6 @@ import SplashScreen from '@/components/common/SplashScreen';
 import { ONBOARDING_PATHS } from '@/routes/onboardingPaths';
 import { isNoProfile, useMe } from './useMyHouse';
 
-/** ② 목데이터 시연용 주소 파라미터 (있으면 첫 화면 분기를 건너뜀) */
-const DEMO_PARAMS = ['devMember', 'resetMock'];
-
 /** 앱을 `/` 로 열었을 때 갈 화면. null 이면 그대로 (내 메인) */
 function getStartPath(me: UserMeResponse | undefined, error: unknown): string | null {
   if (isNoProfile(error)) return ONBOARDING_PATHS.welcome;
@@ -26,7 +23,7 @@ function getStartPath(me: UserMeResponse | undefined, error: unknown): string | 
  * - 프로필 없음 · 집 없음 → S-14 /welcome
  * - 집 WAITING: 방장 → S-03 대기실, 참여자 → S-13-W
  * - 집 DISTRIBUTING → S-05 랜덤 배분 / ACTIVE → 그대로 내 메인
- * - `/` 가 아닌 주소로 열었거나 ② 시연 파라미터가 있으면 건너뜀
+ * - `/` 가 아닌 주소로 열었으면 건너뜀
  * - 확인하는 동안 스플래시(최소 1.2초)를 보여줌
  */
 /** 스플래시 최소 노출 시간 (서버 응답이 빨라도 이만큼은 보여줌) */
@@ -35,8 +32,7 @@ const SPLASH_MIN_MS = 1200;
 type GateState = { phase: 'checking' } | { phase: 'redirect'; to: string } | { phase: 'done' };
 
 function isRootStart() {
-  const params = new URLSearchParams(window.location.search);
-  return window.location.pathname === '/' && !DEMO_PARAMS.some((p) => params.has(p));
+  return window.location.pathname === '/';
 }
 
 function StartGate({ children }: { children: ReactNode }) {

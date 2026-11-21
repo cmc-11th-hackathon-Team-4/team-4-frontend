@@ -30,7 +30,7 @@ function SettingsPage() {
   const navigate = useNavigate();
   const showToast = useToastStore((s) => s.show);
   const { group, me, isLoading, isError, refetch } = useGroupBoard();
-  const { add, end, extend } = useMainMutations();
+  const { add, extend } = useMainMutations();
   const weeklyEnd = useEndCycle();
   const { data: cycle } = useCycle();
   const [adding, setAdding] = useState(false);
@@ -122,15 +122,15 @@ function SettingsPage() {
             <h2 className="mb-2 px-1 text-xs text-neutral-500">{MAIN_TEXT.sectionDemo}</h2>
             <button
               type="button"
-              disabled={!me.isHost || end.isPending || weeklyEnd.isPending}
+              disabled={!me.isHost || weeklyEnd.isPending}
               className="flex h-14 w-full items-center rounded-2xl border border-dashed border-neutral-300 px-4 disabled:opacity-40"
               onClick={async () => {
                 try {
-                  // ② 상대 폰 배너 알림 + ③ 결산 상태를 '종료'로
-                  await Promise.all([end.mutateAsync(), weeklyEnd.mutateAsync()]);
+                  // 서버가 기간을 끝내고 구성원에게 PERIOD_ENDED 알림을 보냄
+                  await weeklyEnd.mutateAsync();
                   navigate(WEEKLY_PATHS.summary);
                 } catch {
-                  // 실패 토스트는 각 뮤테이션에서 처리
+                  // 실패 토스트는 뮤테이션에서 처리
                 }
               }}
             >
