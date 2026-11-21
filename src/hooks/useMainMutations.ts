@@ -1,20 +1,20 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { createChore, takeChore, toggleChoreDone, undoTakeChore } from '@/apis/chore';
+import { completeChore, requestChore, respondChoreRequest, takeChore } from '@/apis/chore';
 import { updateStatus } from '@/apis/member';
 import { queryKeys } from '@/apis/queryKeys';
 import { MAIN_TEXT } from '@/constants/main';
 import { useSessionStore } from '@/stores/session';
-import { useTakeStore } from '@/stores/take';
 import { useToastStore } from '@/stores/toast';
 import type { Chore } from '@/types/chore';
 import type { Group } from '@/types/group';
 import type { MemberStatus } from '@/types/member';
+import type { ChoreRequest } from '@/types/request';
 
 /** 그룹 캐시를 바로 고쳐서(낙관적 업데이트) 화면이 즉시 바뀌게 함 */
 function useGroupCache() {
   const queryClient = useQueryClient();
-  const groupId = useSessionStore((s) => s.groupId) ?? '';
-  const key = queryKeys.group(groupId);
+  const { groupId, memberId } = useSessionStore();
+  const key = queryKeys.group(groupId ?? '');
 
   const patch = async (updater: (group: Group) => Group) => {
     await queryClient.cancelQueries({ queryKey: key });
@@ -23,48 +23,69 @@ function useGroupCache() {
     return { prev };
   };
   const rollback = (prev?: Group) => prev && queryClient.setQueryData(key, prev);
-  const refresh = () => queryClient.invalidateQueries({ queryKey: key });
+  const refresh = () =>
+    Promise.all([
+      queryClient.invalidateQueries({ queryKey: key }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.requests(memberId ?? '') }),
+    ]);
 
-  return { patch, rollback, refresh, groupId };
+  return { patch, rollback, refresh };
 }
 
-const setOwner = (choreId: string, ownerId: string) => (group: Group) => ({
+const updateChore = (choreId: string, change: Partial<Chore>) => (group: Group) => ({
   ...group,
-  chores: group.chores.map((c) => (c.id === choreId ? { ...c, ownerId } : c)),
+  chores: group.chores.map((c) => (c.id === choreId ? { ...c, ...change } : c)),
 });
 
 export function useMainMutations() {
   const cache = useGroupCache();
   const memberId = useSessionStore((s) => s.memberId) ?? '';
   const showToast = useToastStore((s) => s.show);
-  const setLastTake = useTakeStore((s) => s.setLastTake);
   const onError = (_e: unknown, _v: unknown, context?: { prev?: Group }) => {
     cache.rollback(context?.prev);
     showToast(MAIN_TEXT.error);
   };
 
-  const undo = useMutation({
-    mutationFn: (chore: Chore) => undoTakeChore(chore.id, chore.ownerId),
-    onMutate: (chore) => cache.patch(setOwner(chore.id, chore.ownerId)),
-    onSuccess: () => setLastTake(null),
-    onError,
-    onSettled: cache.refresh,
-  });
-
+  /** A · 덜어주기 */
   const take = useMutation({
     mutationFn: (chore: Chore) => takeChore(chore.id, memberId),
-    onMutate: (chore) => cache.patch(setOwner(chore.id, memberId)),
-    onSuccess: (_d, chore) => {
-      setLastTake({ choreId: chore.id, fromId: chore.ownerId });
-      showToast(MAIN_TEXT.takenToast(chore.name), {
-        label: MAIN_TEXT.undo,
-        onClick: () => undo.mutate(chore),
-      });
-    },
+    onMutate: (chore) => cache.patch(updateChore(chore.id, { ownerId: memberId })),
+    onSuccess: (_d, chore) => showToast(MAIN_TEXT.takenToast(chore.name)),
     onError,
     onSettled: cache.refresh,
   });
 
+  /** B · 짐 올리기 요청 */
+  const request = useMutation({
+    mutationFn: ({ chore, toId }: { chore: Chore; toId: string }) =>
+      requestChore(chore.id, memberId, toId),
+    onSuccess: () => showToast(MAIN_TEXT.requestedToast),
+    onError: () => showToast(MAIN_TEXT.error),
+    onSettled: cache.refresh,
+  });
+
+  /** B · 받을게요 / 다음에 */
+  const respond = useMutation({
+    mutationFn: ({ req, accept }: { req: ChoreRequest; accept: boolean; choreName: string }) =>
+      respondChoreRequest(req.id, accept),
+    onMutate: ({ req, accept }) =>
+      cache.patch(accept ? updateChore(req.choreId, { ownerId: memberId }) : (g) => g),
+    onSuccess: (_d, { accept, choreName }) =>
+      showToast(accept ? MAIN_TEXT.acceptedToast(choreName) : MAIN_TEXT.declinedToast),
+    onError,
+    onSettled: cache.refresh,
+  });
+
+  /** C · 완료 */
+  const complete = useMutation({
+    mutationFn: (chore: Chore) => completeChore(chore.id),
+    onMutate: (chore) => cache.patch(updateChore(chore.id, { done: true })),
+    onSuccess: (_d, chore) => showToast(MAIN_TEXT.doneToast(chore.name)),
+    onError,
+    onSettled: cache.refresh,
+  });
+
+  /** 기분 선택 */
   const status = useMutation({
     mutationFn: (next: MemberStatus) => updateStatus(memberId, next),
     onMutate: (next) =>
@@ -76,22 +97,5 @@ export function useMainMutations() {
     onSettled: cache.refresh,
   });
 
-  const toggleDone = useMutation({
-    mutationFn: (chore: Chore) => toggleChoreDone(chore.id, !chore.done),
-    onMutate: (chore) =>
-      cache.patch((g) => ({
-        ...g,
-        chores: g.chores.map((c) => (c.id === chore.id ? { ...c, done: !c.done } : c)),
-      })),
-    onError,
-    onSettled: cache.refresh,
-  });
-
-  const add = useMutation({
-    mutationFn: (name: string) => createChore(cache.groupId, memberId, name),
-    onError: () => showToast(MAIN_TEXT.error),
-    onSettled: cache.refresh,
-  });
-
-  return { take, undo, status, toggleDone, add };
+  return { take, request, respond, complete, status };
 }
