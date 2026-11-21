@@ -1,13 +1,16 @@
 import type { ReactNode } from 'react';
-import { useNavigate } from 'react-router';
 import backIcon from '@/assets/icons/back.svg';
+import { useGoBack } from '@/hooks/useGoBack';
 import { useKeyboardInset } from '@/hooks/useKeyboardInset';
+import { ONBOARDING_PATHS } from '@/routes/onboardingPaths';
 
 interface OnboardingLayoutProps {
   /** 상단 바 화면명 */
   title?: string;
   /** 뒤로가기 표시 여부 */
   showBack?: boolean;
+  /** 이전 화면이 없을 때(주소로 바로 연 경우) 뒤로가기로 갈 곳. 기본 S-14 /welcome */
+  backTo?: string;
   /** 큰 제목 (일부 단어 강조 가능) */
   heading?: ReactNode;
   /** 제목 아래 설명 */
@@ -23,13 +26,14 @@ interface OnboardingLayoutProps {
 function OnboardingLayout({
   title,
   showBack = true,
+  backTo = ONBOARDING_PATHS.welcome,
   heading,
   description,
   children,
   footer,
   step,
 }: OnboardingLayoutProps) {
-  const navigate = useNavigate();
+  const goBack = useGoBack(backTo);
   const keyboardInset = useKeyboardInset();
 
   return (
@@ -40,7 +44,7 @@ function OnboardingLayout({
             <button
               type="button"
               aria-label="뒤로가기"
-              onClick={() => navigate(-1)}
+              onClick={goBack}
               className="-m-2 flex size-10 items-center justify-center"
             >
               <img src={backIcon} alt="" width={24} height={24} />
