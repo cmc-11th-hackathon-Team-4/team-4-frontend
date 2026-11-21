@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router';
-import { createDistribution, type ServerSettlementCycle } from '@/apis/onboarding';
+import { createDistribution } from '@/apis/onboarding';
 import { ONBOARDING_PATHS } from '@/routes/onboardingPaths';
 import { useOnboardingStore, type SettlementCycle } from '@/stores/onboarding';
 import { useToastStore } from '@/stores/toast';
@@ -9,34 +9,26 @@ import BottomButton from './components/BottomButton';
 import SelectUnderline from './components/SelectUnderline';
 import OnboardingLayout from './components/OnboardingLayout';
 import { ONBOARDING_STEP_TOTAL } from './constants';
-import { formatDate, parseDate, todayString, weekdayOf } from './date';
+import { formatDate, todayString, weekdayOf } from './date';
 import { onboardingKeys } from './queryKeys';
 import { useMe, useRefreshMe } from './useMyHouse';
 
 const CYCLE_OPTIONS: { value: SettlementCycle; label: string }[] = [
-  { value: 'weekly', label: '매주' },
-  { value: 'biweekly', label: '2주' },
-  { value: 'monthly', label: '한 달' },
+  { value: 7, label: '매주' },
+  { value: 3, label: '3일' },
+  { value: 1, label: '1일' },
 ];
-
-/** 앱 주기 값 → 서버 값 (settlementCycle) */
-const SERVER_CYCLE: Record<SettlementCycle, ServerSettlementCycle> = {
-  weekly: 'WEEKLY',
-  biweekly: 'BIWEEKLY',
-  monthly: 'MONTHLY',
-};
 
 /** 고른 주기에 맞춘 안내 문구 (명세 예시: 매주 월요일 0시에 결산하고 다시 나눠요.) */
 function getCycleGuide(cycle: SettlementCycle, startDate: string) {
-  const weekday = weekdayOf(startDate);
-  if (cycle === 'weekly') return `매주 ${weekday}요일 0시에 결산하고 다시 나눠요.`;
-  if (cycle === 'biweekly') return `2주마다 ${weekday}요일 0시에 결산하고 다시 나눠요.`;
-  return `매달 ${parseDate(startDate).getDate()}일 0시에 결산하고 다시 나눠요.`;
+  if (cycle === 7) return `매주 ${weekdayOf(startDate)}요일 0시에 결산하고 다시 나눠요.`;
+  if (cycle === 3) return '3일마다 0시에 결산하고 다시 나눠요.';
+  return '매일 0시에 결산하고 다시 나눠요.';
 }
 
 /**
  * S-06 결산 주기 (권한: 방장)
- * - 주기 매주 / 2주 / 한 달 (기본 매주), 시작 날짜는 오늘 이후만
+ * - 주기 매주(7일) / 3일 / 1일 (기본 매주), 시작 날짜는 오늘 이후만 — 서버 settlementCycle 은 일수(1 · 3 · 7)
  * - [우리 집 시작하기] → S-05 랜덤 배분 (명세 순서: S-04 → S-06 → S-05)
  * - POST /api/v1/houses/{id}/distribution (주기 + 시작 날짜) 로 첫 배분을 만들고, 결과를 들고 S-05 로. 실패 시 토스트
  */
@@ -58,8 +50,7 @@ function S06CyclePage() {
   const refreshMe = useRefreshMe();
 
   const save = useMutation({
-    mutationFn: () =>
-      createDistribution(houseId!, { settlementCycle: SERVER_CYCLE[cycle], startDate }),
+    mutationFn: () => createDistribution(houseId!, { settlementCycle: cycle, startDate }),
     onSuccess: (distribution) => {
       queryClient.setQueryData(onboardingKeys.distribution(houseId!), distribution);
       refreshMe();
@@ -96,7 +87,7 @@ function S06CyclePage() {
       >
         <select
           value={cycle}
-          onChange={(e) => setCycle(e.target.value as SettlementCycle)}
+          onChange={(e) => setCycle(Number(e.target.value) as SettlementCycle)}
           aria-label="결산 주기"
         >
           {CYCLE_OPTIONS.map(({ value, label }) => (

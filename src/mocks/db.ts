@@ -16,7 +16,7 @@ interface MockDb {
   cycle: CycleInfo;
 }
 
-const STORAGE_KEY = 'mock-db-v7';
+const STORAGE_KEY = 'mock-db-v8';
 
 const chore = (id: string, name: string, ownerId: string): Chore => ({
   id,
@@ -51,7 +51,7 @@ const initialDb = (): MockDb => ({
   notifications: [],
   requests: [],
   // 피그마 V5-14 예시 값
-  cycle: { period: 'weekly', endDate: '2026-11-30' },
+  cycle: { period: 7, endDate: '2026-11-30' },
 });
 
 export function readDb(): MockDb {

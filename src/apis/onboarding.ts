@@ -12,7 +12,8 @@ const call = <T>(request: Promise<{ data: T }>): Promise<T> => request.then(({ d
 /* ── 서버 값 ── */
 export type HouseStatus = 'WAITING' | 'DISTRIBUTING' | 'ACTIVE';
 export type HouseRole = 'OWNER' | 'MEMBER';
-export type ServerSettlementCycle = 'WEEKLY' | 'BIWEEKLY' | 'MONTHLY';
+/** 결산 주기(일): 1 · 3 · 7 (Swagger settlementCycle, 숫자) */
+export type ServerSettlementCycle = 1 | 3 | 7;
 
 export interface UserResponse {
   id: number;

@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 
-/** 결산 주기 (S-06: 매주 / 2주 / 한 달) */
-export type SettlementCycle = 'weekly' | 'biweekly' | 'monthly';
+/** 결산 주기(일) (S-06: 매주 7 / 3일 / 1일, 서버 settlementCycle 값 그대로) */
+export type SettlementCycle = 7 | 3 | 1;
 
 /**
  * 플로우 ① 진행 중 화면 입력값 (사용자 입력만 보관, 서버 데이터 아님)
@@ -29,7 +29,7 @@ const initialState = {
   role: null,
   houseName: '',
   selectedChores: [],
-  cycle: 'weekly' as const,
+  cycle: 7 as SettlementCycle,
   startDate: '',
 };
 
