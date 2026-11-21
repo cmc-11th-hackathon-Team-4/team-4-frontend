@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
+import { useQueryClient } from '@tanstack/react-query';
 import ConfirmModal from '@/components/common/ConfirmModal';
+import PullToRefresh from '@/components/common/PullToRefresh';
 import StateView from '@/components/common/StateView';
 import TabBar from '@/components/common/TabBar';
 import ChorePanel from '@/components/main/ChorePanel';
@@ -33,6 +35,14 @@ function MainPage() {
   const [requesting, setRequesting] = useState<Chore | null>(null);
   const [completing, setCompleting] = useState<Chore | null>(null);
   const [moodOpen, setMoodOpen] = useState(false);
+  const queryClient = useQueryClient();
+  /** 당겨서 새로고침: 그룹 · 알림 · 부탁 다시 불러오기 */
+  const refreshAll = () =>
+    Promise.all([
+      queryClient.refetchQueries({ queryKey: ['group'] }),
+      queryClient.refetchQueries({ queryKey: ['notifications'] }),
+      queryClient.refetchQueries({ queryKey: ['requests'] }),
+    ]);
 
   if (isLoading || (!group && !isError)) return <StateView type="loading" />;
   if (isError || !group || !me || !myId) {
@@ -57,87 +67,92 @@ function MainPage() {
     <div className="flex flex-1 flex-col bg-neutral-50">
       <MainHeader title={MAIN_TEXT.homeTitle} onSettings={() => navigate(MAIN_PATHS.settings)} />
 
-      <main className="flex flex-1 flex-col gap-5 px-4 pb-6">
-        <div className="relative">
-          <div className="pt-2 pb-3">
-            <LoadGauge
-              count={myChores.length}
-              status={me.status}
-              hearts={heartsReceived.length}
-              onCharacterClick={() => setMoodOpen(true)}
-            />
+      <PullToRefresh onRefresh={refreshAll}>
+        <main className="flex flex-1 flex-col gap-5 px-4 pb-6">
+          <div className="relative">
+            <div className="pt-2 pb-3">
+              <LoadGauge
+                count={myChores.length}
+                status={me.status}
+                hearts={heartsReceived.length}
+                onCharacterClick={() => setMoodOpen(true)}
+              />
+            </div>
+            <div className="flex justify-center">
+              <MoodPicker
+                value={me.status}
+                onChange={(next) => status.mutate(next)}
+                open={moodOpen}
+                onOpenChange={setMoodOpen}
+              />
+            </div>
+            <div className="absolute top-2 right-0">
+              <MemberRail
+                members={group.members}
+                myId={myId}
+                activeId={myId}
+                countOf={pendingCountOf}
+                onSelect={(id) => id !== myId && navigate(MAIN_PATHS.member(id))}
+              />
+            </div>
           </div>
-          <div className="flex justify-center">
-            <MoodPicker
-              value={me.status}
-              onChange={(next) => status.mutate(next)}
-              open={moodOpen}
-              onOpenChange={setMoodOpen}
-            />
-          </div>
-          <div className="absolute top-2 right-0">
-            <MemberRail
-              members={group.members}
-              myId={myId}
-              activeId={myId}
-              countOf={pendingCountOf}
-              onSelect={(id) => id !== myId && navigate(MAIN_PATHS.member(id))}
-            />
-          </div>
-        </div>
 
-        <ChorePanel
-          title={MAIN_TEXT.myChoresTitle}
-          hint={MAIN_TEXT.myChoresHint}
-          emptyText={MAIN_TEXT.emptyMyChores}
-          notice={
-            <>
-              {requests.received.map((req) => (
-                <RequestNotice
-                  key={req.id}
-                  text={MAIN_TEXT.requestedBy(nameOf(req.fromId), choreNameOf(req.choreId))}
-                  disabled={respond.isPending}
-                  onAccept={() =>
-                    respond.mutate({ req, accept: true, choreName: choreNameOf(req.choreId) })
-                  }
-                  onDecline={() =>
-                    respond.mutate({ req, accept: false, choreName: choreNameOf(req.choreId) })
-                  }
+          <ChorePanel
+            title={MAIN_TEXT.myChoresTitle}
+            hint={MAIN_TEXT.myChoresHint}
+            emptyText={MAIN_TEXT.emptyMyChores}
+            notice={
+              <>
+                {requests.received.map((req) => (
+                  <RequestNotice
+                    key={req.id}
+                    text={MAIN_TEXT.requestedBy(nameOf(req.fromId), choreNameOf(req.choreId))}
+                    disabled={respond.isPending}
+                    onAccept={() =>
+                      respond.mutate({ req, accept: true, choreName: choreNameOf(req.choreId) })
+                    }
+                    onDecline={() =>
+                      respond.mutate({ req, accept: false, choreName: choreNameOf(req.choreId) })
+                    }
+                  />
+                ))}
+                {thanksTarget && (
+                  <HeartNotice
+                    text={MAIN_TEXT.takenBy(
+                      nameOf(thanksTarget.fromId),
+                      choreNameOf(thanksTarget.choreId),
+                    )}
+                    disabled={heart.isPending}
+                    onHeart={() =>
+                      heart.mutate({
+                        notification: thanksTarget,
+                        name: nameOf(thanksTarget.fromId),
+                      })
+                    }
+                  />
+                )}
+              </>
+            }
+          >
+            {myChores.map((chore) =>
+              sentTo.has(chore.id) ? (
+                <ChoreTile
+                  key={chore.id}
+                  name={chore.name}
+                  pendingTo={nameOf(sentTo.get(chore.id)!)}
                 />
-              ))}
-              {thanksTarget && (
-                <HeartNotice
-                  text={MAIN_TEXT.takenBy(
-                    nameOf(thanksTarget.fromId),
-                    choreNameOf(thanksTarget.choreId),
-                  )}
-                  disabled={heart.isPending}
-                  onHeart={() =>
-                    heart.mutate({ notification: thanksTarget, name: nameOf(thanksTarget.fromId) })
-                  }
+              ) : (
+                <ChoreTile
+                  key={chore.id}
+                  name={chore.name}
+                  onClick={() => setRequesting(chore)}
+                  onComplete={() => setCompleting(chore)}
                 />
-              )}
-            </>
-          }
-        >
-          {myChores.map((chore) =>
-            sentTo.has(chore.id) ? (
-              <ChoreTile
-                key={chore.id}
-                name={chore.name}
-                pendingTo={nameOf(sentTo.get(chore.id)!)}
-              />
-            ) : (
-              <ChoreTile
-                key={chore.id}
-                name={chore.name}
-                onClick={() => setRequesting(chore)}
-                onComplete={() => setCompleting(chore)}
-              />
-            ),
-          )}
-        </ChorePanel>
-      </main>
+              ),
+            )}
+          </ChorePanel>
+        </main>
+      </PullToRefresh>
 
       <TabBar />
 
