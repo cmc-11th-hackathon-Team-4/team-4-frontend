@@ -14,17 +14,15 @@ export const STATUS_LABEL: Record<MemberStatus, string> = {
 /** 팝오버 순서: 쌩쌩 → 여유 → 지침 */
 export const STATUS_LIST: MemberStatus[] = ['relaxed', 'tired', 'unwilling'];
 
-/**
- * 상대 상세 말풍선
- * TODO: 디자이너에게 새 상태(쌩쌩·여유·지침)에 맞는 문구 받기. 아래는 이전 상태(여유·지침·고르기 싫음) 문구
- */
+/** 상대 상세 말풍선 (UX 라이팅 확정) */
 export const STATUS_BUBBLE: Record<MemberStatus, string> = {
-  relaxed: '오늘은 여유 있어! 누구 짐 좀 덜어줄까?',
-  tired: '오늘은 좀 지쳤어…',
-  unwilling: '아무것도 고르기 싫어…',
+  relaxed: '컨디션 최고예요. 뭐든 맡겨 주세요',
+  tired: '그럭저럭 괜찮아요',
+  unwilling: '아무것도 하기 싫어요',
 };
 
-/** 상태 알림 배너: 지침일 때만 보냄. 문구는 피그마 ② 플로우 예시("민지가 지쳤대요") */
-export const STATUS_NOTICE: Record<'unwilling', (name: string) => string> = {
-  unwilling: (name) => `${josa(name, '이/가')} 지쳤대요`,
+/** 상태 알림 배너: 지침일 때만 보냄 (UX 라이팅 확정) */
+export const STATUS_NOTICE = {
+  title: (name: string) => `${josa(`${name}님`, '이/가')} 지쳤어요`,
+  desc: (name: string) => `${name}님의 짐을 덜어줘 볼까요?`,
 };
