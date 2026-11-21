@@ -11,6 +11,9 @@ interface MemberRailProps {
   onSelect: (id: Id) => void;
 }
 
+/** 레일 한 칸 높이(아바타 48 + 이름 + 간격). 위쪽 영역 최소 높이 계산용 */
+export const RAIL_ITEM_HEIGHT = 80;
+
 /** 오른쪽 구성원 레일 (나가 항상 맨 위) */
 function MemberRail({ members, myId, activeId, countOf, onSelect }: MemberRailProps) {
   const sorted = [...members].sort((a, b) => Number(b.id === myId) - Number(a.id === myId));

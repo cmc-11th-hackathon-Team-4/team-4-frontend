@@ -7,13 +7,16 @@ import ChorePanel from '@/components/main/ChorePanel';
 import ChoreTile from '@/components/main/ChoreTile';
 import LoadGauge from '@/components/main/LoadGauge';
 import MainHeader from '@/components/main/MainHeader';
-import MemberRail from '@/components/main/MemberRail';
+import MemberRail, { RAIL_ITEM_HEIGHT } from '@/components/main/MemberRail';
 import MoodBubble from '@/components/main/MoodBubble';
 import { MAIN_TEXT } from '@/constants/main';
 import { STATUS_BUBBLE } from '@/constants/status';
+import { useChoreRequests } from '@/hooks/useChoreRequests';
 import { useDevSession } from '@/hooks/useDevSession';
 import { useGroupBoard } from '@/hooks/useGroupBoard';
+import { isMemberFull } from '@/apis/limits';
 import { useMainMutations } from '@/hooks/useMainMutations';
+import { useToastStore } from '@/stores/toast';
 import { MAIN_PATHS } from '@/routes/mainPaths';
 import type { Chore } from '@/types/chore';
 
@@ -22,8 +25,10 @@ function MemberPage() {
   useDevSession();
   const { memberId } = useParams();
   const navigate = useNavigate();
+  const showToast = useToastStore((s) => s.show);
   const { group, myId, choresOf, pendingCountOf, isLoading, isError, refetch } = useGroupBoard();
   const { take } = useMainMutations();
+  const { toByChore } = useChoreRequests();
   const [pending, setPending] = useState<Chore | null>(null);
 
   if (isLoading || (!group && !isError)) return <StateView type="loading" />;
@@ -48,7 +53,11 @@ function MemberPage() {
       <MainHeader showBack title={member.nickname} />
 
       <main className="flex flex-1 flex-col gap-5 px-4 pb-6">
-        <div className="relative">
+        <div
+          className="relative"
+          // TODO(디자인): 구성원이 많으면(최대 5명) 레일이 카드 영역과 겹치지 않게 임시로 높이 확보
+          style={{ minHeight: group.members.length * RAIL_ITEM_HEIGHT }}
+        >
           <div className="pt-2 pb-3">
             <LoadGauge count={chores.length} status={member.status} />
           </div>
@@ -71,9 +80,29 @@ function MemberPage() {
           hint={MAIN_TEXT.memberChoresHint}
           emptyText={MAIN_TEXT.emptyMemberChores}
         >
-          {chores.map((chore) => (
-            <ChoreTile key={chore.id} name={chore.name} onClick={() => setPending(chore)} />
-          ))}
+          {chores.map((chore) =>
+            toByChore.has(chore.id) ? (
+              <ChoreTile
+                key={chore.id}
+                name={chore.name}
+                pendingTo={
+                  toByChore.get(chore.id) === myId
+                    ? MAIN_TEXT.meLabel
+                    : (group.members.find((m) => m.id === toByChore.get(chore.id))?.nickname ?? '')
+                }
+              />
+            ) : (
+              <ChoreTile
+                key={chore.id}
+                name={chore.name}
+                onClick={() =>
+                  isMemberFull(group.chores, myId)
+                    ? showToast(MAIN_TEXT.memberFullToast)
+                    : setPending(chore)
+                }
+              />
+            ),
+          )}
         </ChorePanel>
       </main>
 

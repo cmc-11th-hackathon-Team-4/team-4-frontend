@@ -1,14 +1,16 @@
 import { NavLink } from 'react-router';
+import { MAIN_PATHS } from '@/routes/mainPaths';
+import { MYPAGE_PATHS } from '@/routes/mypagePaths';
+import { WEEKLY_PATHS } from '@/routes/weeklyPaths';
 import { IconChart, IconHome, IconUser } from './icons';
 
-// TODO: 결산(③)·마이 경로 확정되면 연결
 const TABS = [
-  { to: '/', label: '홈', Icon: IconHome, end: true },
-  { to: '/weekly', label: '결산', Icon: IconChart, end: false },
-  { to: '/my', label: '마이', Icon: IconUser, end: false },
+  { to: MAIN_PATHS.home, label: '홈', Icon: IconHome, end: true },
+  { to: WEEKLY_PATHS.summary, label: '결산', Icon: IconChart, end: false },
+  { to: MYPAGE_PATHS.my, label: '마이', Icon: IconUser, end: false },
 ];
 
-/** 하단 탭바 (공용) */
+/** 하단 탭바 (공용): 홈 · 결산 · 마이 */
 function TabBar() {
   return (
     <nav className="sticky bottom-0 z-10 grid grid-cols-3 border-t border-neutral-200 bg-white pt-2 pb-[calc(8px+var(--safe-bottom))]">

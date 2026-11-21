@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { IconChevronRight } from '@/components/common/icons';
 import { MAIN_TEXT } from '@/constants/main';
 import { STATUS_ICON } from '@/constants/mood';
@@ -8,11 +7,14 @@ import type { MemberStatus } from '@/types/member';
 interface MoodPickerProps {
   value: MemberStatus;
   onChange: (status: MemberStatus) => void;
+  /** 캐릭터를 눌러도 열려서 부모가 열림 상태를 관리 */
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
-/** 게이지 아래 '기분 · 여유 >' 버튼 + '오늘 기분 어때?' 팝오버 (V5-02) */
-function MoodPicker({ value, onChange }: MoodPickerProps) {
-  const [open, setOpen] = useState(false);
+/** 게이지 아래 '기분 · 쌩쌩 >' 버튼 + '오늘 기분 어때?' 팝오버 (V5-02) */
+function MoodPicker({ value, onChange, open, onOpenChange }: MoodPickerProps) {
+  const setOpen = onOpenChange;
 
   return (
     <>
@@ -20,7 +22,7 @@ function MoodPicker({ value, onChange }: MoodPickerProps) {
         type="button"
         aria-expanded={open}
         className="mx-auto flex items-center gap-1 rounded-full border border-neutral-300 bg-white px-3 py-1.5 text-xs"
-        onClick={() => setOpen((v) => !v)}
+        onClick={() => setOpen(!open)}
       >
         {MAIN_TEXT.moodButton(STATUS_LABEL[value])}
         <IconChevronRight size={14} />

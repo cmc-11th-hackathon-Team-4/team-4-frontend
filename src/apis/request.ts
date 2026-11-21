@@ -5,15 +5,13 @@ import { USE_MOCK } from './config';
 import { instance } from './instance';
 
 // TODO: 스웨거 확정되면 경로 맞추기
-/** 아직 응답 안 한 짐 올리기 요청 (내가 보냈거나 받은 것) */
-export async function getPendingRequests(memberId: Id): Promise<ChoreRequest[]> {
+/** 우리 집의 아직 응답 안 한 짐 올리기 요청 (상대 상세에서 부탁 중인 짐 표시에도 사용) */
+export async function getPendingRequests(groupId: Id): Promise<ChoreRequest[]> {
   if (USE_MOCK) {
     await delay(100);
-    return readDb().requests.filter(
-      (r) => r.status === 'pending' && (r.fromId === memberId || r.toId === memberId),
-    );
+    return readDb().requests.filter((r) => r.status === 'pending');
   }
-  const { data } = await instance.get<ChoreRequest[]>(`/members/${memberId}/chore-requests`, {
+  const { data } = await instance.get<ChoreRequest[]>(`/groups/${groupId}/chore-requests`, {
     params: { status: 'pending' },
   });
   return data;

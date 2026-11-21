@@ -3,6 +3,7 @@ import type { Chore } from '@/types/chore';
 import type { Id } from '@/types/common';
 import type { ChoreRequest } from '@/types/request';
 import { USE_MOCK } from './config';
+import { isHouseFull, isMemberFull } from './limits';
 import { instance } from './instance';
 
 // TODO: 스웨거 확정되면 경로 맞추기
@@ -17,6 +18,7 @@ export async function takeChore(choreId: Id, memberId: Id): Promise<void> {
   if (USE_MOCK) {
     await delay();
     updateDb((db) => {
+      if (isMemberFull(db.group.chores, memberId)) throw new Error('member full');
       const target = findChore(db.group.chores, choreId);
       const prevOwnerId = target.ownerId;
       target.ownerId = memberId;
@@ -55,6 +57,7 @@ export async function respondChoreRequest(requestId: Id, accept: boolean): Promi
     updateDb((db) => {
       const request = db.requests.find((r) => r.id === requestId);
       if (!request || request.status !== 'pending') throw new Error('request not pending');
+      if (accept && isMemberFull(db.group.chores, request.toId)) throw new Error('member full');
       request.status = accept ? 'accepted' : 'declined';
       if (accept) findChore(db.group.chores, request.choreId).ownerId = request.toId;
       pushNotification(db, {
@@ -79,4 +82,48 @@ export async function completeChore(choreId: Id): Promise<void> {
     return;
   }
   await instance.patch(`/chores/${choreId}`, { done: true });
+}
+
+/** V5-12 집안일 목록 › 삭제 (부탁 중이던 요청도 함께 정리) */
+export async function deleteChore(choreId: Id): Promise<void> {
+  if (USE_MOCK) {
+    await delay();
+    updateDb((db) => {
+      db.group.chores = db.group.chores.filter((c) => c.id !== choreId);
+      db.requests = db.requests.filter((r) => r.choreId !== choreId);
+    });
+    return;
+  }
+  await instance.delete(`/chores/${choreId}`);
+}
+
+/** V5-13 집안일 추가: 추가한 사람이 담당자 */
+export async function createChore(groupId: Id, ownerId: Id, name: string): Promise<Chore> {
+  if (USE_MOCK) {
+    await delay();
+    const created: Chore = { id: newId('c'), name, ownerId, done: false };
+    updateDb((db) => {
+      if (isHouseFull(db.group.chores) || isMemberFull(db.group.chores, ownerId)) {
+        throw new Error('chore limit');
+      }
+      db.group.chores.push(created);
+    });
+    return created;
+  }
+  const { data } = await instance.post<Chore>(`/groups/${groupId}/chores`, { name, ownerId });
+  return data;
+}
+
+/** B · 부탁 취소: 요청 중 카드가 원래 카드로 돌아옴 */
+export async function cancelChoreRequest(requestId: Id): Promise<void> {
+  if (USE_MOCK) {
+    await delay();
+    updateDb((db) => {
+      const request = db.requests.find((r) => r.id === requestId);
+      if (!request || request.status !== 'pending') throw new Error('request not pending');
+      request.status = 'canceled';
+    });
+    return;
+  }
+  await instance.patch(`/chore-requests/${requestId}/cancel`);
 }
