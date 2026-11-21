@@ -11,6 +11,3 @@ export const WEEKLY_PATHS = {
   /** S-12 다음 주기 · 재배분 */
   next: '/weekly/next',
 } as const;
-
-/** 플로우 ③ 종료 후 이동: V3-01 내 메인 (② 담당) */
-export const HOME_PATH = '/';
