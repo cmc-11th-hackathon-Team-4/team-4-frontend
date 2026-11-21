@@ -28,14 +28,15 @@ export function useNotifications() {
       .filter((n) => n.type === 'heart' && n.fromId === memberId)
       .map((n) => `${n.toId}:${n.choreId}`),
   );
+  // 실서버는 덜어감 알림의 hearted로, 목데이터는 내가 보낸 하트 알림으로 판단
   const pendingThanks = received.filter(
-    (n) => n.type === 'take' && !thanked.has(`${n.fromId}:${n.choreId}`),
+    (n) => n.type === 'take' && !(n.hearted ?? thanked.has(`${n.fromId}:${n.choreId}`)),
   );
   const heartsReceived = received.filter((n) => n.type === 'heart');
 
   const heart = useMutation({
     mutationFn: ({ notification }: { notification: AppNotification; name: string }) =>
-      sendHeart(memberId, notification.fromId, notification.choreId ?? ''),
+      sendHeart(memberId, notification),
     onSuccess: (_d, { name }) => showToast(MAIN_TEXT.heartSent(name)),
     onError: () => showToast(MAIN_TEXT.error),
     onSettled: () => queryClient.invalidateQueries({ queryKey: queryKeys.notifications(memberId) }),

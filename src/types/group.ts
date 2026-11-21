@@ -1,6 +1,7 @@
 import type { Chore } from './chore';
 import type { Id } from './common';
 import type { Member } from './member';
+import type { ChoreRequest } from './request';
 
 /** 구성원 최대 인원 (본인 포함 5명: Swagger 정원 HOUSE-409-1 "정원(5명)" · 서버 maxMemberCount 기준) */
 export const MAX_MEMBERS = 5;
@@ -12,4 +13,6 @@ export interface Group {
   inviteCode: string;
   members: Member[];
   chores: Chore[];
+  /** 진행 중(pending)인 짐 올리기 부탁: 내가 보낸 것 · 받은 것 · 상대끼리 */
+  requests: ChoreRequest[];
 }

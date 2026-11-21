@@ -29,7 +29,7 @@ CMC 11th 해커톤 4팀 프론트엔드 레포지토리입니다.
 git clone https://github.com/cmc-11th-hackathon-Team-4/team-4-frontend.git
 cd team-4-frontend
 npm install
-cp .env.example .env   # VITE_API_URL 값 채우기
+cp .env.example .env   # 실서버 주소 · 목데이터 여부 설정
 npm run dev
 ```
 

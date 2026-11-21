@@ -111,6 +111,9 @@ export const MAIN_TEXT = {
   // 짐 5개 제한 · 부탁 취소
   memberFullToast: '짐은 한 사람당 5개까지 가질 수 있어요',
   houseFullToast: '집안일은 한 집에 10개까지 추가할 수 있어요',
+  // TODO(문구 확정 필요): 서버 에러 코드별 토스트
+  duplicateChoreToast: '이미 있는 집안일이에요',
+  alreadyRequestedToast: '이미 부탁 중인 짐이에요',
   cancelRequestTitle: '부탁을 취소할까요?',
   cancelRequestDesc: (chore: string) => `${josa(chore, '은/는')} 다시 내 짐으로 돌아와요.`,
   cancelRequestOk: '부탁 취소', // UX 라이팅 확정

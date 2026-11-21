@@ -9,7 +9,8 @@ import type { ChoreRequest } from '@/types/request';
  * localStorage에 저장해서 같은 브라우저의 다른 탭(?devMember=m2)과 공유됨
  */
 interface MockDb {
-  group: Group;
+  /** 부탁은 requests에 따로 저장 (getGroup에서 합침) */
+  group: Omit<Group, 'requests'>;
   notifications: AppNotification[];
   requests: ChoreRequest[];
   cycle: CycleInfo;

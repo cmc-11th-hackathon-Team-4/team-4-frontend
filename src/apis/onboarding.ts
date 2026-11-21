@@ -44,6 +44,14 @@ export interface HouseDetailResponse {
   maxMemberCount: number;
   choreCount: number;
   members: HouseMemberResponse[];
+  /** WAITING 이면 null, ACTIVE 면 READY 를 뺀 최신 기간 */
+  currentPeriod: {
+    id: number;
+    round: number;
+    startDate: string;
+    endDate: string;
+    status: string;
+  } | null;
 }
 
 /* ── 사용자 ── */

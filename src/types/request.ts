@@ -12,4 +12,6 @@ export interface ChoreRequest {
   toId: Id;
   status: ChoreRequestStatus;
   createdAt: string;
+  /** 실서버: 받은 부탁의 짐 이름 (상대 짐 목록에 없을 때 대비) */
+  choreName?: string;
 }

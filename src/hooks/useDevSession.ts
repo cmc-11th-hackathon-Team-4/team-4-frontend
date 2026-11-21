@@ -2,12 +2,13 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { USE_MOCK } from '@/apis/config';
 import { resetDb } from '@/mocks/db';
+import { useMe } from '@/hooks/useProfile';
 import { ONBOARDING_PATHS } from '@/routes/onboardingPaths';
 import { useSessionStore } from '@/stores/session';
 
 /**
  * 세션 확인
- * - 실서버: 세션(그룹 생성·참여 기록)이 없으면 ① S-14 홈·집 없음으로 이동
+ * - 실서버: GET /users/me 로 내 id · 집 id 를 세션에 맞춤. 프로필이나 집이 없으면 ① S-14 로 이동
  * - 목데이터(개발·시연): ① 없이 세션 주입
  *   - 세션이 없으면 수아(m1)로 시작
  *   - 주소에 ?devMember=m2 를 붙이면 민지로 전환 (두 번째 폰 시연용)
@@ -15,13 +16,23 @@ import { useSessionStore } from '@/stores/session';
  */
 export function useDevSession() {
   const navigate = useNavigate();
-  const { memberId, setSession } = useSessionStore();
+  const { memberId, groupId, setSession } = useSessionStore();
+  const me = useMe();
 
   useEffect(() => {
-    if (!USE_MOCK) {
-      if (!memberId) navigate(ONBOARDING_PATHS.welcome, { replace: true });
+    if (USE_MOCK || me.isLoading || me.isError) return;
+    const info = me.data;
+    if (!info?.house) {
+      navigate(ONBOARDING_PATHS.welcome, { replace: true });
       return;
     }
+    if (memberId !== info.id || groupId !== info.house.id) {
+      setSession({ memberId: info.id, groupId: info.house.id });
+    }
+  }, [me.data, me.isLoading, me.isError, memberId, groupId, setSession, navigate]);
+
+  useEffect(() => {
+    if (!USE_MOCK) return;
 
     const params = new URLSearchParams(window.location.search);
     if (params.has('resetMock')) resetDb();
@@ -40,5 +51,5 @@ export function useDevSession() {
         window.location.pathname + (query ? `?${query}` : ''),
       );
     }
-  }, [memberId, setSession, navigate]);
+  }, [memberId, setSession]);
 }
