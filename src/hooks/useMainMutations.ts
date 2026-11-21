@@ -134,6 +134,7 @@ export function useMainMutations() {
   /** B · 부탁 취소 → 카드가 원래대로 */
   const cancelRequest = useMutation({
     mutationFn: (req: ChoreRequest) => cancelChoreRequest(req.id),
+    onSuccess: () => showToast(MAIN_TEXT.canceledToast),
     onError: () => showToast(MAIN_TEXT.error),
     onSettled: cache.refresh,
   });

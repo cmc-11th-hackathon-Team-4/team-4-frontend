@@ -3,6 +3,7 @@ import BottomButton from '@/components/common/BottomButton';
 import { IconInfo, IconSmile } from '@/components/common/icons';
 import { MAIN_TEXT } from '@/constants/main';
 import { STATUS_LABEL } from '@/constants/status';
+import { useToastStore } from '@/stores/toast';
 import type { Id } from '@/types/common';
 import type { Member } from '@/types/member';
 
@@ -26,6 +27,7 @@ function RequestSheet({
   onSubmit,
 }: RequestSheetProps) {
   const [selected, setSelected] = useState<Id | null>(null);
+  const showToast = useToastStore((s) => s.show);
 
   return (
     <div className="fixed inset-0 z-40 flex items-end justify-center bg-black/40" onClick={onClose}>
@@ -55,11 +57,15 @@ function RequestSheet({
                   type="button"
                   role="radio"
                   aria-checked={active}
-                  disabled={full}
-                  className={`flex items-center gap-3 rounded-2xl p-3 text-left disabled:opacity-40 ${
+                  aria-disabled={full || undefined}
+                  className={`flex items-center gap-3 rounded-2xl p-3 text-left ${full ? 'opacity-40' : ''} ${
                     active ? 'border-2 border-neutral-900' : 'border border-neutral-300'
                   }`}
-                  onClick={() => setSelected(member.id)}
+                  onClick={() =>
+                    full
+                      ? showToast(MAIN_TEXT.requestMemberFullToast(member.nickname))
+                      : setSelected(member.id)
+                  }
                 >
                   <span className="flex size-10 items-center justify-center rounded-full bg-neutral-100">
                     <IconSmile size={22} strokeWidth={1.5} />
@@ -67,14 +73,14 @@ function RequestSheet({
                   <span>
                     <span className="block font-semibold">{member.nickname}</span>
                     <span className="text-[11px] text-neutral-500">
-                      {MAIN_TEXT.requestMemberInfo(STATUS_LABEL[member.status], countOf(member.id))}
+                      {full
+                        ? MAIN_TEXT.requestMemberFull(countOf(member.id))
+                        : MAIN_TEXT.requestMemberInfo(
+                            STATUS_LABEL[member.status],
+                            countOf(member.id),
+                          )}
                     </span>
                   </span>
-                  {full && (
-                    <span className="ml-auto text-[11px] text-neutral-500">
-                      {MAIN_TEXT.memberFullTag}
-                    </span>
-                  )}
                 </button>
               );
             })}
