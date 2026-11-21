@@ -7,7 +7,6 @@ import { ONBOARDING_PATHS } from '@/routes/onboardingPaths';
 import { useOnboardingStore } from '@/stores/onboarding';
 import { useToastStore } from '@/stores/toast';
 import BottomButton from './components/BottomButton';
-import InfoText from './components/InfoText';
 import OnboardingLayout from './components/OnboardingLayout';
 import { errorMessage } from './apiMessages';
 import { ONBOARDING_STEP_TOTAL } from './constants';
@@ -55,8 +54,14 @@ function S01CreateHousePage() {
     <OnboardingLayout
       title="집 만들기"
       step={{ current: 2, total: ONBOARDING_STEP_TOTAL }}
-      heading="우리 집 이름을 알려주세요"
-      description="구성원에게 보여질 이름이에요."
+      heading={
+        <>
+          우리가 함께할
+          <br />
+          집에 이름을 붙여주세요
+        </>
+      }
+      description="가족들이 알아보기 쉬운 이름이면 좋아요."
       footer={
         <BottomButton disabled={!canSubmit} onClick={handleNext}>
           다음
@@ -69,11 +74,9 @@ function S01CreateHousePage() {
         value={name}
         onChange={setName}
         maxLength={INPUT_RULES.houseName.max}
-        placeholder="302호 우리집"
+        placeholder="이름을 정해주세요."
+        helperText="나중에 마이페이지에서 바꿀 수 있어요."
       />
-      <InfoText className="mt-2">
-        구성원 모두에게 보이는 이름이에요. 나중에 마이페이지에서 바꿀 수 있어요.
-      </InfoText>
     </OnboardingLayout>
   );
 }
