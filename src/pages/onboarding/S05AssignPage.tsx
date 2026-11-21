@@ -14,6 +14,7 @@ import { useToastStore } from '@/stores/toast';
 import { errorMessage, LOAD_ERROR, RETRY_LABEL } from './apiMessages';
 import BottomButton from './components/BottomButton';
 import CharacterImage from './components/CharacterImage';
+import ChoreIcon from './components/ChoreIcon';
 import OnboardingLayout from './components/OnboardingLayout';
 import { ONBOARDING_STEP_TOTAL } from './constants';
 import { onboardingKeys } from './queryKeys';
@@ -112,7 +113,11 @@ function S05AssignPage() {
           )
         }
       >
-        <MemberChoreList members={members} previewCount={PARTICIPANT_PREVIEW_COUNT} />
+        <MemberChoreList
+          members={members}
+          previewCount={PARTICIPANT_PREVIEW_COUNT}
+          meLabel={(name) => `${name} (나)`}
+        />
       </OnboardingLayout>
     );
   }
@@ -146,46 +151,58 @@ function S05AssignPage() {
       }
     >
       <div aria-busy={shuffle.isPending}>
-        <MemberChoreList members={members} />
+        <MemberChoreList members={members} meLabel={() => '나'} />
       </div>
     </OnboardingLayout>
   );
 }
 
-/** 사람별 배분 결과. previewCount 를 주면 그만큼만 보이고 나머지는 "외 N개" */
+/**
+ * 사람별 배분 결과 (피그마 2-5 S-05: 40px 아바타 · 24px 이름 · 개수, 아이콘 48 · 18px 집안일, 구분선)
+ * - meLabel: 방장 화면은 시안대로 "나", 참여자 화면은 와이어대로 "이름 (나)"
+ * - previewCount 를 주면 그만큼만 보이고 나머지는 "외 N개"
+ */
 function MemberChoreList({
   members,
   previewCount,
+  meLabel,
 }: {
   members: DistributionResponse['members'];
   previewCount?: number;
+  meLabel: (name: string) => string;
 }) {
   return (
     <ul className="mt-6 flex flex-col gap-6">
       {members.map((member) => (
-        <li key={member.userId}>
-          <div className="flex items-center gap-3">
-            <CharacterImage
-              id={fromServerCharacter(member.characterType)}
-              size={36}
-              scale={1.8}
-              offset={0.21}
-              shape="square"
-            />
-            <span className="flex-1 font-semibold">
-              {member.name}
-              {member.isMe && ' (나)'}
-            </span>
-            <span className="text-sm text-neutral-500">{member.chores.length}개</span>
+        <li key={member.userId} className="flex flex-col gap-[7px]">
+          <div className="flex items-center justify-between leading-[normal]">
+            <div className="flex items-center gap-3">
+              <CharacterImage
+                id={fromServerCharacter(member.characterType)}
+                size={40}
+                scale={1.8}
+                offset={0.21}
+                shape="square"
+                radius={14}
+              />
+              <span className="text-2xl font-medium text-gray-800">
+                {member.isMe ? meLabel(member.name) : member.name}
+              </span>
+            </div>
+            <span className="text-lg font-bold text-[#787878]">{member.chores.length}개</span>
           </div>
-          <ul className="mt-3 flex flex-col gap-3 pl-1">
+          <ul className="flex flex-col gap-3.5 p-2.5">
             {member.chores.slice(0, previewCount).map((chore) => (
-              <li key={chore.choreId} className="text-sm">
-                {chore.name}
+              <li key={chore.choreId} className="flex flex-col gap-1">
+                <span className="flex items-center gap-0.5 text-lg leading-[normal] font-semibold text-gray-600">
+                  <ChoreIcon name={chore.name} />
+                  {chore.name}
+                </span>
+                <span aria-hidden className="h-px bg-line-400" />
               </li>
             ))}
             {previewCount !== undefined && member.chores.length > previewCount && (
-              <li className="text-sm text-neutral-500">
+              <li className="text-sm leading-[normal] text-gray-500">
                 외 {member.chores.length - previewCount}개
               </li>
             )}
