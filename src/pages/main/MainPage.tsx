@@ -34,6 +34,7 @@ function MainPage() {
 
   const [requesting, setRequesting] = useState<Chore | null>(null);
   const [completing, setCompleting] = useState<Chore | null>(null);
+  const [moodOpen, setMoodOpen] = useState(false);
 
   if (isLoading || (!group && !isError)) return <StateView type="loading" />;
   if (isError || !group || !me || !myId) {
@@ -61,10 +62,20 @@ function MainPage() {
       <main className="flex flex-1 flex-col gap-5 px-4 pb-6">
         <div className="relative">
           <div className="pt-2 pb-3">
-            <LoadGauge count={myChores.length} status={me.status} hearts={heartsReceived.length} />
+            <LoadGauge
+              count={myChores.length}
+              status={me.status}
+              hearts={heartsReceived.length}
+              onCharacterClick={() => setMoodOpen(true)}
+            />
           </div>
           <div className="flex justify-center">
-            <MoodPicker value={me.status} onChange={(next) => status.mutate(next)} />
+            <MoodPicker
+              value={me.status}
+              onChange={(next) => status.mutate(next)}
+              open={moodOpen}
+              onOpenChange={setMoodOpen}
+            />
           </div>
           <div className="absolute top-2 right-0">
             <MemberRail

@@ -7,10 +7,12 @@ interface LoadGaugeProps {
   status: MemberStatus;
   /** 받은 하트 수 (내 캐릭터 옆 하트) */
   hearts?: number;
+  /** 내 메인: 캐릭터를 누르면 기분 말풍선 (V5-01) */
+  onCharacterClick?: () => void;
 }
 
 /** 캐릭터 + 오른쪽 반원 게이지: 내가 맡은 짐이 많을수록 위에서부터 참 (최대 10개) */
-function LoadGauge({ count, status, hearts = 0 }: LoadGaugeProps) {
+function LoadGauge({ count, status, hearts = 0, onCharacterClick }: LoadGaugeProps) {
   const ratio = Math.min(count / MAX_LOAD, 1);
   const Face = STATUS_ICON[status];
 
@@ -36,9 +38,15 @@ function LoadGauge({ count, status, hearts = 0 }: LoadGaugeProps) {
         />
       </svg>
       {/* TODO: 상태별 캐릭터 에셋으로 교체 */}
-      <div className="absolute inset-[26px] flex items-center justify-center rounded-full border border-dashed border-neutral-300 bg-neutral-100 text-neutral-600">
+      <button
+        type="button"
+        aria-label={MAIN_TEXT.moodTitle}
+        disabled={!onCharacterClick}
+        className="absolute inset-[26px] flex items-center justify-center rounded-full border border-dashed border-neutral-300 bg-neutral-100 text-neutral-600 disabled:cursor-default"
+        onClick={onCharacterClick}
+      >
         <Face size={56} strokeWidth={1.4} />
-      </div>
+      </button>
       {hearts > 0 && (
         <span
           key={hearts}
