@@ -89,7 +89,13 @@ function ChoreForm({ presets, houseId }: { presets: string[]; houseId: string })
     <OnboardingLayout
       title="집안일 고르기"
       step={{ current: 5, total: ONBOARDING_STEP_TOTAL }}
-      heading="우리 집 집안일을 골라주세요"
+      heading={
+        <>
+          우리 집 집안일을
+          <br />
+          골라주세요
+        </>
+      }
       description="나중에 홈에서 더 추가할 수 있어요."
       footer={
         <BottomButton disabled={selected.length === 0 || save.isPending} onClick={handleNext}>
