@@ -4,8 +4,8 @@ import { ONBOARDING_PATHS } from '@/routes/onboardingPaths';
 import { useProfileStore } from '@/stores/profile';
 import { MAX_MEMBERS } from '@/types/group';
 import BottomButton from './components/BottomButton';
-import CharacterImage from './components/CharacterImage';
 import InfoText from './components/InfoText';
+import MemberAvatar from './components/MemberAvatar';
 import OnboardingLayout from './components/OnboardingLayout';
 import { ONBOARDING_STEP_TOTAL } from './constants';
 
@@ -44,20 +44,8 @@ function S02InvitePage() {
             추가
           </span>
         </li>
-        <li className="flex w-20 flex-col items-center">
-          {myCharacter ? (
-            <CharacterImage
-              id={myCharacter}
-              size={80}
-              scale={1.8}
-              offset={0.21}
-              shape="square"
-              className="mt-0.5"
-            />
-          ) : (
-            <span aria-hidden className="mt-0.5 block size-20 rounded-[28px] bg-line-400" />
-          )}
-          <span className="mt-2 text-lg leading-[normal] font-semibold text-primary-500">나</span>
+        <li className="pt-0.5">
+          <MemberAvatar label="나" character={myCharacter} isMe />
         </li>
       </ul>
 
