@@ -9,12 +9,14 @@ import MemberRail from '@/components/main/MemberRail';
 import NoticeCard from '@/components/main/NoticeCard';
 import SpeechBubble from '@/components/main/SpeechBubble';
 import StatusTabs from '@/components/main/StatusTabs';
+import ThanksCard from '@/components/main/ThanksCard';
 import TodayChores from '@/components/main/TodayChores';
 import { MAIN_TEXT } from '@/constants/main';
 import { STATUS_BUBBLE, STATUS_NOTICE } from '@/constants/status';
 import { useDevSession } from '@/hooks/useDevSession';
 import { useGroupBoard } from '@/hooks/useGroupBoard';
 import { useMainMutations } from '@/hooks/useMainMutations';
+import { useNotifications } from '@/hooks/useNotifications';
 import { MAIN_PATHS } from '@/routes/mainPaths';
 import { ONBOARDING_PATHS } from '@/routes/onboardingPaths';
 import { MAX_MEMBERS } from '@/types/group';
@@ -29,6 +31,7 @@ function MainPage() {
   const { group, me, myId, choresOf, pendingCountOf, isLoading, isError, refetch } =
     useGroupBoard();
   const { status, toggleDone, add } = useMainMutations();
+  const { pendingThanks, heartsReceived, heart } = useNotifications();
   const [sheetOpen, setSheetOpen] = useState(false);
 
   if (isLoading || (!group && !isError)) return <StateView type="loading" />;
@@ -53,6 +56,9 @@ function MainPage() {
     )[0];
 
   const myCount = pendingCountOf(myId);
+  const nameOf = (id: string) => group.members.find((m) => m.id === id)?.nickname ?? '';
+  const choreNameOf = (id?: string) => group.chores.find((c) => c.id === id)?.name ?? '';
+  const thanksTarget = pendingThanks.at(-1);
 
   return (
     <div className="flex flex-1 flex-col">
@@ -71,6 +77,7 @@ function MainPage() {
                 count={myCount}
                 status={me.status}
                 caption={MAIN_TEXT.gaugeCaption(true, me.nickname, myCount)}
+                hearts={heartsReceived.length}
               />
             </div>
           </div>
@@ -89,6 +96,16 @@ function MainPage() {
           value={me.status}
           onChange={(next) => next !== me.status && status.mutate(next)}
         />
+
+        {thanksTarget && (
+          <ThanksCard
+            text={MAIN_TEXT.takenBy(nameOf(thanksTarget.fromId), choreNameOf(thanksTarget.choreId))}
+            disabled={heart.isPending}
+            onHeart={() =>
+              heart.mutate({ notification: thanksTarget, name: nameOf(thanksTarget.fromId) })
+            }
+          />
+        )}
 
         {needHelp && STATUS_NOTICE[needHelp.status as keyof typeof STATUS_NOTICE] && (
           <NoticeCard
