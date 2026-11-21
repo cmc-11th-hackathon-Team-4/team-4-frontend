@@ -35,7 +35,6 @@ export const MAIN_TEXT = {
   sendHeart: '하트 보내기',
   heartSent: (name: string) => `${name}에게 하트를 보냈어요`,
   heartReceived: (name: string) => `${josa(name, '이/가')} 하트를 보냈어요 ♥`,
-  heartCount: (count: number) => `♥ ${count}`,
 
   // B · 짐 올리기 (V5-05, V5-06, V5-10)
   requestTitle: '누구에게 올릴까요?',

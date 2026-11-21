@@ -21,6 +21,7 @@ import { isMemberFull } from '@/apis/limits';
 import { useMainMutations } from '@/hooks/useMainMutations';
 import { useNotifications } from '@/hooks/useNotifications';
 import { MAIN_PATHS } from '@/routes/mainPaths';
+import { useHeartBurstStore } from '@/stores/heartBurst';
 import { useToastStore } from '@/stores/toast';
 import type { Chore } from '@/types/chore';
 
@@ -32,6 +33,9 @@ function MainPage() {
   const { group, me, myId, choresOf, pendingCountOf, isLoading, isError, refetch } =
     useGroupBoard();
   const { pendingThanks, heartsReceived, heart } = useNotifications();
+  const { playedIds, markPlayed } = useHeartBurstStore();
+  /** 아직 뿅뿅을 안 보여준 최신 하트 (배려왕 카운트와 별개, 1회성) */
+  const heartBurst = heartsReceived.filter((n) => !playedIds.includes(n.id)).at(-1);
   const requests = useChoreRequests();
   const { request, respond, complete, status, cancelRequest } = useMainMutations();
 
@@ -83,7 +87,8 @@ function MainPage() {
               <LoadGauge
                 count={myChores.length}
                 status={me.status}
-                hearts={heartsReceived.length}
+                heartBurstKey={heartBurst?.id}
+                onHeartBurstEnd={() => markPlayed(heartsReceived.map((n) => n.id))}
                 onCharacterClick={() => setMoodOpen(true)}
               />
             </div>

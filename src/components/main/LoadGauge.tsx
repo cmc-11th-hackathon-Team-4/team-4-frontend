@@ -1,18 +1,26 @@
 import { MAIN_TEXT, MAX_LOAD } from '@/constants/main';
 import { STATUS_ICON } from '@/constants/mood';
 import type { MemberStatus } from '@/types/member';
+import HeartBurst from './HeartBurst';
 
 interface LoadGaugeProps {
   count: number;
   status: MemberStatus;
-  /** 받은 하트 수 (내 캐릭터 옆 하트) */
-  hearts?: number;
+  /** 새 하트를 받았을 때 캐릭터 뒤 하트 뿅뿅 (1회성). key가 바뀌면 다시 재생 */
+  heartBurstKey?: string;
+  onHeartBurstEnd?: () => void;
   /** 내 메인: 캐릭터를 누르면 기분 말풍선 (V5-01) */
   onCharacterClick?: () => void;
 }
 
 /** 캐릭터 + 오른쪽 반원 게이지: 내가 맡은 짐이 많을수록 위에서부터 참 (최대 10개) */
-function LoadGauge({ count, status, hearts = 0, onCharacterClick }: LoadGaugeProps) {
+function LoadGauge({
+  count,
+  status,
+  heartBurstKey,
+  onHeartBurstEnd,
+  onCharacterClick,
+}: LoadGaugeProps) {
   const ratio = Math.min(count / MAX_LOAD, 1);
   const Face = STATUS_ICON[status];
 
@@ -37,6 +45,8 @@ function LoadGauge({ count, status, hearts = 0, onCharacterClick }: LoadGaugePro
           className="transition-[stroke-dasharray] duration-500"
         />
       </svg>
+      {/* 하트 뿅뿅은 캐릭터 뒤 (캐릭터보다 먼저 그림) */}
+      {heartBurstKey && <HeartBurst key={heartBurstKey} onEnd={() => onHeartBurstEnd?.()} />}
       {/* TODO: 상태별 캐릭터 에셋으로 교체 */}
       <button
         type="button"
@@ -47,14 +57,6 @@ function LoadGauge({ count, status, hearts = 0, onCharacterClick }: LoadGaugePro
       >
         <Face size={56} strokeWidth={1.4} />
       </button>
-      {hearts > 0 && (
-        <span
-          key={hearts}
-          className="absolute top-4 left-2 animate-bounce rounded-full bg-neutral-900 px-2 py-0.5 text-xs font-bold text-white [animation-iteration-count:2]"
-        >
-          {MAIN_TEXT.heartCount(hearts)}
-        </span>
-      )}
     </div>
   );
 }
