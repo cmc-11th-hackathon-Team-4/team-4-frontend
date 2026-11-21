@@ -1,20 +1,20 @@
 import { useNavigate } from 'react-router';
 import welcomeIllustration from '@/assets/illustrations/welcome.png';
 import { ONBOARDING_PATHS } from '@/routes/onboardingPaths';
-import { useProfileStore } from '@/stores/profile';
 import BottomButton from './components/BottomButton';
 import OnboardingLayout from './components/OnboardingLayout';
+import { useMe } from './useMyHouse';
 
 /**
  * S-14 홈 · 집 없음 (권한: 모두)
  * - 집이 없을 때만 보이는 홈. 집 있음 → V5-01 분기는 가드에서 처리 (② 담당과 협의, API 필요)
  * - "프로필 있음?": 있으면 P-01을 건너뛰고 S-01 / S-13, 없으면 P-01을 먼저 거침
- *   (기기에 저장된 프로필 기준. TODO(API): GET /api/v1/users/me 결과로 교체)
+ *   (서버 기준 GET /api/v1/users/me. 아직 모르거나 실패하면 P-01 로 — P-01 은 이미 등록된 기기면 서버 프로필로 이어감)
  */
 function S14WelcomePage() {
   const navigate = useNavigate();
 
-  const hasProfile = useProfileStore((s) => s.profile !== null);
+  const hasProfile = useMe().data !== undefined;
 
   const goProfile = (next: 'create' | 'join') => {
     if (hasProfile) {

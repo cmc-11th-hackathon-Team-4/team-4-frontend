@@ -1,8 +1,12 @@
 import { useQuery } from '@tanstack/react-query';
+import { isApiError } from '@/apis/error';
 import { getHouse, getMe } from '@/apis/onboarding';
 import { onboardingKeys } from './queryKeys';
 
-/** 내 정보 + 소속 집 (GET /users/me). 플로우 ① 화면은 집 id 를 서버 기준으로 쓴다 */
+/** 서버에 프로필이 없음 (등록되지 않은 기기, USER-404) */
+export const isNoProfile = (error: unknown) => isApiError(error, 'USER-404');
+
+/** 내 정보 + 소속 집 (GET /users/me). 플로우 ① 화면은 집 id 와 "프로필 있음?" 을 서버 기준으로 쓴다 */
 export function useMe() {
   return useQuery({ queryKey: onboardingKeys.me, queryFn: getMe, retry: false });
 }

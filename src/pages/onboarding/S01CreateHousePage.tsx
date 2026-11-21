@@ -11,6 +11,7 @@ import OnboardingLayout from './components/OnboardingLayout';
 import { errorMessage } from './apiMessages';
 import { ONBOARDING_STEP_TOTAL } from './constants';
 import { onboardingKeys } from './queryKeys';
+import { isNoProfile } from './useMyHouse';
 import UnderlineInput from './components/UnderlineInput';
 import { INPUT_RULES, isValidText } from './validation';
 
@@ -19,6 +20,7 @@ import { INPUT_RULES, isValidText } from './validation';
  * - 집 이름을 채워야 [다음]이 눌리고, 누르면 S-02로 이동
  * - POST /api/v1/houses 로 집 생성 (초대 코드 발급, 만든 사람이 방장). 저장 중 버튼 비활성, 실패 시 토스트(입력값 유지)
  * - 이미 집이 있으면(HOUSE-409, 예: S-02에서 뒤로 왔다가 다시 누름) 그 집으로 계속 진행
+ * - 서버에 프로필이 없으면(USER-404) P-01 프로필 만들기로
  */
 function S01CreateHousePage() {
   const navigate = useNavigate();
@@ -43,6 +45,9 @@ function S01CreateHousePage() {
     onSuccess: goNext,
     onError: (error) => {
       if (error instanceof ApiError && error.code === 'HOUSE-409') return goNext();
+      if (isNoProfile(error)) {
+        return navigate(`${ONBOARDING_PATHS.profileNew}?next=create`, { replace: true });
+      }
       showToast(errorMessage(error));
     },
   });
