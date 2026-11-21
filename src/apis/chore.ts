@@ -1,4 +1,4 @@
-import { delay, newId, pushNotification, updateDb } from '@/mocks/db';
+import { delay, newId, pushNotification, readDb, updateDb } from '@/mocks/db';
 import type { Chore } from '@/types/chore';
 import type { Id } from '@/types/common';
 import type { ChoreRequest } from '@/types/request';
@@ -83,6 +83,27 @@ export async function completeChore(choreId: Id): Promise<void> {
     return;
   }
   await instance.post(`${API}/assignments/${choreId}/complete`);
+}
+
+/**
+ * V5-12 집안일 목록: 삭제되지 않은 집안일 전체 (GET /houses/{id}/chores)
+ * 완료했거나 아직 담당자가 없는 집안일도 포함. 담당자는 화면에서 메인 보드 짐과 맞춰 붙임
+ */
+export async function getChoreList(groupId: Id): Promise<Chore[]> {
+  if (USE_MOCK) {
+    await delay(100);
+    return readDb().group.chores;
+  }
+  const { data } = await instance.get<{ chores: { id: number; name: string }[] }>(
+    `${API}/houses/${groupId}/chores`,
+  );
+  return data.chores.map((c) => ({
+    id: String(c.id),
+    choreId: String(c.id),
+    name: c.name,
+    ownerId: '',
+    done: false,
+  }));
 }
 
 /** V5-12 집안일 목록 › 삭제 (부탁 중이던 요청도 함께 정리). 실서버는 집안일(chore) id */

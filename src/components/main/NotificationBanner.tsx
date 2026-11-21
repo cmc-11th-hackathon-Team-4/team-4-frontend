@@ -1,5 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef } from 'react';
+import { USE_MOCK } from '@/apis/config';
 import { useNavigate } from 'react-router';
 import { IconHeart } from '@/components/common/icons';
 import { MAIN_TEXT } from '@/constants/main';
@@ -46,8 +47,26 @@ function toContent(n: AppNotification, group: Group): BannerContent | null {
 function NotificationBanner() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { group } = useGroupBoard();
-  const { received } = useNotifications();
+  const { group, myId } = useGroupBoard();
+  const { received: notifications } = useNotifications();
+  // 실서버엔 '부탁 받음' 알림이 없어서, 보드의 받은 부탁을 부탁 알림으로 바꿔 함께 띄움
+  // (목데이터는 부탁 알림을 따로 만들므로 제외)
+  const requestNotices: AppNotification[] = USE_MOCK
+    ? []
+    : (group?.requests ?? [])
+        .filter((r) => r.toId === myId)
+        .map((r) => ({
+          id: `request-${r.id}`,
+          type: 'request',
+          fromId: r.fromId,
+          toId: r.toId,
+          choreId: r.choreId,
+          choreName: r.choreName,
+          createdAt: r.createdAt,
+        }));
+  const received = [...notifications, ...requestNotices].sort((a, b) =>
+    a.createdAt.localeCompare(b.createdAt),
+  );
   const { seenIds, markSeen } = useSeenNotificationStore();
 
   const unseen = received.filter((n) => !seenIds.includes(n.id));

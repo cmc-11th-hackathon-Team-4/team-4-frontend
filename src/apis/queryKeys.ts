@@ -5,4 +5,5 @@ export const queryKeys = {
   group: (groupId: Id) => ['group', groupId] as const,
   notifications: (memberId: Id) => ['notifications', memberId] as const,
   cycle: (groupId: Id) => ['cycle', groupId] as const,
+  choreList: (groupId: Id) => ['choreList', groupId] as const,
 };

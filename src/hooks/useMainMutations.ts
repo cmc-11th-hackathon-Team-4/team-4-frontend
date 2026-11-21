@@ -33,7 +33,11 @@ function useGroupCache() {
     return { prev };
   };
   const rollback = (prev?: Group) => prev && queryClient.setQueryData(key, prev);
-  const refresh = () => queryClient.invalidateQueries({ queryKey: key });
+  const refresh = () =>
+    Promise.all([
+      queryClient.invalidateQueries({ queryKey: key }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.choreList(groupId ?? '') }),
+    ]);
 
   return { patch, rollback, refresh };
 }
