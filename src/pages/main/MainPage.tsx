@@ -17,24 +17,28 @@ import { MAIN_TEXT } from '@/constants/main';
 import { useChoreRequests } from '@/hooks/useChoreRequests';
 import { useDevSession } from '@/hooks/useDevSession';
 import { useGroupBoard } from '@/hooks/useGroupBoard';
+import { isMemberFull } from '@/apis/limits';
 import { useMainMutations } from '@/hooks/useMainMutations';
 import { useNotifications } from '@/hooks/useNotifications';
 import { MAIN_PATHS } from '@/routes/mainPaths';
+import { useToastStore } from '@/stores/toast';
 import type { Chore } from '@/types/chore';
 
 /** V5-01 내 메인 (+ V5-02 기분 선택, V5-03~06 완료·짐 올리기, V5-10~11 부탁·하트) */
 function MainPage() {
   useDevSession();
   const navigate = useNavigate();
+  const showToast = useToastStore((s) => s.show);
   const { group, me, myId, choresOf, pendingCountOf, isLoading, isError, refetch } =
     useGroupBoard();
   const { pendingThanks, heartsReceived, heart } = useNotifications();
   const requests = useChoreRequests();
-  const { request, respond, complete, status } = useMainMutations();
+  const { request, respond, complete, status, cancelRequest } = useMainMutations();
 
   const [requesting, setRequesting] = useState<Chore | null>(null);
   const [completing, setCompleting] = useState<Chore | null>(null);
   const [moodOpen, setMoodOpen] = useState(false);
+  const [canceling, setCanceling] = useState<Chore | null>(null);
   const queryClient = useQueryClient();
   /** 당겨서 새로고침: 그룹 · 알림 · 부탁 다시 불러오기 */
   const refreshAll = () =>
@@ -60,7 +64,8 @@ function MainPage() {
   const choreNameOf = (id?: string) => group.chores.find((c) => c.id === id)?.name ?? '';
   const myChores = choresOf(myId).filter((c) => !c.done);
   const others = group.members.filter((m) => m.id !== myId);
-  const sentTo = new Map(requests.sent.map((r) => [r.choreId, r.toId]));
+  const sentByChore = new Map(requests.sent.map((r) => [r.choreId, r]));
+  const myFull = isMemberFull(group.chores, myId);
   const thanksTarget = pendingThanks.at(-1);
 
   return (
@@ -113,7 +118,9 @@ function MainPage() {
                     text={MAIN_TEXT.requestedBy(nameOf(req.fromId), choreNameOf(req.choreId))}
                     disabled={respond.isPending}
                     onAccept={() =>
-                      respond.mutate({ req, accept: true, choreName: choreNameOf(req.choreId) })
+                      myFull
+                        ? showToast(MAIN_TEXT.memberFullToast)
+                        : respond.mutate({ req, accept: true, choreName: choreNameOf(req.choreId) })
                     }
                     onDecline={() =>
                       respond.mutate({ req, accept: false, choreName: choreNameOf(req.choreId) })
@@ -139,11 +146,12 @@ function MainPage() {
             }
           >
             {myChores.map((chore) =>
-              sentTo.has(chore.id) ? (
+              sentByChore.has(chore.id) ? (
                 <ChoreTile
                   key={chore.id}
                   name={chore.name}
-                  pendingTo={nameOf(sentTo.get(chore.id)!)}
+                  pendingTo={nameOf(sentByChore.get(chore.id)!.toId)}
+                  onClick={() => setCanceling(chore)}
                 />
               ) : (
                 <ChoreTile
@@ -165,6 +173,7 @@ function MainPage() {
           choreName={requesting.name}
           members={others}
           countOf={pendingCountOf}
+          isFull={(id) => isMemberFull(group.chores, id)}
           onClose={() => setRequesting(null)}
           onSubmit={(toId) => {
             request.mutate({ chore: requesting, toId });
@@ -172,6 +181,20 @@ function MainPage() {
           }}
         />
       )}
+
+      <ConfirmModal
+        open={!!canceling}
+        title={MAIN_TEXT.cancelRequestTitle}
+        description={canceling ? MAIN_TEXT.cancelRequestDesc(canceling.name) : undefined}
+        confirmLabel={MAIN_TEXT.cancelRequestOk}
+        cancelLabel={MAIN_TEXT.doneNo}
+        onCancel={() => setCanceling(null)}
+        onConfirm={() => {
+          const req = canceling && sentByChore.get(canceling.id);
+          if (req) cancelRequest.mutate(req);
+          setCanceling(null);
+        }}
+      />
 
       <ConfirmModal
         open={!!completing}

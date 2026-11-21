@@ -6,15 +6,19 @@ interface ChoreTileProps {
   onClick?: () => void;
   /** 있으면 X(완료) 버튼 표시 */
   onComplete?: () => void;
-  /** 짐 올리기 요청 중: '민지에게 요청 중' */
+  /** 짐 올리기 요청 중: '민지에게 요청 중' (onClick이 있으면 눌러서 취소) */
   pendingTo?: string;
 }
 
 /** 집안일 카드 (2열 그리드용) */
 function ChoreTile({ name, onClick, onComplete, pendingTo }: ChoreTileProps) {
   if (pendingTo) {
+    const Tag = onClick ? 'button' : 'div';
     return (
-      <div className="flex h-[124px] flex-col rounded-2xl border border-dashed border-neutral-300 p-3">
+      <Tag
+        {...(onClick ? { type: 'button' as const, onClick } : {})}
+        className="flex h-[124px] w-full flex-col rounded-2xl border border-dashed border-neutral-300 p-3 text-left"
+      >
         <span className="flex size-8 items-center justify-center rounded-lg bg-neutral-100 text-neutral-400">
           <IconClock size={18} />
         </span>
@@ -22,7 +26,7 @@ function ChoreTile({ name, onClick, onComplete, pendingTo }: ChoreTileProps) {
         <span className="mt-1 w-fit rounded-full border border-neutral-300 px-2 py-0.5 text-[10px] text-neutral-500">
           {MAIN_TEXT.requesting(pendingTo)}
         </span>
-      </div>
+      </Tag>
     );
   }
 

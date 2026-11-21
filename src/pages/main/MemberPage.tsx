@@ -14,7 +14,9 @@ import { STATUS_BUBBLE } from '@/constants/status';
 import { useChoreRequests } from '@/hooks/useChoreRequests';
 import { useDevSession } from '@/hooks/useDevSession';
 import { useGroupBoard } from '@/hooks/useGroupBoard';
+import { isMemberFull } from '@/apis/limits';
 import { useMainMutations } from '@/hooks/useMainMutations';
+import { useToastStore } from '@/stores/toast';
 import { MAIN_PATHS } from '@/routes/mainPaths';
 import type { Chore } from '@/types/chore';
 
@@ -23,6 +25,7 @@ function MemberPage() {
   useDevSession();
   const { memberId } = useParams();
   const navigate = useNavigate();
+  const showToast = useToastStore((s) => s.show);
   const { group, myId, choresOf, pendingCountOf, isLoading, isError, refetch } = useGroupBoard();
   const { take } = useMainMutations();
   const { toByChore } = useChoreRequests();
@@ -89,7 +92,15 @@ function MemberPage() {
                 }
               />
             ) : (
-              <ChoreTile key={chore.id} name={chore.name} onClick={() => setPending(chore)} />
+              <ChoreTile
+                key={chore.id}
+                name={chore.name}
+                onClick={() =>
+                  isMemberFull(group.chores, myId)
+                    ? showToast(MAIN_TEXT.memberFullToast)
+                    : setPending(chore)
+                }
+              />
             ),
           )}
         </ChorePanel>

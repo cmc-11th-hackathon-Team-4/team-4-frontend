@@ -10,13 +10,22 @@ interface RequestSheetProps {
   choreName: string;
   members: Member[];
   countOf: (id: Id) => number;
+  /** 짐 5개를 다 가진 사람은 고를 수 없음 */
+  isFull: (id: Id) => boolean;
   onClose: () => void;
   onSubmit: (toId: Id) => void;
 }
 
 /** V5-05: 누구에게 올릴까요? (부모에서 열 때만 렌더) */
-function RequestSheet({ choreName, members, countOf, onClose, onSubmit }: RequestSheetProps) {
-  const [selected, setSelected] = useState<Id | null>(members.length === 1 ? members[0].id : null);
+function RequestSheet({
+  choreName,
+  members,
+  countOf,
+  isFull,
+  onClose,
+  onSubmit,
+}: RequestSheetProps) {
+  const [selected, setSelected] = useState<Id | null>(null);
 
   return (
     <div className="fixed inset-0 z-40 flex items-end justify-center bg-black/40" onClick={onClose}>
@@ -39,13 +48,15 @@ function RequestSheet({ choreName, members, countOf, onClose, onSubmit }: Reques
           <div role="radiogroup" className="mt-5 flex flex-col gap-2">
             {members.map((member) => {
               const active = member.id === selected;
+              const full = isFull(member.id);
               return (
                 <button
                   key={member.id}
                   type="button"
                   role="radio"
                   aria-checked={active}
-                  className={`flex items-center gap-3 rounded-2xl p-3 text-left ${
+                  disabled={full}
+                  className={`flex items-center gap-3 rounded-2xl p-3 text-left disabled:opacity-40 ${
                     active ? 'border-2 border-neutral-900' : 'border border-neutral-300'
                   }`}
                   onClick={() => setSelected(member.id)}
@@ -59,6 +70,11 @@ function RequestSheet({ choreName, members, countOf, onClose, onSubmit }: Reques
                       {MAIN_TEXT.requestMemberInfo(STATUS_LABEL[member.status], countOf(member.id))}
                     </span>
                   </span>
+                  {full && (
+                    <span className="ml-auto text-[11px] text-neutral-500">
+                      {MAIN_TEXT.memberFullTag}
+                    </span>
+                  )}
                 </button>
               );
             })}
