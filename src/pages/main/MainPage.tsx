@@ -79,7 +79,7 @@ function MainPage() {
   return (
     // 위(헤더 · 칩) · 아래(탭바) 고정, 가운데만 스크롤 (피그마 iPhone 18 Pro - 1)
     <div
-      className="flex h-[calc(100dvh-var(--safe-top)-var(--safe-bottom))] flex-col overflow-hidden"
+      className="flex min-h-0 flex-1 flex-col overflow-hidden"
       style={{ background: theme.background }}
     >
       <div className="shrink-0">
