@@ -8,7 +8,7 @@ interface ConfirmModalProps {
   onCancel: () => void;
 }
 
-/** 공용 확인 팝업 (V5-08 가져가기, V5-03 완료 등) */
+/** 공용 확인 팝업 — 피그마 Components · Modal / Confirm (342 × 180) */
 function ConfirmModal({
   open,
   title,
@@ -22,28 +22,28 @@ function ConfirmModal({
 
   return (
     <div
-      className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 px-8"
+      className="fixed inset-0 z-40 flex items-center justify-center bg-[rgba(18,18,18,0.45)] px-[30px]"
       onClick={onCancel}
     >
       <div
         role="dialog"
         aria-modal="true"
-        className="w-full max-w-[320px] rounded-3xl bg-white px-5 pt-7 pb-5 text-center"
+        className="w-full max-w-[342px] rounded-[20px] bg-white px-5 pt-[22px] pb-6 text-center leading-[normal]"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="text-lg font-bold">{title}</h2>
-        {description && <p className="mt-2 text-sm text-neutral-500">{description}</p>}
-        <div className="mt-8 flex gap-2">
+        <h2 className="text-lg font-bold text-[#26242d]">{title}</h2>
+        {description && <p className="mt-3 text-sm break-keep text-[#878d99]">{description}</p>}
+        <div className="mt-7 flex gap-2">
           <button
             type="button"
-            className="h-12 flex-1 rounded-xl bg-neutral-100 font-semibold"
+            className="h-12 flex-1 rounded-xl bg-[#f1f2f5] font-bold text-[#454a54]"
             onClick={onCancel}
           >
             {cancelLabel}
           </button>
           <button
             type="button"
-            className="h-12 flex-1 rounded-xl bg-neutral-900 font-semibold text-white"
+            className="h-12 flex-1 rounded-xl bg-primary-500 font-bold text-white"
             onClick={onConfirm}
           >
             {confirmLabel}

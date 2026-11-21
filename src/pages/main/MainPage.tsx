@@ -2,20 +2,22 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useQueryClient } from '@tanstack/react-query';
 import ConfirmModal from '@/components/common/ConfirmModal';
+import Header, { HeaderSettingButton } from '@/components/common/Header';
 import PullToRefresh from '@/components/common/PullToRefresh';
 import StateView from '@/components/common/StateView';
 import TabBar from '@/components/common/TabBar';
-import ChorePanel from '@/components/main/ChorePanel';
-import ChoreTile from '@/components/main/ChoreTile';
-import LoadGauge from '@/components/main/LoadGauge';
-import MainHeader from '@/components/main/MainHeader';
-import MemberRail, { RAIL_ITEM_HEIGHT } from '@/components/main/MemberRail';
+import ChoreCard from '@/components/main/ChoreCard';
+import MainHero from '@/components/main/MainHero';
+import MemberCard from '@/components/main/MemberCard';
 import MoodPicker from '@/components/main/MoodPicker';
 import { HeartNotice, RequestNotice } from '@/components/main/NoticeCards';
 import RequestSheet from '@/components/main/RequestSheet';
+import SectionCard from '@/components/main/SectionCard';
+import { themeOf } from '@/constants/characterTheme';
 import { MAIN_TEXT } from '@/constants/main';
 import { useChoreRequests } from '@/hooks/useChoreRequests';
 import { useDevSession } from '@/hooks/useDevSession';
+import { useDueCaption } from '@/hooks/useDueCaption';
 import { useGroupBoard } from '@/hooks/useGroupBoard';
 import { isMemberFull } from '@/apis/limits';
 import { useMainMutations } from '@/hooks/useMainMutations';
@@ -38,6 +40,7 @@ function MainPage() {
   const heartBurst = heartsReceived.filter((n) => !playedIds.includes(n.id)).at(-1);
   const requests = useChoreRequests();
   const { request, respond, complete, status, cancelRequest } = useMainMutations();
+  const dueCaption = useDueCaption();
 
   const [requesting, setRequesting] = useState<Chore | null>(null);
   const [completing, setCompleting] = useState<Chore | null>(null);
@@ -63,6 +66,7 @@ function MainPage() {
     );
   }
 
+  const theme = themeOf(me.character);
   const nameOf = (id: string) => group.members.find((m) => m.id === id)?.nickname ?? '';
   const choreNameOf = (id?: string) => group.chores.find((c) => c.id === id)?.name ?? '';
   const myChores = choresOf(myId).filter((c) => !c.done);
@@ -72,112 +76,111 @@ function MainPage() {
   const thanksTarget = pendingThanks.at(-1);
 
   return (
-    <div className="flex flex-1 flex-col bg-neutral-50">
-      <MainHeader title={MAIN_TEXT.homeTitle} onSettings={() => navigate(MAIN_PATHS.settings)} />
+    <div className="flex flex-1 flex-col" style={{ background: theme.background }}>
+      <Header
+        title={MAIN_TEXT.homeTitle}
+        right={<HeaderSettingButton onClick={() => navigate(MAIN_PATHS.settings)} />}
+      />
 
       <PullToRefresh onRefresh={refreshAll}>
-        <main className="flex flex-1 flex-col gap-5 px-4 pb-6">
-          <div
-            className="relative"
-            // TODO(디자인): 구성원이 많으면(최대 5명) 레일이 카드 영역과 겹치지 않게 임시로 높이 확보
-            style={{ minHeight: group.members.length * RAIL_ITEM_HEIGHT }}
-          >
-            <div className="pt-2 pb-3">
-              <LoadGauge
-                count={myChores.length}
-                status={me.status}
-                heartBurstKey={heartBurst?.id}
-                onHeartBurstEnd={() => markPlayed(heartsReceived.map((n) => n.id))}
-                onCharacterClick={() => setMoodOpen(true)}
-              />
-            </div>
-            <div className="flex justify-center">
-              <MoodPicker
-                value={me.status}
-                onChange={(next) => status.mutate(next)}
-                open={moodOpen}
-                onOpenChange={setMoodOpen}
-              />
-            </div>
-            <div className="absolute top-2 right-0">
-              <MemberRail
-                members={group.members}
-                myId={myId}
-                activeId={myId}
-                countOf={pendingCountOf}
-                onSelect={(id) => id !== myId && navigate(MAIN_PATHS.member(id))}
-              />
-            </div>
-          </div>
+        <MainHero
+          theme={theme}
+          character={me.character}
+          status={me.status}
+          count={myChores.length}
+          onMoodClick={() => setMoodOpen((open) => !open)}
+          heartBurstKey={heartBurst?.id}
+          onHeartBurstEnd={() => markPlayed(heartsReceived.map((n) => n.id))}
+        >
+          {moodOpen && (
+            <MoodPicker
+              character={me.character}
+              value={me.status}
+              color={theme.c500}
+              onChange={(next) => status.mutate(next)}
+              onClose={() => setMoodOpen(false)}
+            />
+          )}
+        </MainHero>
 
-          <ChorePanel
-            title={MAIN_TEXT.myChoresTitle}
-            hint={MAIN_TEXT.myChoresHint}
-            emptyText={MAIN_TEXT.emptyMyChores}
-            notice={
-              <>
-                {requests.received.map((req) => (
-                  <RequestNotice
-                    key={req.id}
-                    text={MAIN_TEXT.requestedBy(
-                      nameOf(req.fromId),
-                      req.choreName ?? choreNameOf(req.choreId),
-                    )}
-                    disabled={respond.isPending}
-                    onAccept={() =>
-                      myFull
-                        ? showToast(MAIN_TEXT.memberFullToast)
-                        : respond.mutate({
-                            req,
-                            accept: true,
-                            choreName: req.choreName ?? choreNameOf(req.choreId),
-                          })
-                    }
-                    onDecline={() =>
-                      respond.mutate({
+        <main className="flex flex-col gap-5 px-4 pb-6">
+          <MemberCard
+            members={group.members}
+            myId={myId}
+            activeId={myId}
+            countOf={pendingCountOf}
+            onSelect={(id) => id !== myId && navigate(MAIN_PATHS.member(id))}
+          />
+
+          <SectionCard title={MAIN_TEXT.myChoresTitle} hint={MAIN_TEXT.myChoresHint}>
+            {requests.received.map((req) => (
+              <RequestNotice
+                key={req.id}
+                text={MAIN_TEXT.requestedBy(
+                  nameOf(req.fromId),
+                  req.choreName ?? choreNameOf(req.choreId),
+                )}
+                disabled={respond.isPending}
+                onAccept={() =>
+                  myFull
+                    ? showToast(MAIN_TEXT.memberFullToast)
+                    : respond.mutate({
                         req,
-                        accept: false,
+                        accept: true,
                         choreName: req.choreName ?? choreNameOf(req.choreId),
                       })
-                    }
-                  />
-                ))}
-                {thanksTarget && (
-                  <HeartNotice
-                    text={MAIN_TEXT.takenBy(
-                      nameOf(thanksTarget.fromId),
-                      thanksTarget.choreName ?? choreNameOf(thanksTarget.choreId),
-                    )}
-                    disabled={heart.isPending}
-                    onHeart={() =>
-                      heart.mutate({
-                        notification: thanksTarget,
-                        name: nameOf(thanksTarget.fromId),
-                      })
-                    }
-                  />
+                }
+                onDecline={() =>
+                  respond.mutate({
+                    req,
+                    accept: false,
+                    choreName: req.choreName ?? choreNameOf(req.choreId),
+                  })
+                }
+              />
+            ))}
+            {thanksTarget && (
+              <HeartNotice
+                text={MAIN_TEXT.takenBy(
+                  nameOf(thanksTarget.fromId),
+                  thanksTarget.choreName ?? choreNameOf(thanksTarget.choreId),
                 )}
-              </>
-            }
-          >
-            {myChores.map((chore) =>
-              sentByChore.has(chore.id) ? (
-                <ChoreTile
-                  key={chore.id}
-                  name={chore.name}
-                  pendingTo={nameOf(sentByChore.get(chore.id)!.toId)}
-                  onClick={() => setCanceling(chore)}
-                />
-              ) : (
-                <ChoreTile
-                  key={chore.id}
-                  name={chore.name}
-                  onClick={() => setRequesting(chore)}
-                  onComplete={() => setCompleting(chore)}
-                />
-              ),
+                disabled={heart.isPending}
+                onHeart={() =>
+                  heart.mutate({ notification: thanksTarget, name: nameOf(thanksTarget.fromId) })
+                }
+              />
             )}
-          </ChorePanel>
+
+            {myChores.length === 0 ? (
+              <p className="py-6 text-center text-sm font-medium text-gray-400">
+                {MAIN_TEXT.emptyMyChores}
+              </p>
+            ) : (
+              <div className="grid grid-cols-2 gap-x-4 gap-y-2.5">
+                {myChores.map((chore) => {
+                  const sent = sentByChore.get(chore.id);
+                  return sent ? (
+                    <ChoreCard
+                      key={chore.id}
+                      name={chore.name}
+                      caption={MAIN_TEXT.requesting(nameOf(sent.toId))}
+                      dimmed
+                      onPress={() => setCanceling(chore)}
+                    />
+                  ) : (
+                    <ChoreCard
+                      key={chore.id}
+                      name={chore.name}
+                      caption={dueCaption}
+                      onPress={() => setRequesting(chore)}
+                      onComplete={() => setCompleting(chore)}
+                    />
+                  );
+                })}
+              </div>
+            )}
+          </SectionCard>
         </main>
       </PullToRefresh>
 
