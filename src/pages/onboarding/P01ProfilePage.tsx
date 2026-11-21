@@ -4,17 +4,18 @@ import StateView from '@/components/common/StateView';
 import { useMyProfile, useSaveProfile } from '@/hooks/useProfile';
 import { MYPAGE_PATHS } from '@/routes/mypagePaths';
 import { ONBOARDING_PATHS } from '@/routes/onboardingPaths';
-import type { Profile } from '@/stores/profile';
+import { type Profile, useProfileStore } from '@/stores/profile';
 import { useToastStore } from '@/stores/toast';
-import { CHARACTER_COUNT, type CharacterId } from '@/types/member';
+import type { CharacterId } from '@/types/member';
 import BottomButton from './components/BottomButton';
-import InfoText from './components/InfoText';
+import CharacterPicker from './components/CharacterPicker';
 import OnboardingLayout from './components/OnboardingLayout';
 import UnderlineInput from './components/UnderlineInput';
+import { ONBOARDING_STEP_TOTAL } from './constants';
 import { INPUT_RULES, isValidText } from './validation';
 
-/** 캐릭터 값 형식은 서버 확정 전까지 '1'~'4' */
-const CHARACTERS: CharacterId[] = Array.from({ length: CHARACTER_COUNT }, (_, i) => String(i + 1));
+/** 처음 보이는 캐릭터 (피그마 시안에서 선택된 보라 캐릭터) */
+const DEFAULT_CHARACTER: CharacterId = '5';
 
 interface P01ProfilePageProps {
   /** create: 프로필 만들기 (①, ④ 빈 프로필) / edit: 프로필 수정 (④ M-01) */
@@ -22,10 +23,10 @@ interface P01ProfilePageProps {
 }
 
 /**
- * P-01 프로필 만들기 · 수정 (권한: 모두, 만들기/수정 공용 화면)
+ * P-01 프로필 만들기 · 수정 (권한: 모두, 만들기/수정 공용 화면) — 피그마 비주얼 시안 기준
  * - 만들기: S-14에서 ?next=create → S-01, ?next=join → S-13, M-01에서 ?next=my → 마이로 복귀
  * - 수정: 저장 후 마이로 복귀
- * - TODO(API): 프로필 저장 (지금은 프로필 스토어 + 목데이터)
+ * - TODO(API): POST /api/v1/users (만들기) · PATCH /api/v1/users/me (수정)로 저장
  */
 function P01ProfilePage({ mode = 'create' }: P01ProfilePageProps) {
   const { profile, isLoading } = useMyProfile();
@@ -43,11 +44,15 @@ function ProfileForm({ mode, initial }: { mode: 'create' | 'edit'; initial: Prof
   const save = useSaveProfile();
   const isEdit = mode === 'edit';
 
-  const [character, setCharacter] = useState<CharacterId | null>(initial?.character ?? null);
+  // 만들기에서 뒤로 왔다가 다시 들어오면 저장해 둔 캐릭터로 시작
+  const storedCharacter = useProfileStore((s) => s.profile?.character);
+
+  const [character, setCharacter] = useState<CharacterId>(
+    initial?.character ?? storedCharacter ?? DEFAULT_CHARACTER,
+  );
   const [name, setName] = useState(initial?.nickname ?? '');
 
-  const canSubmit =
-    character !== null && isValidText(name, INPUT_RULES.profileName) && !save.isPending;
+  const canSubmit = isValidText(name, INPUT_RULES.profileName) && !save.isPending;
 
   const afterSave = () => {
     if (isEdit) return navigate(-1);
@@ -60,7 +65,6 @@ function ProfileForm({ mode, initial }: { mode: 'create' | 'edit'; initial: Prof
   };
 
   const submit = () => {
-    if (character === null) return;
     save.mutate(
       { nickname: name.trim(), character },
       {
@@ -73,39 +77,43 @@ function ProfileForm({ mode, initial }: { mode: 'create' | 'edit'; initial: Prof
   return (
     <OnboardingLayout
       title={isEdit ? '프로필 수정' : '프로필 만들기'}
-      heading={isEdit ? '나를 소개해요' : '어떤 캐릭터로 함께할까요?'}
-      description={isEdit ? '바꾸면 우리 집 모두에게 보여요' : '같은 캐릭터여도 이름으로 구분돼요.'}
+      step={isEdit ? undefined : { current: 1, total: ONBOARDING_STEP_TOTAL }}
+      heading={
+        isEdit ? (
+          '나를 소개해요'
+        ) : (
+          <>
+            집안일에 참여하기 전
+            <br />
+            <span className="text-primary-500">닉네임</span>과{' '}
+            <span className="text-primary-500">캐릭터</span>를 정해주세요
+          </>
+        )
+      }
+      description={
+        isEdit
+          ? '바꾸면 우리 집 모두에게 보여요'
+          : '정한 이름과 캐릭터는 우리 집 구성원에게 보여요.'
+      }
       footer={
         <BottomButton disabled={!canSubmit} onClick={submit}>
-          {isEdit ? '저장' : '프로필 만들고 계속하기'}
+          {isEdit ? '저장' : '다음'}
         </BottomButton>
       }
     >
-      <div className="mt-6 grid grid-cols-2 gap-3">
-        {CHARACTERS.map((id) => (
-          <button
-            key={id}
-            type="button"
-            aria-pressed={character === id}
-            onClick={() => setCharacter(id)}
-            className={`flex aspect-square flex-col items-center justify-center rounded-2xl border-2 bg-neutral-100 text-sm ${
-              character === id ? 'border-neutral-900' : 'border-transparent'
-            }`}
-          >
-            캐릭터 {id}
-          </button>
-        ))}
+      <div className="mt-8">
+        <CharacterPicker value={character} onChange={setCharacter} />
       </div>
 
       <UnderlineInput
-        className="mt-8"
+        className="mt-13"
         label="이름"
         value={name}
         onChange={setName}
         maxLength={INPUT_RULES.profileName.max}
-        placeholder="수아"
+        placeholder="이름을 정해주세요."
+        helperText="0~10글자 · 메인에서 캐릭터와 함께 보여요."
       />
-      <InfoText className="mt-2">1~10자 · 메인에서 캐릭터와 함께 보여요.</InfoText>
     </OnboardingLayout>
   );
 }

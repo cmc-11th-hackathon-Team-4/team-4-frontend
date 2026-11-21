@@ -8,13 +8,15 @@ interface OnboardingLayoutProps {
   title?: string;
   /** 뒤로가기 표시 여부 */
   showBack?: boolean;
-  /** 큰 제목 */
-  heading?: string;
+  /** 큰 제목 (일부 단어 강조 가능) */
+  heading?: ReactNode;
   /** 제목 아래 설명 */
   description?: string;
   children?: ReactNode;
   /** 하단 고정 버튼 영역 */
   footer?: ReactNode;
+  /** 헤더 오른쪽 단계 표시 (예: 1/5) */
+  step?: { current: number; total: number };
 }
 
 // 플로우 ① 공통 화면 틀 (피그마 Components · Header, 비주얼 시안 SubTitle 기준)
@@ -25,6 +27,7 @@ function OnboardingLayout({
   description,
   children,
   footer,
+  step,
 }: OnboardingLayoutProps) {
   const navigate = useNavigate();
   const keyboardInset = useKeyboardInset();
@@ -45,10 +48,17 @@ function OnboardingLayout({
           ) : (
             <span />
           )}
-          {title && (
-            <h1 className="text-center text-lg leading-[normal] font-semibold text-gray-800">
-              {title}
-            </h1>
+          <h1 className="text-center text-lg leading-[normal] font-semibold text-gray-800">
+            {title}
+          </h1>
+          {step && (
+            <p
+              aria-label={`${step.total}단계 중 ${step.current}단계`}
+              className="text-right text-sm leading-[normal] font-medium whitespace-nowrap"
+            >
+              <span className="text-primary-500">{step.current}</span>
+              <span className="text-gray-500">/{step.total}</span>
+            </p>
           )}
         </header>
       )}
