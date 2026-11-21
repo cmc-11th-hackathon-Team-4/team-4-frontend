@@ -10,7 +10,7 @@ import S13JoinPage from '@/pages/onboarding/S13JoinPage';
 import S14WelcomePage from '@/pages/onboarding/S14WelcomePage';
 import { ONBOARDING_PATHS as P } from './onboardingPaths';
 
-/** 플로우 ① 라우트. router.tsx 연결은 팀 합의대로 마지막에 한 번에 합친다 */
+/** 플로우 ① 라우트 (router.tsx에서 ②·③과 함께 합침) */
 export const onboardingRoutes: RouteObject[] = [
   { path: P.welcome, element: <S14WelcomePage /> },
   { path: P.profileNew, element: <P01ProfilePage /> },
