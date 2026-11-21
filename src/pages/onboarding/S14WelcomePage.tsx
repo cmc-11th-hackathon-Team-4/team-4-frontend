@@ -5,7 +5,7 @@ import OnboardingLayout from './components/OnboardingLayout';
 
 /**
  * S-14 홈 · 집 없음 (권한: 모두)
- * - 집이 없을 때만 보이는 홈. 집 있음 → V3-01 분기는 라우터 합칠 때 가드에서 처리
+ * - 집이 없을 때만 보이는 홈. 집 있음 → V5-01 분기는 가드에서 처리 (② 담당과 협의, API 필요)
  * - TODO(API): "프로필 있음?" 확인 후 있으면 P-01을 건너뛰고 S-01 / S-13으로 이동
  */
 function S14WelcomePage() {

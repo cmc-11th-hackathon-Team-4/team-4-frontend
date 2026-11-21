@@ -22,7 +22,7 @@ function getCycleGuide(cycle: SettlementCycle, startDate: string) {
 /**
  * S-06 결산 주기 (권한: 방장)
  * - 주기 매주 / 2주 / 한 달 (기본 매주), 시작 날짜는 오늘 이후만
- * - [우리 집 시작하기] → V3-01 내 메인
+ * - [우리 집 시작하기] → V5-01 내 메인
  * - TODO(API): 주기 · 시작 날짜 저장, 구성원 모두에게 배분 알림, 실패 시 토스트
  */
 function S06CyclePage() {
