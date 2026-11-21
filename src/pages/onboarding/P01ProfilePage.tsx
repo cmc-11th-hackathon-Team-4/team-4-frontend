@@ -129,7 +129,7 @@ function ProfileForm({ mode, initial }: { mode: 'create' | 'edit'; initial: Prof
       step={isEdit ? undefined : { current: 1, total: ONBOARDING_STEP_TOTAL }}
       heading={
         isEdit ? (
-          // 피그마 2-5 P-01 프로필 수정: 둘째 줄 보라
+          // 피그마 ④ P-01 프로필 수정
           <>
             닉네임과 캐릭터를
             <br />
