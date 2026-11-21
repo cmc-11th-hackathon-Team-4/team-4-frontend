@@ -1,34 +1,28 @@
 import { useState } from 'react';
 import { Navigate, useNavigate } from 'react-router';
+import BottomButton from '@/components/common/BottomButton';
+import StateView from '@/components/common/StateView';
 import { useDevSession } from '@/hooks/useDevSession';
-import { useCarryOver, useWeeklySession, useWeeklySettlement } from '@/hooks/useWeekly';
+import { useCarryOver, useWeeklySettlement } from '@/hooks/useWeekly';
 import { WEEKLY_PATHS } from '@/routes/weeklyPaths';
 import { useToastStore } from '@/stores/toast';
 import type { Id } from '@/types/common';
-import type { CarryOverAction } from '@/types/weekly';
-import { getPerPerson, getUndoneChores } from '@/utils/weekly';
-import StateView from '@/components/common/StateView';
-import BottomButton from '@/components/common/BottomButton';
+import type { CarryChoice, WeeklySettlement } from '@/types/weekly';
+import { getPerPerson } from '@/utils/weekly';
 import WeeklyLayout from './components/WeeklyLayout';
 
-const OPTIONS: [CarryOverAction, string][] = [
-  ['carry', '다음 주로'],
-  ['release', '덜어내기'],
+const OPTIONS: [CarryChoice, string][] = [
+  ['KEEP', '다음 주로'],
+  ['RELEASE', '덜어내기'],
 ];
 
-/** S-10 못 한 일 이월 (본인 짐만) */
+/** S-10 못 한 일 이월 (본인 것만) */
 function S10CarryOverPage() {
   useDevSession();
-  const navigate = useNavigate();
-  const { memberId } = useWeeklySession();
   const { data, isPending, isError, refetch } = useWeeklySettlement();
-  const carryOver = useCarryOver();
-  const showToast = useToastStore((s) => s.show);
-  // 선택 안 한 일은 기본값 "다음 주로"
-  const [actions, setActions] = useState<Record<Id, CarryOverAction>>({});
 
   if (isPending) return <StateView type="loading" />;
-  if (isError)
+  if (isError) {
     return (
       <StateView
         type="error"
@@ -37,13 +31,29 @@ function S10CarryOverPage() {
         onRetry={refetch}
       />
     );
+  }
+  if (!data.settlement) return <Navigate to={WEEKLY_PATHS.summary} replace />;
+  // 내 못 한 일이 없으면 S-10 건너뜀
+  if (data.settlement.myUndone.length === 0) return <Navigate to={WEEKLY_PATHS.best} replace />;
 
-  const myUndone = getUndoneChores(data.chores, memberId);
-  // 못 한 일이 없으면 S-10 건너뜀
-  if (myUndone.length === 0) return <Navigate to={WEEKLY_PATHS.best} replace />;
+  return <CarryOverForm settlement={data.settlement} />;
+}
+
+function CarryOverForm({ settlement }: { settlement: WeeklySettlement }) {
+  const navigate = useNavigate();
+  const showToast = useToastStore((s) => s.show);
+  const { myUndone, summary, members, period } = settlement;
+  const carryOver = useCarryOver(period.id);
+  // 저장된 선택이 없으면 기본값 "다음 주로"
+  const [choices, setChoices] = useState<Record<Id, CarryChoice>>(() =>
+    Object.fromEntries(myUndone.map((u) => [u.assignmentId, u.carryChoice ?? 'KEEP'])),
+  );
 
   const submit = () => {
-    const items = myUndone.map((c) => ({ choreId: c.id, action: actions[c.id] ?? 'carry' }));
+    const items = myUndone.map((u) => ({
+      assignmentId: u.assignmentId,
+      choice: choices[u.assignmentId] ?? 'KEEP',
+    }));
     carryOver.mutate(items, {
       onSuccess: () => navigate(WEEKLY_PATHS.best),
       // 저장 실패 시 토스트로 알리고 화면에 머묾
@@ -64,20 +74,20 @@ function S10CarryOverPage() {
       <p className="mt-2 text-center text-sm text-neutral-500">내 못 한 일 {myUndone.length}개</p>
 
       <ul className="mt-5 flex flex-col gap-3">
-        {myUndone.map((c) => {
-          const selected = actions[c.id] ?? 'carry';
+        {myUndone.map((u) => {
+          const selected = choices[u.assignmentId] ?? 'KEEP';
           return (
-            <li key={c.id} className="rounded-2xl border border-neutral-300 p-5">
-              <p className="text-base font-semibold">{c.name}</p>
+            <li key={u.assignmentId} className="rounded-2xl border border-neutral-300 p-5">
+              <p className="text-base font-semibold">{u.name}</p>
               <div className="mt-4 flex rounded-xl border border-neutral-300 p-0.5">
-                {OPTIONS.map(([action, label]) => (
+                {OPTIONS.map(([choice, label]) => (
                   <button
-                    key={action}
+                    key={choice}
                     type="button"
-                    aria-pressed={selected === action}
-                    onClick={() => setActions((prev) => ({ ...prev, [c.id]: action }))}
+                    aria-pressed={selected === choice}
+                    onClick={() => setChoices((prev) => ({ ...prev, [u.assignmentId]: choice }))}
                     className={`h-10 flex-1 rounded-lg text-sm ${
-                      selected === action ? 'bg-neutral-100 font-semibold' : 'text-neutral-500'
+                      selected === choice ? 'bg-neutral-100 font-semibold' : 'text-neutral-500'
                     }`}
                   >
                     {label}
@@ -90,8 +100,7 @@ function S10CarryOverPage() {
       </ul>
 
       <p className="mt-5 text-center text-xs text-neutral-500">
-        다음 주로 넘긴 일은 내 {getPerPerson(data.chores.length, data.members.length)}개 안에 먼저
-        담겨요
+        다음 주로 넘긴 일은 내 {getPerPerson(summary.totalCount, members.length)}개 안에 먼저 담겨요
       </p>
     </WeeklyLayout>
   );
