@@ -1,46 +1,13 @@
-import { isAxiosError } from 'axios';
+import { getDeviceId } from '@/utils/deviceId';
 import { instance } from './instance';
-import { getDeviceId } from './device';
 
 /**
  * 플로우 ① 그룹 생성 API (Swagger: https://niturnnaeturn.duckdns.org/swagger-ui)
- * - 서버 응답 { success, code, message, data } 에서 data 를 꺼내고, 실패하면 OnboardingApiError 를 던진다
- * - 공용 axios 인스턴스(X-Device-Id 헤더 포함)를 쓰고, 응답 처리는 이 파일 안에서만 한다
+ * - 공용 axios 인스턴스가 X-Device-Id 헤더를 붙이고, 응답의 data 만 꺼내 준다
+ * - 실패하면 ApiError(code, message) (@/apis/error). 연결 실패는 NETWORK
  */
 
-interface ApiResponse<T> {
-  success: boolean;
-  code: string;
-  message: string;
-  data: T;
-}
-
-/** 서버 에러: code 예) USER-404, HOUSE-404-1(초대 코드 틀림), HOUSE-409-1(정원 초과). 연결 실패는 NETWORK */
-export class OnboardingApiError extends Error {
-  readonly code: string;
-  readonly status?: number;
-  constructor(code: string, message: string, status?: number) {
-    super(message);
-    this.code = code;
-    this.status = status;
-  }
-}
-
-async function call<T>(request: Promise<{ data: ApiResponse<T> }>): Promise<T> {
-  try {
-    const { data } = await request;
-    if (!data.success) throw new OnboardingApiError(data.code, data.message);
-    return data.data;
-  } catch (error) {
-    if (error instanceof OnboardingApiError) throw error;
-    if (isAxiosError<ApiResponse<unknown>>(error)) {
-      const body = error.response?.data;
-      if (body?.code) throw new OnboardingApiError(body.code, body.message, error.response?.status);
-      throw new OnboardingApiError('NETWORK', error.message, error.response?.status);
-    }
-    throw error;
-  }
-}
+const call = <T>(request: Promise<{ data: T }>): Promise<T> => request.then(({ data }) => data);
 
 /* ── 서버 값 ── */
 export type HouseStatus = 'WAITING' | 'DISTRIBUTING' | 'ACTIVE';

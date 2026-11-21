@@ -1,7 +1,8 @@
 import { useMutation } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
-import { createUser, getMe, OnboardingApiError } from '@/apis/onboarding';
+import { ApiError } from '@/apis/error';
+import { createUser, getMe } from '@/apis/onboarding';
 import StateView from '@/components/common/StateView';
 import { fromServerCharacter, toServerCharacter } from '@/constants/character';
 import { useMyProfile, useSaveProfile } from '@/hooks/useProfile';
@@ -63,7 +64,7 @@ function ProfileForm({ mode, initial }: { mode: 'create' | 'edit'; initial: Prof
         });
         return { nickname: user.name, character: fromServerCharacter(user.characterType) };
       } catch (error) {
-        if (error instanceof OnboardingApiError && error.code === 'USER-409') {
+        if (error instanceof ApiError && error.code === 'USER-409') {
           const me = await getMe();
           return { nickname: me.name, character: fromServerCharacter(me.characterType) };
         }

@@ -1,7 +1,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Navigate, useNavigate } from 'react-router';
-import { joinHouse, OnboardingApiError } from '@/apis/onboarding';
+import { ApiError } from '@/apis/error';
+import { joinHouse } from '@/apis/onboarding';
 import alertIcon from '@/assets/icons/alert.svg';
 import { ONBOARDING_PATHS } from '@/routes/onboardingPaths';
 import { useProfileStore } from '@/stores/profile';
@@ -19,7 +20,7 @@ const CODE_ERROR_MESSAGE = {
 
 /** 서버 에러 → 입력란 아래 문구 (명세 3종 외에는 서버 문구) */
 function toCodeErrorMessage(error: unknown) {
-  if (error instanceof OnboardingApiError) {
+  if (error instanceof ApiError) {
     if (error.code === 'HOUSE-404-1') return CODE_ERROR_MESSAGE.notFound;
     if (error.code === 'HOUSE-409-1') return CODE_ERROR_MESSAGE.full;
     if (error.code !== 'NETWORK' && error.message) return error.message;
@@ -53,7 +54,7 @@ function S13JoinPage() {
     mutationFn: () => joinHouse(code),
     onSuccess: goWaiting,
     onError: (e) => {
-      if (e instanceof OnboardingApiError && e.code === 'HOUSE-409') return goWaiting();
+      if (e instanceof ApiError && e.code === 'HOUSE-409') return goWaiting();
       setError(toCodeErrorMessage(e));
     },
   });

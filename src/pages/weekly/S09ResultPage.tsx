@@ -1,28 +1,27 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router';
-import { useDevSession } from '@/hooks/useDevSession';
-import { useWeeklySession, useWeeklySettlement } from '@/hooks/useWeekly';
-import { WEEKLY_PATHS } from '@/routes/weeklyPaths';
-import { getDoneChores, getUndoneChores, withSubject } from '@/utils/weekly';
-import Avatar from './components/Avatar';
-import StateView from '@/components/common/StateView';
+import { Navigate, useNavigate } from 'react-router';
 import BottomButton from '@/components/common/BottomButton';
+import StateView from '@/components/common/StateView';
+import { useDevSession } from '@/hooks/useDevSession';
+import { useWeeklySettlement } from '@/hooks/useWeekly';
+import { WEEKLY_PATHS } from '@/routes/weeklyPaths';
+import { withSubject } from '@/utils/weekly';
+import Avatar from './components/Avatar';
 import WeeklyLayout from './components/WeeklyLayout';
 
 /** 처음에 보여줄 개수. 넘으면 "외 n개 보기" */
 const PREVIEW_COUNT = 6;
 
-/** S-09 한 일 · 못 한 일 */
+/** S-09 한 일 · 못 한 일 (S-08 결산 데이터를 그대로 씀) */
 function S09ResultPage() {
   useDevSession();
   const navigate = useNavigate();
-  const { memberId } = useWeeklySession();
   const { data, isPending, isError, refetch } = useWeeklySettlement();
   const [tab, setTab] = useState<'done' | 'undone'>('done');
   const [expanded, setExpanded] = useState(false);
 
   if (isPending) return <StateView type="loading" />;
-  if (isError)
+  if (isError) {
     return (
       <StateView
         type="error"
@@ -31,16 +30,16 @@ function S09ResultPage() {
         onRetry={refetch}
       />
     );
+  }
+  // 결산이 아직 없으면 결산 홈으로
+  if (!data.settlement) return <Navigate to={WEEKLY_PATHS.summary} replace />;
 
-  const done = getDoneChores(data.chores);
-  const undone = getUndoneChores(data.chores);
-  const hasMyUndone = getUndoneChores(data.chores, memberId).length > 0;
+  const { chores, summary, myUndone } = data.settlement;
+  const done = chores.filter((c) => c.done);
+  const undone = chores.filter((c) => !c.done);
+  const hasMyUndone = myUndone.length > 0;
   const list = tab === 'done' ? done : undone;
   const visible = expanded ? list : list.slice(0, PREVIEW_COUNT);
-
-  const nickname = (id: string) => data.members.find((m) => m.id === id)?.nickname ?? '';
-  const characterOf = (id: string) => data.members.find((m) => m.id === id)?.character;
-  const reliefBy = (choreId: string) => data.reliefs.find((r) => r.choreId === choreId);
 
   const changeTab = (next: 'done' | 'undone') => {
     setTab(next);
@@ -62,14 +61,14 @@ function S09ResultPage() {
     >
       <h2 className="text-center text-2xl font-bold">우리가 해낸 일</h2>
       <p className="mt-2 text-center text-sm text-neutral-500">
-        {data.chores.length}개 중 {done.length}개 완료
+        {summary.totalCount}개 중 {summary.doneCount}개 완료
       </p>
 
       <div className="mt-5 flex rounded-xl border border-neutral-300 p-0.5">
         {(
           [
-            ['done', `한 일 ${done.length}`],
-            ['undone', `못 한 일 ${undone.length}`],
+            ['done', `한 일 ${summary.doneCount}`],
+            ['undone', `못 한 일 ${summary.undoneCount}`],
           ] as const
         ).map(([key, label]) => (
           <button
@@ -91,20 +90,21 @@ function S09ResultPage() {
         </p>
       ) : (
         <ul className="mt-3">
-          {visible.map((c) => {
-            const relief = tab === 'done' ? reliefBy(c.id) : undefined;
-            return (
-              <li key={c.id} className="flex items-center gap-3 border-b border-neutral-100 py-2.5">
-                <Avatar character={characterOf(c.ownerId)} />
-                <span className="flex-1 text-base">{c.name}</span>
-                {relief && (
-                  <span className="rounded-md border border-neutral-300 px-2 py-1 text-xs text-neutral-500">
-                    {withSubject(nickname(relief.toMemberId))} 덜어줌
-                  </span>
-                )}
-              </li>
-            );
-          })}
+          {visible.map((c) => (
+            <li
+              key={c.assignmentId}
+              className="flex items-center gap-3 border-b border-neutral-100 py-2.5"
+            >
+              <Avatar character={c.assignee.character} />
+              <span className="flex-1 text-base">{c.name}</span>
+              {/* 다른 사람이 덜어준 일에만 */}
+              {tab === 'done' && c.helpedBy && (
+                <span className="rounded-md border border-neutral-300 px-2 py-1 text-xs text-neutral-500">
+                  {withSubject(c.helpedBy.nickname)} 덜어줌
+                </span>
+              )}
+            </li>
+          ))}
         </ul>
       )}
 

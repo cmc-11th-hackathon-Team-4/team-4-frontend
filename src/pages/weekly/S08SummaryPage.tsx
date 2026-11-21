@@ -1,11 +1,11 @@
 import { useNavigate } from 'react-router';
+import BottomButton from '@/components/common/BottomButton';
+import StateView from '@/components/common/StateView';
 import { useDevSession } from '@/hooks/useDevSession';
 import { useWeeklySettlement } from '@/hooks/useWeekly';
 import { WEEKLY_PATHS } from '@/routes/weeklyPaths';
-import { formatPeriod, getDaysLeft, getDoneChores, getUndoneChores } from '@/utils/weekly';
+import { formatPeriod, getDaysLeft } from '@/utils/weekly';
 import Avatar from './components/Avatar';
-import StateView from '@/components/common/StateView';
-import BottomButton from '@/components/common/BottomButton';
 import WeeklyLayout from './components/WeeklyLayout';
 
 /** S-08 결산 홈 */
@@ -15,7 +15,7 @@ function S08SummaryPage() {
   const { data, isPending, isError, refetch } = useWeeklySettlement();
 
   if (isPending) return <StateView type="loading" />;
-  if (isError)
+  if (isError) {
     return (
       <StateView
         type="error"
@@ -24,28 +24,32 @@ function S08SummaryPage() {
         onRetry={refetch}
       />
     );
+  }
 
-  // 기간 진행 중이면 결산 대신 빈 화면
-  if (data.status === 'ongoing') {
+  const { period, settlement } = data;
+  // 시작 전이거나 기간 진행 중이면 결산 대신 빈 화면
+  if (!period) return <StateView type="error" message="우리 집을 시작하면 결산이 열려요" />;
+  if (!settlement) {
     return (
       <StateView
         type="error"
-        message={`D-${getDaysLeft(data.endDate)} · 기간이 끝나면 결산이 열려요`}
+        message={`D-${getDaysLeft(period.endDate)} · 기간이 끝나면 결산이 열려요`}
       />
     );
   }
 
-  const names = data.members.map((m) => m.nickname).join(' · ');
+  const { members, summary } = settlement;
   const stats = [
-    { label: '한 일', value: getDoneChores(data.chores).length },
-    { label: '못 한 일', value: getUndoneChores(data.chores).length },
-    { label: '덜어줌', value: data.reliefs.length },
+    { label: '한 일', value: summary.doneCount },
+    { label: '못 한 일', value: summary.undoneCount },
+    { label: '덜어줌', value: summary.helpedCount },
   ];
 
   return (
     <WeeklyLayout
       step="summary"
       showBack={false}
+      skipCarryOver={settlement.myUndone.length === 0}
       footer={
         <BottomButton variant="solid" onClick={() => navigate(WEEKLY_PATHS.result)}>
           결산 보기
@@ -53,14 +57,15 @@ function S08SummaryPage() {
       }
     >
       <div className="flex h-50 items-center justify-center gap-6 rounded-2xl bg-neutral-100">
-        {data.members.map((m) => (
+        {members.map((m) => (
           <Avatar key={m.id} character={m.character} size={92} />
         ))}
       </div>
 
       <h2 className="mt-6 text-center text-2xl font-bold">이번 주도 고생했어요</h2>
       <p className="mt-2 text-center text-sm text-neutral-500">
-        {names} · {formatPeriod(data.startDate, data.endDate)}
+        {members.map((m) => m.nickname).join(' · ')} ·{' '}
+        {formatPeriod(period.startDate, period.endDate)}
       </p>
 
       <ul className="mt-6 grid grid-cols-3 gap-2">

@@ -1,7 +1,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
-import { createHouse, OnboardingApiError } from '@/apis/onboarding';
+import { ApiError } from '@/apis/error';
+import { createHouse } from '@/apis/onboarding';
 import { ONBOARDING_PATHS } from '@/routes/onboardingPaths';
 import { useOnboardingStore } from '@/stores/onboarding';
 import { useToastStore } from '@/stores/toast';
@@ -42,7 +43,7 @@ function S01CreateHousePage() {
     mutationFn: () => createHouse(name.trim()),
     onSuccess: goNext,
     onError: (error) => {
-      if (error instanceof OnboardingApiError && error.code === 'HOUSE-409') return goNext();
+      if (error instanceof ApiError && error.code === 'HOUSE-409') return goNext();
       showToast(errorMessage(error));
     },
   });
