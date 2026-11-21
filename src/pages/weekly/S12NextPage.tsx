@@ -7,7 +7,7 @@ import {
   useWeeklySession,
   useWeeklySettlement,
 } from '@/hooks/useWeekly';
-import { HOME_PATH } from '@/routes/weeklyPaths';
+import { HOME_PATH } from '@/routes/onboardingPaths';
 import { formatPeriod, getUndoneChores, withSubject } from '@/utils/weekly';
 import Avatar from './components/Avatar';
 import StateView from '@/components/common/StateView';
