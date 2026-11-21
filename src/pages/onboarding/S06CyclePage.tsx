@@ -8,6 +8,7 @@ import { errorMessage } from './apiMessages';
 import BottomButton from './components/BottomButton';
 import InfoText from './components/InfoText';
 import OnboardingLayout from './components/OnboardingLayout';
+import { ONBOARDING_STEP_TOTAL } from './constants';
 import { formatDate, parseDate, todayString, weekdayOf } from './date';
 import { onboardingKeys } from './queryKeys';
 import { useMe } from './useMyHouse';
@@ -70,7 +71,8 @@ function S06CyclePage() {
 
   return (
     <OnboardingLayout
-      title="결산 주기"
+      title="집안일 배분하기"
+      step={{ current: 6, total: ONBOARDING_STEP_TOTAL }}
       heading="언제마다 새로 나눌까요?"
       description="주기가 끝나면 결산하고 다시 나눠요."
       footer={

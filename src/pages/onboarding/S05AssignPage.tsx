@@ -15,6 +15,7 @@ import { errorMessage, LOAD_ERROR, RETRY_LABEL } from './apiMessages';
 import BottomButton from './components/BottomButton';
 import CharacterImage from './components/CharacterImage';
 import OnboardingLayout from './components/OnboardingLayout';
+import { ONBOARDING_STEP_TOTAL } from './constants';
 import { onboardingKeys } from './queryKeys';
 import { useMe } from './useMyHouse';
 
@@ -118,7 +119,8 @@ function S05AssignPage() {
 
   return (
     <OnboardingLayout
-      title="랜덤 배분"
+      title="집안일 배분하기"
+      step={{ current: 7, total: ONBOARDING_STEP_TOTAL }}
       heading={
         <>
           집안일을

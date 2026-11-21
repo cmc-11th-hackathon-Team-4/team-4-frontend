@@ -11,6 +11,7 @@ import { useToastStore } from '@/stores/toast';
 import { errorMessage, LOAD_ERROR, RETRY_LABEL } from './apiMessages';
 import BottomButton from './components/BottomButton';
 import OnboardingLayout from './components/OnboardingLayout';
+import { ONBOARDING_STEP_TOTAL } from './constants';
 import { onboardingKeys } from './queryKeys';
 import { useMe } from './useMyHouse';
 import { INPUT_RULES, isValidText } from './validation';
@@ -86,6 +87,7 @@ function ChoreForm({ presets, houseId }: { presets: string[]; houseId: string })
   return (
     <OnboardingLayout
       title="집안일 고르기"
+      step={{ current: 5, total: ONBOARDING_STEP_TOTAL }}
       heading="우리 집 집안일을 골라주세요"
       description="나중에 홈에서 더 추가할 수 있어요."
       footer={
