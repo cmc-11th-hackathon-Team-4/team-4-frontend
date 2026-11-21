@@ -8,7 +8,7 @@ interface ConfirmModalProps {
   onCancel: () => void;
 }
 
-/** 공용 확인 모달 (S-07 등) */
+/** 공용 확인 팝업 (V5-08 가져가기, V5-03 완료 등) */
 function ConfirmModal({
   open,
   title,
@@ -28,15 +28,15 @@ function ConfirmModal({
       <div
         role="dialog"
         aria-modal="true"
-        className="w-full max-w-[320px] rounded-2xl bg-white p-5 text-center"
+        className="w-full max-w-[320px] rounded-3xl bg-white px-5 pt-7 pb-5 text-center"
         onClick={(e) => e.stopPropagation()}
       >
         <h2 className="text-lg font-bold">{title}</h2>
         {description && <p className="mt-2 text-sm text-neutral-500">{description}</p>}
-        <div className="mt-5 flex gap-2">
+        <div className="mt-8 flex gap-2">
           <button
             type="button"
-            className="h-12 flex-1 rounded-xl border border-neutral-300 font-semibold"
+            className="h-12 flex-1 rounded-xl bg-neutral-100 font-semibold"
             onClick={onCancel}
           >
             {cancelLabel}
