@@ -17,11 +17,14 @@ function toText(n: AppNotification, group: Group) {
   const chore = group.chores.find((c) => c.id === n.choreId)?.name ?? '';
   if (n.type === 'take') return MAIN_TEXT.takenBy(from, chore);
   if (n.type === 'heart') return MAIN_TEXT.heartReceived(from);
+  if (n.type === 'request') return MAIN_TEXT.requestedBy(from, chore);
+  if (n.type === 'accept') return MAIN_TEXT.acceptedBy(from, chore);
+  if (n.type === 'decline') return MAIN_TEXT.declinedBy(from, chore);
   if (n.status && n.status !== 'relaxed') return STATUS_NOTICE[n.status](from);
   return null;
 }
 
-/** 상단 알림 배너 (App에 한 번만). 상태·덜어감·하트 알림을 받으면 표시 */
+/** 상단 알림 배너 (App에 한 번만). 상태·덜어감·하트·부탁·수락·거절 알림을 받으면 표시 */
 function NotificationBanner() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -40,6 +43,7 @@ function NotificationBanner() {
     if (!latestId || lastSynced.current === latestId) return;
     lastSynced.current = latestId;
     queryClient.invalidateQueries({ queryKey: ['group'] });
+    queryClient.invalidateQueries({ queryKey: ['requests'] });
   }, [latestId, queryClient]);
 
   const close = () => markSeen(unseen.map((n) => n.id));

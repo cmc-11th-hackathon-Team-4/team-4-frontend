@@ -1,38 +1,39 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
-import BottomButton from '@/components/common/BottomButton';
+import ConfirmModal from '@/components/common/ConfirmModal';
 import StateView from '@/components/common/StateView';
-import AddChoreSheet from '@/components/main/AddChoreSheet';
+import TabBar from '@/components/common/TabBar';
+import ChorePanel from '@/components/main/ChorePanel';
+import ChoreTile from '@/components/main/ChoreTile';
 import LoadGauge from '@/components/main/LoadGauge';
 import MainHeader from '@/components/main/MainHeader';
 import MemberRail from '@/components/main/MemberRail';
-import NoticeCard from '@/components/main/NoticeCard';
-import SpeechBubble from '@/components/main/SpeechBubble';
-import StatusTabs from '@/components/main/StatusTabs';
-import ThanksCard from '@/components/main/ThanksCard';
-import TodayChores from '@/components/main/TodayChores';
+import MoodPicker from '@/components/main/MoodPicker';
+import { HeartNotice, RequestNotice } from '@/components/main/NoticeCards';
+import RequestSheet from '@/components/main/RequestSheet';
 import { MAIN_TEXT } from '@/constants/main';
-import { STATUS_BUBBLE, STATUS_NOTICE } from '@/constants/status';
+import { useChoreRequests } from '@/hooks/useChoreRequests';
 import { useDevSession } from '@/hooks/useDevSession';
 import { useGroupBoard } from '@/hooks/useGroupBoard';
 import { useMainMutations } from '@/hooks/useMainMutations';
 import { useNotifications } from '@/hooks/useNotifications';
 import { MAIN_PATHS } from '@/routes/mainPaths';
-import { ONBOARDING_PATHS } from '@/routes/onboardingPaths';
-import { MAX_MEMBERS } from '@/types/group';
-import type { Member } from '@/types/member';
+import { useToastStore } from '@/stores/toast';
+import type { Chore } from '@/types/chore';
 
-const NOTICE_PRIORITY = { unwilling: 0, tired: 1, relaxed: 2 } as const;
-
-/** V3-01 내 메인 */
+/** V5-01 내 메인 (+ V5-02 기분 선택, V5-03~06 완료·짐 올리기, V5-10~11 부탁·하트) */
 function MainPage() {
   useDevSession();
   const navigate = useNavigate();
+  const showToast = useToastStore((s) => s.show);
   const { group, me, myId, choresOf, pendingCountOf, isLoading, isError, refetch } =
     useGroupBoard();
-  const { status, toggleDone, add } = useMainMutations();
   const { pendingThanks, heartsReceived, heart } = useNotifications();
-  const [sheetOpen, setSheetOpen] = useState(false);
+  const requests = useChoreRequests();
+  const { request, respond, complete, status } = useMainMutations();
+
+  const [requesting, setRequesting] = useState<Chore | null>(null);
+  const [completing, setCompleting] = useState<Chore | null>(null);
 
   if (isLoading || (!group && !isError)) return <StateView type="loading" />;
   if (isError || !group || !me || !myId) {
@@ -46,42 +47,26 @@ function MainPage() {
     );
   }
 
-  // 도움이 필요한 구성원: 고르기 싫음 > 지침, 같으면 짐 많은 순
-  const needHelp: Member | undefined = group.members
-    .filter((m) => m.id !== myId && m.status !== 'relaxed')
-    .sort(
-      (a, b) =>
-        NOTICE_PRIORITY[a.status] - NOTICE_PRIORITY[b.status] ||
-        pendingCountOf(b.id) - pendingCountOf(a.id),
-    )[0];
-
-  const myCount = pendingCountOf(myId);
   const nameOf = (id: string) => group.members.find((m) => m.id === id)?.nickname ?? '';
   const choreNameOf = (id?: string) => group.chores.find((c) => c.id === id)?.name ?? '';
+  const myChores = choresOf(myId).filter((c) => !c.done);
+  const others = group.members.filter((m) => m.id !== myId);
+  const sentTo = new Map(requests.sent.map((r) => [r.choreId, r.toId]));
   const thanksTarget = pendingThanks.at(-1);
 
   return (
-    <div className="flex flex-1 flex-col">
-      <MainHeader
-        title={MAIN_TEXT.homeTitle}
-        inviteLabel={MAIN_TEXT.invite(group.members.length, MAX_MEMBERS)}
-        onInvite={() => navigate(ONBOARDING_PATHS.invite)}
-      />
+    <div className="flex flex-1 flex-col bg-neutral-50">
+      <MainHeader title={MAIN_TEXT.homeTitle} onSettings={() => showToast(MAIN_TEXT.preparing)} />
 
-      <main className="flex flex-1 flex-col gap-4 px-4 pb-4">
-        <div className="flex gap-2 pt-2">
-          <div className="min-w-0 flex-1">
-            <SpeechBubble text={STATUS_BUBBLE[me.status]} />
-            <div className="mt-6">
-              <LoadGauge
-                count={myCount}
-                status={me.status}
-                caption={MAIN_TEXT.gaugeCaption(true, me.nickname, myCount)}
-                hearts={heartsReceived.length}
-              />
-            </div>
+      <main className="flex flex-1 flex-col gap-5 px-4 pb-6">
+        <div className="relative">
+          <div className="pt-2 pb-3">
+            <LoadGauge count={myChores.length} status={me.status} hearts={heartsReceived.length} />
           </div>
-          <div className="shrink-0">
+          <div className="flex justify-center">
+            <MoodPicker value={me.status} onChange={(next) => status.mutate(next)} />
+          </div>
+          <div className="absolute top-2 right-0">
             <MemberRail
               members={group.members}
               myId={myId}
@@ -92,40 +77,85 @@ function MainPage() {
           </div>
         </div>
 
-        <StatusTabs
-          value={me.status}
-          onChange={(next) => next !== me.status && status.mutate(next)}
-        />
-
-        {thanksTarget && (
-          <ThanksCard
-            text={MAIN_TEXT.takenBy(nameOf(thanksTarget.fromId), choreNameOf(thanksTarget.choreId))}
-            disabled={heart.isPending}
-            onHeart={() =>
-              heart.mutate({ notification: thanksTarget, name: nameOf(thanksTarget.fromId) })
-            }
-          />
-        )}
-
-        {needHelp && STATUS_NOTICE[needHelp.status as keyof typeof STATUS_NOTICE] && (
-          <NoticeCard
-            title={STATUS_NOTICE[needHelp.status as keyof typeof STATUS_NOTICE](needHelp.nickname)}
-            count={pendingCountOf(needHelp.id)}
-            onClick={() => navigate(MAIN_PATHS.member(needHelp.id))}
-          />
-        )}
-
-        <TodayChores chores={choresOf(myId)} onToggle={(chore) => toggleDone.mutate(chore)} />
-
-        <div className="mt-auto">
-          <BottomButton onClick={() => setSheetOpen(true)}>{MAIN_TEXT.addChore}</BottomButton>
-        </div>
+        <ChorePanel
+          title={MAIN_TEXT.myChoresTitle}
+          hint={MAIN_TEXT.myChoresHint}
+          emptyText={MAIN_TEXT.emptyMyChores}
+          notice={
+            <>
+              {requests.received.map((req) => (
+                <RequestNotice
+                  key={req.id}
+                  text={MAIN_TEXT.requestedBy(nameOf(req.fromId), choreNameOf(req.choreId))}
+                  disabled={respond.isPending}
+                  onAccept={() =>
+                    respond.mutate({ req, accept: true, choreName: choreNameOf(req.choreId) })
+                  }
+                  onDecline={() =>
+                    respond.mutate({ req, accept: false, choreName: choreNameOf(req.choreId) })
+                  }
+                />
+              ))}
+              {thanksTarget && (
+                <HeartNotice
+                  text={MAIN_TEXT.takenBy(
+                    nameOf(thanksTarget.fromId),
+                    choreNameOf(thanksTarget.choreId),
+                  )}
+                  disabled={heart.isPending}
+                  onHeart={() =>
+                    heart.mutate({ notification: thanksTarget, name: nameOf(thanksTarget.fromId) })
+                  }
+                />
+              )}
+            </>
+          }
+        >
+          {myChores.map((chore) =>
+            sentTo.has(chore.id) ? (
+              <ChoreTile
+                key={chore.id}
+                name={chore.name}
+                pendingTo={nameOf(sentTo.get(chore.id)!)}
+              />
+            ) : (
+              <ChoreTile
+                key={chore.id}
+                name={chore.name}
+                onClick={() => setRequesting(chore)}
+                onComplete={() => setCompleting(chore)}
+              />
+            ),
+          )}
+        </ChorePanel>
       </main>
 
-      <AddChoreSheet
-        open={sheetOpen}
-        onClose={() => setSheetOpen(false)}
-        onSubmit={(name) => add.mutate(name)}
+      <TabBar />
+
+      {requesting && (
+        <RequestSheet
+          choreName={requesting.name}
+          members={others}
+          countOf={pendingCountOf}
+          onClose={() => setRequesting(null)}
+          onSubmit={(toId) => {
+            request.mutate({ chore: requesting, toId });
+            setRequesting(null);
+          }}
+        />
+      )}
+
+      <ConfirmModal
+        open={!!completing}
+        title={MAIN_TEXT.doneTitle}
+        description={completing ? MAIN_TEXT.doneDesc(completing.name) : undefined}
+        confirmLabel={MAIN_TEXT.doneOk}
+        cancelLabel={MAIN_TEXT.doneNo}
+        onCancel={() => setCompleting(null)}
+        onConfirm={() => {
+          if (completing) complete.mutate(completing);
+          setCompleting(null);
+        }}
       />
     </div>
   );
