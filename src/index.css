@@ -34,6 +34,11 @@
   --color-line-500: #f0f1f4;
   --color-line-400: #f5f5f7;
   --color-line-300: #fafafb;
+
+  /* Accent · Semantic (피그마 accent/gauge · primary/100(주황) · semantic/fail) */
+  --color-accent-100: #fff2e9;
+  --color-accent-500: #ff812f;
+  --color-fail: #fe4543;
 }
 
 /* 모바일 앱 기본 설정 */
