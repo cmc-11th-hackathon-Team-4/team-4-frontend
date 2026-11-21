@@ -19,7 +19,7 @@ function Toast() {
     <div className="pointer-events-none fixed inset-x-0 bottom-28 z-50 flex justify-center px-4">
       <div
         role="status"
-        className="pointer-events-auto flex items-center gap-3 rounded-full bg-neutral-900 px-4 py-2.5 text-sm text-white shadow-lg"
+        className="pointer-events-auto flex max-w-[360px] items-center gap-3 rounded-2xl bg-neutral-900 px-4 py-2.5 text-sm break-keep text-white shadow-lg"
       >
         <span>{message}</span>
         {action && (

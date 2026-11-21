@@ -13,7 +13,7 @@ interface LoadGaugeProps {
   onCharacterClick?: () => void;
 }
 
-/** 캐릭터 + 오른쪽 반원 게이지: 내가 맡은 짐이 많을수록 위에서부터 참 (최대 10개) */
+/** 캐릭터 + 오른쪽 반원 게이지: 맡은 짐이 많을수록 위에서부터 참 (1인 최대 5개) */
 function LoadGauge({
   count,
   status,
@@ -45,6 +45,10 @@ function LoadGauge({
           className="transition-[stroke-dasharray] duration-500"
         />
       </svg>
+      {/* TODO(디자인): '짐 3/5' 위치는 임시로 게이지 아래쪽 끝 */}
+      <span className="absolute right-0 bottom-0 text-xs font-semibold text-neutral-600">
+        {MAIN_TEXT.gaugeCount(count, MAX_LOAD)}
+      </span>
       {/* 하트 뿅뿅은 캐릭터 뒤 (캐릭터보다 먼저 그림) */}
       {heartBurstKey && <HeartBurst key={heartBurstKey} onEnd={() => onHeartBurstEnd?.()} />}
       {/* TODO: 상태별 캐릭터 에셋으로 교체 */}
