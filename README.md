@@ -68,7 +68,8 @@ npm run dev
 
 Vercel에서 환경 변수를 바꾸면 다시 배포(Redeploy)해야 반영됩니다.
 
-VS Code에서 프로젝트를 열면 추천 확장(Prettier, ESLint, Tailwind CSS IntelliSense) 설치 알림이 뜹니다. 설치하면 저장할 때 자동으로 포맷팅됩니다.
+VS Code에서 프로젝트를 열면 추천 확장(Prettier, ESLint, Tailwind CSS IntelliSense) 설치 알림이 뜹니다.<br>
+설치하면 저장할 때 자동으로 포맷팅됩니다.
 
 ## 화면 · 경로
 
