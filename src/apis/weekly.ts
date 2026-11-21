@@ -30,3 +30,8 @@ export function postReassign(_groupId: Id): Promise<NextCycle> {
 export function postStartNextCycle(_groupId: Id) {
   return mockWeeklyApi.start();
 }
+
+/** 시연용 기간 종료 (V5-12 시연 메뉴, 방장) */
+export function postEndCycle(_groupId: Id) {
+  return mockWeeklyApi.endCycle();
+}
