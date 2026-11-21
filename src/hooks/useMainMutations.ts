@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
+  cancelChoreRequest,
   completeChore,
   createChore,
   deleteChore,
@@ -7,7 +8,7 @@ import {
   respondChoreRequest,
   takeChore,
 } from '@/apis/chore';
-import { endCycle } from '@/apis/cycle';
+import { endCycle, extendCycle } from '@/apis/cycle';
 import { updateStatus } from '@/apis/member';
 import { queryKeys } from '@/apis/queryKeys';
 import { MAIN_TEXT } from '@/constants/main';
@@ -47,6 +48,7 @@ const updateChore = (choreId: string, change: Partial<Chore>) => (group: Group) 
 
 export function useMainMutations() {
   const cache = useGroupCache();
+  const queryClient = useQueryClient();
   const memberId = useSessionStore((s) => s.memberId) ?? '';
   const groupId = useSessionStore((s) => s.groupId) ?? '';
   const showToast = useToastStore((s) => s.show);
@@ -129,5 +131,19 @@ export function useMainMutations() {
     onError: () => showToast(MAIN_TEXT.error),
   });
 
-  return { take, request, respond, complete, status, add, remove, end };
+  /** B · 부탁 취소 → 카드가 원래대로 */
+  const cancelRequest = useMutation({
+    mutationFn: (req: ChoreRequest) => cancelChoreRequest(req.id),
+    onError: () => showToast(MAIN_TEXT.error),
+    onSettled: cache.refresh,
+  });
+
+  /** V5-14 이번 기간 늘리기 */
+  const extend = useMutation({
+    mutationFn: (endDate: string) => extendCycle(groupId, memberId, endDate),
+    onError: () => showToast(MAIN_TEXT.error),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: queryKeys.cycle(groupId) }),
+  });
+
+  return { take, request, respond, complete, status, add, remove, end, cancelRequest, extend };
 }

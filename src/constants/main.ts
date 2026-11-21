@@ -72,7 +72,8 @@ export const MAIN_TEXT = {
   choreCount: (count: number) => `${count}개`,
   sectionCycle: '결산 기간 · 방장',
   cycle: '결산 주기',
-  cycleWeekly: '매주',
+  cyclePeriod: { weekly: '매주', biweekly: '2주', monthly: '한 달' },
+  cycleUntil: (date: string) => `${date}까지`,
   extendCycle: '이번 기간 늘리기',
   sectionMembers: '구성원',
   inviteCode: '초대 코드',
@@ -82,6 +83,30 @@ export const MAIN_TEXT = {
   sectionDemo: '시연',
   endCycle: '기간 종료하기',
   endCycleTag: '시연용',
+
+  // V5-12 › 구성원 목록
+  hostTag: '방장',
+
+  // V5-14 이번 기간 늘리기 (피그마 문구)
+  extendTitle: '이번 기간 늘리기',
+  currentEnd: '지금 결산일',
+  newEnd: '바뀐 결산일',
+  extendOptions: [
+    { label: '+1일', days: 1 },
+    { label: '+3일', days: 3 },
+    { label: '+1주', days: 7 },
+  ],
+  extendInfo: '방장만 바꿀 수 있어요. 구성원에게 알림이 가요.',
+  extendOk: '늘리기',
+  // TODO(문구 확정 필요): 기간 늘림 배너
+  cycleExtended: (date: string) => `결산일이 ${date}로 늘었어요`,
+
+  // TODO(문구 확정 필요): 짐 5개 제한 · 부탁 취소
+  memberFullToast: '짐은 한 사람당 5개까지 가질 수 있어요',
+  memberFullTag: '짐 5개 가득',
+  cancelRequestTitle: '부탁을 취소할까요?',
+  cancelRequestDesc: (chore: string) => `${josa(chore, '은/는')} 다시 내 짐으로 돌아와요.`,
+  cancelRequestOk: '부탁 취소',
 
   // V5-12 › 집안일 목록
   deleteChore: (chore: string) => `${chore} 삭제`,
@@ -108,8 +133,11 @@ export const MAIN_TEXT = {
   retry: '다시 시도',
 } as const;
 
-/** 한 집당 짐 최대 10개 (게이지 기준 · 집안일 추가 제한) */
+/** 한 집당 짐 최대 10개 (완료한 짐은 빼고 셈) */
 export const MAX_CHORES = 10;
+
+/** 한 사람이 한 번에 가질 수 있는 짐 최대 5개 */
+export const MAX_CHORES_PER_MEMBER = 5;
 
 /** 게이지 기준: 내가 맡은 짐 개수 / 한 집당 짐 최대 10개 */
 export const MAX_LOAD = MAX_CHORES;
