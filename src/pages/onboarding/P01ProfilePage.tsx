@@ -115,7 +115,12 @@ function ProfileForm({ mode, initial }: { mode: 'create' | 'edit'; initial: Prof
       step={isEdit ? undefined : { current: 1, total: ONBOARDING_STEP_TOTAL }}
       heading={
         isEdit ? (
-          '나를 소개해요'
+          // 피그마 ④ P-01 프로필 수정
+          <>
+            닉네임과 캐릭터를
+            <br />
+            <span className="text-primary-500">바꿀 수 있어요</span>
+          </>
         ) : (
           <>
             집안일에 참여하기 전
@@ -127,7 +132,7 @@ function ProfileForm({ mode, initial }: { mode: 'create' | 'edit'; initial: Prof
       }
       description={
         isEdit
-          ? '바꾸면 우리 집 모두에게 보여요'
+          ? '바꾼 닉네임과 캐릭터는 우리 집 구성원에게 보여요.'
           : '정한 이름과 캐릭터는 우리 집 구성원에게 보여요.'
       }
       footer={
@@ -142,7 +147,7 @@ function ProfileForm({ mode, initial }: { mode: 'create' | 'edit'; initial: Prof
 
       <UnderlineInput
         className="mt-13"
-        label="이름"
+        label={isEdit ? '닉네임' : '이름'}
         value={name}
         onChange={setName}
         maxLength={INPUT_RULES.profileName.max}
