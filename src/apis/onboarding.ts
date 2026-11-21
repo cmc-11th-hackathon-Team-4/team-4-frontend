@@ -73,12 +73,6 @@ export const joinHouse = (inviteCode: string) =>
 export const getHouse = (houseId: string) =>
   call<HouseDetailResponse>(instance.get(`/api/v1/houses/${houseId}`));
 
-/** S-06 결산 주기 저장 (방장만) */
-export const updateSettlementCycle = (houseId: string, settlementCycle: ServerSettlementCycle) =>
-  call<{ id: number; name: string; settlementCycle: ServerSettlementCycle }>(
-    instance.patch(`/api/v1/houses/${houseId}`, { settlementCycle }),
-  );
-
 /* ── 집안일 ── */
 
 /** S-04 기본 집안일 목록 (서버 상수) */
@@ -90,3 +84,28 @@ export const saveChores = (houseId: string, names: string[]) =>
   call<{ chores: { id: number; name: string }[] }>(
     instance.put(`/api/v1/houses/${houseId}/chores`, { names }),
   );
+
+/* ── 배분 ── */
+
+export interface DistributionMember {
+  userId: number;
+  name: string;
+  characterType: string;
+  role: HouseRole;
+  isMe: boolean;
+  chores: { choreId: number; name: string; carriedOver: boolean }[];
+}
+
+export interface DistributionResponse {
+  houseStatus: HouseStatus;
+  settlementCycle: ServerSettlementCycle;
+  period: { id: number; round: number; startDate: string; endDate: string; status: string };
+  totalCount: number;
+  members: DistributionMember[];
+}
+
+/** S-06 결산 주기 · 시작 날짜로 첫 배분 만들기 (방장만). 집 상태가 DISTRIBUTING 으로 바뀐다 */
+export const createDistribution = (
+  houseId: string,
+  body: { settlementCycle: ServerSettlementCycle; startDate: string },
+) => call<DistributionResponse>(instance.post(`/api/v1/houses/${houseId}/distribution`, body));

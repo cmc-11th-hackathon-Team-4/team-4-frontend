@@ -1,6 +1,6 @@
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router';
-import { type ServerSettlementCycle, updateSettlementCycle } from '@/apis/onboarding';
+import { createDistribution, type ServerSettlementCycle } from '@/apis/onboarding';
 import { ONBOARDING_PATHS } from '@/routes/onboardingPaths';
 import { useOnboardingStore, type SettlementCycle } from '@/stores/onboarding';
 import { useToastStore } from '@/stores/toast';
@@ -9,6 +9,7 @@ import BottomButton from './components/BottomButton';
 import InfoText from './components/InfoText';
 import OnboardingLayout from './components/OnboardingLayout';
 import { formatDate, parseDate, todayString, weekdayOf } from './date';
+import { onboardingKeys } from './queryKeys';
 import { useMe } from './useMyHouse';
 
 const CYCLE_OPTIONS: { value: SettlementCycle; label: string }[] = [
@@ -36,8 +37,7 @@ function getCycleGuide(cycle: SettlementCycle, startDate: string) {
  * S-06 결산 주기 (권한: 방장)
  * - 주기 매주 / 2주 / 한 달 (기본 매주), 시작 날짜는 오늘 이후만
  * - [우리 집 시작하기] → S-05 랜덤 배분 (명세 순서: S-04 → S-06 → S-05)
- * - 주기: PATCH /api/v1/houses/{id} (settlementCycle) 로 저장, 실패 시 토스트
- * - TODO(API): 시작 날짜는 저장 API 에 받는 칸이 없어 화면 입력만 (백엔드 확인 필요)
+ * - POST /api/v1/houses/{id}/distribution (주기 + 시작 날짜) 로 첫 배분을 만들고, 결과를 들고 S-05 로. 실패 시 토스트
  */
 function S06CyclePage() {
   const navigate = useNavigate();
@@ -53,9 +53,16 @@ function S06CyclePage() {
   const me = useMe();
   const houseId = me.data?.house ? String(me.data.house.id) : null;
 
+  const queryClient = useQueryClient();
+
   const save = useMutation({
-    mutationFn: () => updateSettlementCycle(houseId!, SERVER_CYCLE[cycle]),
-    onSuccess: () => navigate(ONBOARDING_PATHS.assign),
+    mutationFn: () =>
+      createDistribution(houseId!, { settlementCycle: SERVER_CYCLE[cycle], startDate }),
+    onSuccess: (distribution) => {
+      queryClient.setQueryData(onboardingKeys.distribution(houseId!), distribution);
+      queryClient.invalidateQueries({ queryKey: onboardingKeys.me });
+      navigate(ONBOARDING_PATHS.assign);
+    },
     onError: (error) => showToast(errorMessage(error)),
   });
 
