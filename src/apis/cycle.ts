@@ -1,4 +1,5 @@
-import { delay, pushNotification, updateDb } from '@/mocks/db';
+import { delay, pushNotification, readDb, updateDb } from '@/mocks/db';
+import type { CycleInfo } from '@/types/cycle';
 import type { Id } from '@/types/common';
 import { USE_MOCK } from './config';
 import { instance } from './instance';
@@ -20,4 +21,29 @@ export async function endCycle(groupId: Id, memberId: Id): Promise<void> {
     return;
   }
   await instance.post(`/groups/${groupId}/cycles/end`);
+}
+
+/** V5-12 결산 주기 · 이번 기간 결산일 */
+export async function getCycle(groupId: Id): Promise<CycleInfo> {
+  if (USE_MOCK) {
+    await delay(100);
+    return readDb().cycle;
+  }
+  const { data } = await instance.get<CycleInfo>(`/groups/${groupId}/cycle`);
+  return data;
+}
+
+/** V5-14 이번 기간 늘리기 (방장): 결산일을 바꾸고 구성원에게 알림 */
+export async function extendCycle(groupId: Id, memberId: Id, endDate: string): Promise<void> {
+  if (USE_MOCK) {
+    await delay();
+    updateDb((db) => {
+      db.cycle.endDate = endDate;
+      for (const other of db.group.members.filter((m) => m.id !== memberId)) {
+        pushNotification(db, { type: 'cycleExtend', fromId: memberId, toId: other.id, endDate });
+      }
+    });
+    return;
+  }
+  await instance.patch(`/groups/${groupId}/cycle`, { endDate });
 }

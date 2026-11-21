@@ -1,6 +1,7 @@
 import type { Chore } from '@/types/chore';
 import type { Group } from '@/types/group';
 import type { AppNotification } from '@/types/notification';
+import type { CycleInfo } from '@/types/cycle';
 import type { ChoreRequest } from '@/types/request';
 
 /**
@@ -11,9 +12,10 @@ interface MockDb {
   group: Group;
   notifications: AppNotification[];
   requests: ChoreRequest[];
+  cycle: CycleInfo;
 }
 
-const STORAGE_KEY = 'mock-db-v5';
+const STORAGE_KEY = 'mock-db-v6';
 
 const chore = (id: string, name: string, ownerId: string): Chore => ({
   id,
@@ -43,6 +45,8 @@ const initialDb = (): MockDb => ({
   },
   notifications: [],
   requests: [],
+  // 피그마 V5-14 예시 값
+  cycle: { period: 'weekly', endDate: '2026-11-30' },
 });
 
 export function readDb(): MockDb {
