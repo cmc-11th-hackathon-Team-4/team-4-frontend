@@ -1,6 +1,9 @@
+import { useMutation } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
+import { createUser, getMe, OnboardingApiError } from '@/apis/onboarding';
 import StateView from '@/components/common/StateView';
+import { fromServerCharacter, toServerCharacter } from '@/constants/character';
 import { useMyProfile, useSaveProfile } from '@/hooks/useProfile';
 import { MYPAGE_PATHS } from '@/routes/mypagePaths';
 import { ONBOARDING_PATHS } from '@/routes/onboardingPaths';
@@ -11,6 +14,7 @@ import BottomButton from './components/BottomButton';
 import CharacterPicker from './components/CharacterPicker';
 import OnboardingLayout from './components/OnboardingLayout';
 import UnderlineInput from './components/UnderlineInput';
+import { errorMessage } from './apiMessages';
 import { ONBOARDING_STEP_TOTAL } from './constants';
 import { INPUT_RULES, isValidText } from './validation';
 
@@ -26,7 +30,8 @@ interface P01ProfilePageProps {
  * P-01 프로필 만들기 · 수정 (권한: 모두, 만들기/수정 공용 화면) — 피그마 비주얼 시안 기준
  * - 만들기: S-14에서 ?next=create → S-01, ?next=join → S-13, M-01에서 ?next=my → 마이로 복귀
  * - 수정: 저장 후 마이로 복귀
- * - TODO(API): POST /api/v1/users (만들기) · PATCH /api/v1/users/me (수정)로 저장
+ * - 만들기: POST /api/v1/users 로 서버에 저장 (이미 등록된 기기면 서버 프로필을 그대로 사용)
+ * - 수정: ④ 담당 useSaveProfile (TODO: PATCH /api/v1/users/me)
  */
 function P01ProfilePage({ mode = 'create' }: P01ProfilePageProps) {
   const { profile, isLoading } = useMyProfile();
@@ -46,13 +51,35 @@ function ProfileForm({ mode, initial }: { mode: 'create' | 'edit'; initial: Prof
 
   // 만들기에서 뒤로 왔다가 다시 들어오면 저장해 둔 캐릭터로 시작
   const storedCharacter = useProfileStore((s) => s.profile?.character);
+  const setProfile = useProfileStore((s) => s.setProfile);
+
+  // 만들기: 서버에 프로필 등록. 이미 등록된 기기(USER-409)면 서버에 있는 프로필을 불러와 이어서 진행
+  const create = useMutation({
+    mutationFn: async (input: Profile) => {
+      try {
+        const user = await createUser({
+          name: input.nickname,
+          characterType: toServerCharacter(input.character),
+        });
+        return { nickname: user.name, character: fromServerCharacter(user.characterType) };
+      } catch (error) {
+        if (error instanceof OnboardingApiError && error.code === 'USER-409') {
+          const me = await getMe();
+          return { nickname: me.name, character: fromServerCharacter(me.characterType) };
+        }
+        throw error;
+      }
+    },
+    onSuccess: setProfile,
+  });
 
   const [character, setCharacter] = useState<CharacterId>(
     initial?.character ?? storedCharacter ?? DEFAULT_CHARACTER,
   );
   const [name, setName] = useState(initial?.nickname ?? '');
 
-  const canSubmit = isValidText(name, INPUT_RULES.profileName) && !save.isPending;
+  const canSubmit =
+    isValidText(name, INPUT_RULES.profileName) && !save.isPending && !create.isPending;
 
   const afterSave = () => {
     if (isEdit) return navigate(-1);
@@ -65,6 +92,13 @@ function ProfileForm({ mode, initial }: { mode: 'create' | 'edit'; initial: Prof
   };
 
   const submit = () => {
+    if (!isEdit) {
+      create.mutate(
+        { nickname: name.trim(), character },
+        { onSuccess: afterSave, onError: (error) => showToast(errorMessage(error)) },
+      );
+      return;
+    }
     save.mutate(
       { nickname: name.trim(), character },
       {
