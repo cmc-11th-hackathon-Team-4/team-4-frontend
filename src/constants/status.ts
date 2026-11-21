@@ -18,7 +18,6 @@ export const STATUS_BUBBLE: Record<MemberStatus, string> = {
 };
 
 /** 내 메인 알림 카드 제목 (TODO: 지침 문구 디자인 확인) */
-export const STATUS_NOTICE: Record<Exclude<MemberStatus, 'relaxed'>, (name: string) => string> = {
-  tired: (name) => `${josa(name, '이/가')} 지쳤대요`,
+export const STATUS_NOTICE: Record<'unwilling', (name: string) => string> = {
   unwilling: (name) => `${josa(name, '이/가')} 아무것도 고르기 싫대요`,
 };

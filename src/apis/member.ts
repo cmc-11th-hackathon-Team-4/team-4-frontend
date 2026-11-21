@@ -5,7 +5,7 @@ import { USE_MOCK } from './config';
 import { instance } from './instance';
 
 // TODO: 스웨거 확정되면 경로 맞추기
-/** 상태 변경. 서버가 다른 구성원에게 상태 알림을 보냄 (여유는 알림 없음) */
+/** 기분 변경. '고르기 싫음'으로 바뀌면 다른 구성원에게 상태 알림 (V5-02) */
 export async function updateStatus(memberId: Id, status: MemberStatus): Promise<void> {
   if (USE_MOCK) {
     await delay();
@@ -16,7 +16,7 @@ export async function updateStatus(memberId: Id, status: MemberStatus): Promise<
       db.notifications = db.notifications.filter(
         (n) => !(n.type === 'status' && n.fromId === memberId),
       );
-      if (status === 'relaxed') return;
+      if (status !== 'unwilling') return;
       for (const other of db.group.members.filter((m) => m.id !== memberId)) {
         db.notifications.push({
           id: newId('n'),

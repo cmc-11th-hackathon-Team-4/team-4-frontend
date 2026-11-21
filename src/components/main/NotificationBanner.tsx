@@ -20,7 +20,7 @@ function toText(n: AppNotification, group: Group) {
   if (n.type === 'request') return MAIN_TEXT.requestedBy(from, chore);
   if (n.type === 'accept') return MAIN_TEXT.acceptedBy(from, chore);
   if (n.type === 'decline') return MAIN_TEXT.declinedBy(from, chore);
-  if (n.status && n.status !== 'relaxed') return STATUS_NOTICE[n.status](from);
+  if (n.status === 'unwilling') return STATUS_NOTICE.unwilling(from);
   return null;
 }
 
