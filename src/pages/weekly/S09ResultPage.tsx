@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Navigate, useNavigate } from 'react-router';
 import BottomButton from '@/components/common/BottomButton';
 import StateView from '@/components/common/StateView';
-import { useDevSession } from '@/hooks/useDevSession';
 import { useWeeklySettlement } from '@/hooks/useWeekly';
 import { WEEKLY_PATHS } from '@/routes/weeklyPaths';
 import { withSubject } from '@/utils/weekly';
@@ -14,7 +13,6 @@ const PREVIEW_COUNT = 6;
 
 /** S-09 한 일 · 못 한 일 (S-08 결산 데이터를 그대로 씀) */
 function S09ResultPage() {
-  useDevSession();
   const navigate = useNavigate();
   const { data, isPending, isError, refetch } = useWeeklySettlement();
   const [tab, setTab] = useState<'done' | 'undone'>('done');

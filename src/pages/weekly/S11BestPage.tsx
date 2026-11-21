@@ -2,7 +2,6 @@ import { Fragment } from 'react';
 import { Navigate, useNavigate } from 'react-router';
 import BottomButton from '@/components/common/BottomButton';
 import StateView from '@/components/common/StateView';
-import { useDevSession } from '@/hooks/useDevSession';
 import { useWeeklySettlement } from '@/hooks/useWeekly';
 import { WEEKLY_PATHS } from '@/routes/weeklyPaths';
 import { withSubject } from '@/utils/weekly';
@@ -11,7 +10,6 @@ import WeeklyLayout from './components/WeeklyLayout';
 
 /** S-11 이번 주 배려왕 (배려왕 · 횟수 · 하트는 서버 결산 그대로) */
 function S11BestPage() {
-  useDevSession();
   const navigate = useNavigate();
   const { data, isPending, isError, refetch } = useWeeklySettlement();
 
