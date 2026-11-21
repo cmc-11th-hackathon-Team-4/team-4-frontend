@@ -1,6 +1,7 @@
 import type { RouteObject } from 'react-router';
 import MainPage from '@/pages/main/MainPage';
 import ChoreListPage from '@/pages/main/ChoreListPage';
+import MemberListPage from '@/pages/main/MemberListPage';
 import MemberPage from '@/pages/main/MemberPage';
 import SettingsPage from '@/pages/main/SettingsPage';
 
@@ -10,4 +11,5 @@ export const mainRoutes: RouteObject[] = [
   { path: 'member/:memberId', element: <MemberPage /> },
   { path: 'settings', element: <SettingsPage /> },
   { path: 'settings/chores', element: <ChoreListPage /> },
+  { path: 'settings/members', element: <MemberListPage /> },
 ];

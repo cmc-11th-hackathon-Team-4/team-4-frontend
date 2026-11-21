@@ -5,7 +5,7 @@ import TabBar from '@/components/common/TabBar';
 import AddChoreSheet from '@/components/main/AddChoreSheet';
 import MainHeader from '@/components/main/MainHeader';
 import SettingsRow, { SettingsSection } from '@/components/main/SettingsRow';
-import { MAIN_TEXT, MAX_CHORES } from '@/constants/main';
+import { MAIN_TEXT } from '@/constants/main';
 import { useDevSession } from '@/hooks/useDevSession';
 import { useGroupBoard } from '@/hooks/useGroupBoard';
 import { useMainMutations } from '@/hooks/useMainMutations';
@@ -13,6 +13,10 @@ import { MAIN_PATHS } from '@/routes/mainPaths';
 import { WEEKLY_PATHS } from '@/routes/weeklyPaths';
 import { useToastStore } from '@/stores/toast';
 import { MAX_MEMBERS } from '@/types/group';
+import { isHouseFull, isMemberFull, pendingChores } from '@/apis/limits';
+import ExtendCycleSheet from '@/components/main/ExtendCycleSheet';
+import { useCycle } from '@/hooks/useCycle';
+import { formatMonthDay } from '@/utils/date';
 
 /** V5-12 우리 집 설정 (+ V5-13 집안일 추가 시트) */
 function SettingsPage() {
@@ -20,8 +24,10 @@ function SettingsPage() {
   const navigate = useNavigate();
   const showToast = useToastStore((s) => s.show);
   const { group, me, isLoading, isError, refetch } = useGroupBoard();
-  const { add, end } = useMainMutations();
+  const { add, end, extend } = useMainMutations();
+  const { data: cycle } = useCycle();
   const [adding, setAdding] = useState(false);
+  const [extending, setExtending] = useState(false);
 
   if (isLoading || (!group && !isError)) return <StateView type="loading" />;
   if (isError || !group || !me) {
@@ -35,8 +41,9 @@ function SettingsPage() {
     );
   }
 
-  const choreCount = group.chores.length;
-  const isFull = choreCount >= MAX_CHORES;
+  // 완료한 짐은 빼고 셈: 한 집 10개, 한 사람 5개
+  const choreCount = pendingChores(group.chores).length;
+  const cannotAdd = isHouseFull(group.chores) || isMemberFull(group.chores, me.id);
 
   const copyInviteCode = async () => {
     try {
@@ -55,7 +62,7 @@ function SettingsPage() {
         <SettingsSection title={MAIN_TEXT.sectionChores}>
           <SettingsRow
             label={MAIN_TEXT.addChore}
-            disabled={isFull}
+            disabled={cannotAdd}
             onClick={() => setAdding(true)}
           />
           <SettingsRow
@@ -65,14 +72,20 @@ function SettingsPage() {
           />
         </SettingsSection>
 
-        {/* TODO: 결산 주기 · 기간 늘리기(V5-14, 부가)는 아직 표시만. 방장이 아니면 흐리게 */}
+        {/* 결산 주기 · 기간 늘리기 → V5-14. 방장이 아니면 흐리게 */}
         <SettingsSection title={MAIN_TEXT.sectionCycle}>
           <SettingsRow
             label={MAIN_TEXT.cycle}
-            value={MAIN_TEXT.cycleWeekly}
-            disabled={!me.isHost}
+            value={cycle ? MAIN_TEXT.cyclePeriod[cycle.period] : undefined}
+            disabled={!me.isHost || !cycle}
+            onClick={() => setExtending(true)}
           />
-          <SettingsRow label={MAIN_TEXT.extendCycle} disabled={!me.isHost} />
+          <SettingsRow
+            label={MAIN_TEXT.extendCycle}
+            value={cycle ? MAIN_TEXT.cycleUntil(formatMonthDay(cycle.endDate)) : undefined}
+            disabled={!me.isHost || !cycle}
+            onClick={() => setExtending(true)}
+          />
         </SettingsSection>
 
         <SettingsSection title={MAIN_TEXT.sectionMembers}>
@@ -85,6 +98,7 @@ function SettingsPage() {
           <SettingsRow
             label={MAIN_TEXT.members}
             value={MAIN_TEXT.memberCount(group.members.length, MAX_MEMBERS)}
+            onClick={() => navigate(MAIN_PATHS.memberList)}
           />
         </SettingsSection>
 
@@ -106,6 +120,14 @@ function SettingsPage() {
       </main>
 
       <TabBar />
+
+      {extending && cycle && (
+        <ExtendCycleSheet
+          endDate={cycle.endDate}
+          onClose={() => setExtending(false)}
+          onSubmit={(endDate) => extend.mutateAsync(endDate)}
+        />
+      )}
 
       {adding && (
         <AddChoreSheet

@@ -8,4 +8,6 @@ export const MAIN_PATHS = {
   settings: '/settings',
   /** V5-12 › 집안일 목록 */
   choreList: '/settings/chores',
+  /** V5-12 › 구성원 목록 */
+  memberList: '/settings/members',
 } as const;

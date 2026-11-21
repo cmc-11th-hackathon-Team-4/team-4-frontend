@@ -7,6 +7,7 @@ import { useGroupBoard } from '@/hooks/useGroupBoard';
 import { useNotifications } from '@/hooks/useNotifications';
 import { MAIN_PATHS } from '@/routes/mainPaths';
 import { WEEKLY_PATHS } from '@/routes/weeklyPaths';
+import { formatMonthDayWeek } from '@/utils/date';
 import { useSeenNotificationStore } from '@/stores/seenNotification';
 import type { Group } from '@/types/group';
 import type { AppNotification } from '@/types/notification';
@@ -22,6 +23,8 @@ function toText(n: AppNotification, group: Group) {
   if (n.type === 'accept') return MAIN_TEXT.acceptedBy(from, chore);
   if (n.type === 'decline') return MAIN_TEXT.declinedBy(from, chore);
   if (n.type === 'cycleEnd') return MAIN_TEXT.cycleEnded;
+  if (n.type === 'cycleExtend' && n.endDate)
+    return MAIN_TEXT.cycleExtended(formatMonthDayWeek(n.endDate));
   if (n.status === 'unwilling') return STATUS_NOTICE.unwilling(from);
   return null;
 }
@@ -46,6 +49,7 @@ function NotificationBanner() {
     lastSynced.current = latestId;
     queryClient.invalidateQueries({ queryKey: ['group'] });
     queryClient.invalidateQueries({ queryKey: ['requests'] });
+    queryClient.invalidateQueries({ queryKey: ['cycle'] });
   }, [latestId, queryClient]);
 
   const close = () => markSeen(unseen.map((n) => n.id));
