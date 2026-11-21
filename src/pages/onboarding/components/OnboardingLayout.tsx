@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { useNavigate } from 'react-router';
+import { useKeyboardInset } from '@/hooks/useKeyboardInset';
 
 interface OnboardingLayoutProps {
   /** 상단 바 화면명 */
@@ -25,6 +26,7 @@ function OnboardingLayout({
   footer,
 }: OnboardingLayoutProps) {
   const navigate = useNavigate();
+  const keyboardInset = useKeyboardInset();
 
   return (
     <div className="flex flex-1 flex-col">
@@ -50,7 +52,15 @@ function OnboardingLayout({
         {children}
       </main>
 
-      {footer && <footer className="flex flex-col gap-2 p-4">{footer}</footer>}
+      {footer && (
+        // 키보드가 올라오면 버튼도 함께 올라감 (S-01 명세)
+        <footer
+          className="sticky bottom-0 flex flex-col gap-2 bg-white p-4"
+          style={{ transform: `translateY(-${keyboardInset}px)` }}
+        >
+          {footer}
+        </footer>
+      )}
     </div>
   );
 }

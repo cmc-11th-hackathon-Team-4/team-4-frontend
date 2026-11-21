@@ -1,11 +1,19 @@
 import { useNavigate } from 'react-router';
 import { ONBOARDING_PATHS } from '@/routes/onboardingPaths';
+import { MAX_MEMBERS } from '@/types/group';
 import BottomButton from './components/BottomButton';
 import OnboardingLayout from './components/OnboardingLayout';
 
-/** S-02 초대장 만들기 (방장) */
+/**
+ * S-02 초대장 만들기 (권한: 방장)
+ * - 혼자일 때는 아바타에 "나"만 보여요 (명세 빈 상태)
+ * - TODO(API): 초대 코드 · 구성원 목록 조회 후 들어온 사람 표시
+ * - TODO(API): [추가] · [초대장 보내기]는 초대 코드와 링크를 휴대폰 공유창으로 전송 (코드 발급 전까지 보류)
+ * - × 빼기(방장 전용)는 부가 기능이라 보류
+ */
 function S02InvitePage() {
   const navigate = useNavigate();
+  const memberLabels = ['나'];
 
   return (
     <OnboardingLayout
@@ -17,7 +25,49 @@ function S02InvitePage() {
           초대장 보내기
         </BottomButton>
       }
-    />
+    >
+      <ul className="mt-8 flex gap-4">
+        <li className="flex flex-col items-center gap-2">
+          <button
+            type="button"
+            disabled
+            aria-label="구성원 추가"
+            className="flex size-20 items-center justify-center rounded-full border-2 border-dashed border-neutral-300 text-3xl text-neutral-400"
+          >
+            +
+          </button>
+          <span className="text-sm text-neutral-500">추가</span>
+        </li>
+        {memberLabels.map((label) => (
+          <li key={label} className="flex flex-col items-center gap-2">
+            <div aria-hidden className="size-20 rounded-full bg-neutral-200" />
+            <span className="text-sm">{label}</span>
+          </li>
+        ))}
+      </ul>
+
+      <section className="mt-10">
+        <div className="flex items-end justify-between">
+          <div>
+            <p className="text-sm text-neutral-500">등록한 구성원</p>
+            <p className="text-2xl font-bold">{memberLabels.length}명</p>
+          </div>
+          <p className="text-sm text-neutral-500">최대 {MAX_MEMBERS}명</p>
+        </div>
+        <div className="mt-3 grid grid-cols-4 gap-2" aria-hidden>
+          {Array.from({ length: MAX_MEMBERS }, (_, i) => (
+            <span
+              key={i}
+              className={`h-2 rounded-full ${i < memberLabels.length ? 'bg-neutral-900' : 'bg-neutral-200'}`}
+            />
+          ))}
+        </div>
+        <p className="mt-3 flex gap-2 text-sm text-neutral-500">
+          <span aria-hidden>ⓘ</span>
+          최대 {MAX_MEMBERS}명까지 초대할 수 있어요. 들어온 사람은 바로 위 목록에 보여요.
+        </p>
+      </section>
+    </OnboardingLayout>
   );
 }
 

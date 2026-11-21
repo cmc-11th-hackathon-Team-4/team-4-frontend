@@ -1,3 +1,5 @@
+import { MAIN_PATHS } from './mainPaths';
+
 /** 플로우 ① 그룹 생성 경로 (화면 ID는 피그마 IA와 동일) */
 export const ONBOARDING_PATHS = {
   /** S-14 홈 · 집 없음 */
@@ -20,5 +22,5 @@ export const ONBOARDING_PATHS = {
   cycle: '/setup/cycle',
 } as const;
 
-/** 플로우 ① 종료 후 이동: V3-01 내 메인 (② 담당) */
-export const HOME_PATH = '/';
+/** 플로우 ① 종료 후 이동: V5-01 내 메인 (② 담당 경로를 그대로 사용) */
+export const HOME_PATH = MAIN_PATHS.home;
