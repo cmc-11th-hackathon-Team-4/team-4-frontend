@@ -10,6 +10,7 @@ import { useOnboardingStore } from '@/stores/onboarding';
 import { useToastStore } from '@/stores/toast';
 import { errorMessage, LOAD_ERROR, RETRY_LABEL } from './apiMessages';
 import BottomButton from './components/BottomButton';
+import ChoreIcon from './components/ChoreIcon';
 import OnboardingLayout from './components/OnboardingLayout';
 import { ONBOARDING_STEP_TOTAL } from './constants';
 import { onboardingKeys } from './queryKeys';
@@ -96,17 +97,18 @@ function ChoreForm({ presets, houseId }: { presets: string[]; houseId: string })
         </BottomButton>
       }
     >
-      <ul className="mt-6 flex flex-col">
+      {/* 피그마 2-5 S-04: 체크박스 20 · 아이콘 48 · 18px 이름, 항목마다 아래 구분선 */}
+      <ul className="mt-6 flex flex-col gap-4">
         {options.map((chore) => {
           const checked = selected.includes(chore);
           return (
-            <li key={chore}>
+            <li key={chore} className="flex flex-col gap-1">
               <button
                 type="button"
                 role="checkbox"
                 aria-checked={checked}
                 onClick={() => toggle(chore)}
-                className="flex h-15 w-full items-center gap-4 text-left"
+                className="flex w-full items-center gap-0.5 text-left text-lg leading-[normal] font-semibold text-gray-600"
               >
                 {/* 피그마 Components · checkbox_1 (default / select) */}
                 <span
@@ -120,8 +122,10 @@ function ChoreForm({ presets, houseId }: { presets: string[]; houseId: string })
                     height={20}
                   />
                 </span>
+                <ChoreIcon name={chore} />
                 {chore}
               </button>
+              <span aria-hidden className="h-px bg-line-400" />
             </li>
           );
         })}
