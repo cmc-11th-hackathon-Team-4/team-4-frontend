@@ -2,7 +2,10 @@ import type { ReactNode } from 'react';
 import { useNavigate } from 'react-router';
 import StateView from '@/components/common/StateView';
 import TabBar from '@/components/common/TabBar';
-import { IconChevronRight, IconHome, IconSmile, IconUser } from '@/components/common/icons';
+import { IconChevronRight, IconHome, IconUser } from '@/components/common/icons';
+import { CHARACTER_IMAGES } from '@/constants/character';
+import CharacterImage from '@/pages/onboarding/components/CharacterImage';
+import type { CharacterId } from '@/types/member';
 import { useMyProfile } from '@/hooks/useProfile';
 import { MYPAGE_PATHS } from '@/routes/mypagePaths';
 import { ONBOARDING_PATHS } from '@/routes/onboardingPaths';
@@ -45,13 +48,14 @@ function M01MyPage() {
 
         {/* 프로필 카드 */}
         <section className="mt-6 flex items-center gap-4 rounded-2xl bg-line-400 p-4">
-          <div
-            className={`flex size-18 shrink-0 items-center justify-center rounded-full bg-white text-gray-500 ${
-              profile ? 'border border-line-700' : 'border border-dashed border-line-900'
-            }`}
-          >
-            {profile ? <IconSmile size={36} /> : <IconUser size={28} />}
-          </div>
+          {profile && hasImage(profile.character) ? (
+            <CharacterImage id={profile.character} size={72} />
+          ) : (
+            // 프로필 없음: 점선 원 + 사람 아이콘
+            <div className="flex size-18 shrink-0 items-center justify-center rounded-full border border-dashed border-line-900 bg-white text-gray-500">
+              <IconUser size={28} />
+            </div>
+          )}
           <div className="min-w-0 flex-1">
             <p className={`text-base font-semibold ${profile ? 'text-gray-900' : 'text-gray-500'}`}>
               {profile?.nickname ?? '이름 없음'}
@@ -117,9 +121,11 @@ function M01MyPage() {
                   key={m.id}
                   className="flex items-center gap-3 border-b border-line-600 py-3 last:border-b-0"
                 >
-                  <div className="flex size-10 items-center justify-center rounded-full border border-line-700 text-gray-500">
-                    <IconSmile size={22} />
-                  </div>
+                  {hasImage(m.character) ? (
+                    <CharacterImage id={m.character} size={40} />
+                  ) : (
+                    <span className="block size-10 shrink-0 rounded-full border border-line-700 bg-white" />
+                  )}
                   <span className="text-base font-medium text-gray-900">{m.nickname}</span>
                   {m.id === me?.id && (
                     <span className="rounded border border-line-800 px-1.5 text-xs text-gray-600">
@@ -149,6 +155,11 @@ function M01MyPage() {
       <TabBar />
     </div>
   );
+}
+
+/** 캐릭터 이미지가 있는 값인지 (서버 값 형식 확정 전 방어) */
+function hasImage(character: CharacterId | null | undefined): character is CharacterId {
+  return !!character && !!CHARACTER_IMAGES[character];
 }
 
 function SectionLabel({ children }: { children: ReactNode }) {
