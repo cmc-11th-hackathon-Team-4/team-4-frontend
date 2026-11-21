@@ -8,16 +8,25 @@ interface UnderlineInputProps extends Omit<
   label: string;
   value: string;
   onChange: (value: string) => void;
+  /** 밑줄 아래 안내 문구 */
+  helperText?: string;
 }
 
 // 한 줄 입력 (피그마 Components · Form / Input · Underline: Empty / Filled / Focused)
-function UnderlineInput({ label, value, onChange, className = '', ...props }: UnderlineInputProps) {
+function UnderlineInput({
+  label,
+  value,
+  onChange,
+  helperText,
+  className = '',
+  ...props
+}: UnderlineInputProps) {
   const id = useId();
   const filled = value.length > 0;
 
   return (
     // 시안 수치: 라벨 0px, 값 35px(아이콘 34px), 밑줄 70px(2px), 전체 80px
-    <div className={`group relative h-20 ${className}`}>
+    <div className={`group relative ${helperText ? 'h-28' : 'h-20'} ${className}`}>
       <label
         htmlFor={id}
         className="block text-sm leading-[normal] text-gray-800 group-focus-within:text-primary-500"
@@ -49,6 +58,11 @@ function UnderlineInput({ label, value, onChange, className = '', ...props }: Un
           filled ? 'bg-gray-400' : 'bg-line-700'
         }`}
       />
+      {helperText && (
+        <p className="absolute inset-x-0 top-[87px] text-sm leading-[normal] text-gray-500">
+          {helperText}
+        </p>
+      )}
     </div>
   );
 }
