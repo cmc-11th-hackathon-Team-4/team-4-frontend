@@ -25,6 +25,11 @@ export function useHouseId() {
   return { houseId: me.data?.house?.id ?? '', me };
 }
 
+/** 내 사용자 id (화면에서 "나" 구분) */
+export function useMyId() {
+  return useMe().data?.id ?? null;
+}
+
 /**
  * 결산 탭 상태: 최근 기간 + ENDED면 결산 (S-08 ~ S-11)
  * 집이 없으면 period · settlement 모두 null

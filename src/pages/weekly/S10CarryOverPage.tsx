@@ -1,21 +1,20 @@
 import { useState } from 'react';
 import { Navigate, useNavigate } from 'react-router';
-import BottomButton from '@/components/common/BottomButton';
 import StateView from '@/components/common/StateView';
 import { useCarryOver, useWeeklySettlement } from '@/hooks/useWeekly';
 import { WEEKLY_PATHS } from '@/routes/weeklyPaths';
 import { useToastStore } from '@/stores/toast';
 import type { Id } from '@/types/common';
 import type { CarryChoice, WeeklySettlement } from '@/types/weekly';
-import { getPerPerson } from '@/utils/weekly';
-import WeeklyLayout from './components/WeeklyLayout';
+import WeeklyLayout, { WeeklyButton } from './components/WeeklyLayout';
+import { WEEKLY_STEP } from './steps';
 
 const OPTIONS: [CarryChoice, string][] = [
   ['KEEP', '다음 주로'],
   ['RELEASE', '덜어내기'],
 ];
 
-/** S-10 못 한 일 이월 (본인 것만) */
+/** S-10 못 한 일 이월 (본인 것만) — 피그마 ③ 디자인 */
 function S10CarryOverPage() {
   const { data, isPending, isError, refetch } = useWeeklySettlement();
 
@@ -40,7 +39,7 @@ function S10CarryOverPage() {
 function CarryOverForm({ settlement }: { settlement: WeeklySettlement }) {
   const navigate = useNavigate();
   const showToast = useToastStore((s) => s.show);
-  const { myUndone, summary, members, period } = settlement;
+  const { myUndone, period } = settlement;
   const carryOver = useCarryOver(period.id);
   // 저장된 선택이 없으면 기본값 "다음 주로"
   const [choices, setChoices] = useState<Record<Id, CarryChoice>>(() =>
@@ -61,31 +60,32 @@ function CarryOverForm({ settlement }: { settlement: WeeklySettlement }) {
 
   return (
     <WeeklyLayout
-      step="carryOver"
+      step={WEEKLY_STEP.carryOver}
+      title={'못 한 일,\n어떻게 할까요?'}
+      description={`내 못 한 일 ${myUndone.length}개를 정리해 주세요.`}
       footer={
-        <BottomButton variant="solid" onClick={submit} disabled={carryOver.isPending}>
+        <WeeklyButton onClick={submit} disabled={carryOver.isPending}>
           {carryOver.isPending ? '저장 중' : '다음'}
-        </BottomButton>
+        </WeeklyButton>
       }
     >
-      <h2 className="text-center text-2xl font-bold">못 한 일, 어떻게 할까요?</h2>
-      <p className="mt-2 text-center text-sm text-neutral-500">내 못 한 일 {myUndone.length}개</p>
-
-      <ul className="mt-5 flex flex-col gap-3">
+      <ul className="mt-9 flex flex-col gap-4">
         {myUndone.map((u) => {
           const selected = choices[u.assignmentId] ?? 'KEEP';
           return (
-            <li key={u.assignmentId} className="rounded-2xl border border-neutral-300 p-5">
-              <p className="text-base font-semibold">{u.name}</p>
-              <div className="mt-4 flex rounded-xl border border-neutral-300 p-0.5">
+            <li key={u.assignmentId} className="rounded-[20px] bg-line-400 p-5">
+              <p className="text-lg leading-[normal] font-semibold text-gray-800">{u.name}</p>
+              <div className="mt-[21px] flex gap-2">
                 {OPTIONS.map(([choice, label]) => (
                   <button
                     key={choice}
                     type="button"
                     aria-pressed={selected === choice}
                     onClick={() => setChoices((prev) => ({ ...prev, [u.assignmentId]: choice }))}
-                    className={`h-10 flex-1 rounded-lg text-sm ${
-                      selected === choice ? 'bg-neutral-100 font-semibold' : 'text-neutral-500'
+                    className={`h-11 flex-1 rounded-[22px] text-sm leading-[normal] font-medium ${
+                      selected === choice
+                        ? 'bg-primary-500 text-white'
+                        : 'bg-primary-100 text-primary-500'
                     }`}
                   >
                     {label}
@@ -97,8 +97,8 @@ function CarryOverForm({ settlement }: { settlement: WeeklySettlement }) {
         })}
       </ul>
 
-      <p className="mt-5 text-center text-xs text-neutral-500">
-        다음 주로 넘긴 일은 내 {getPerPerson(summary.totalCount, members.length)}개 안에 먼저 담겨요
+      <p className="mt-6 text-sm leading-[normal] text-gray-500">
+        다음 주로 넘긴 일은 내 몫에 먼저 담겨요.
       </p>
     </WeeklyLayout>
   );

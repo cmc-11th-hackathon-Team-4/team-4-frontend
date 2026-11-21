@@ -1,61 +1,82 @@
-import type { ReactNode } from 'react';
-import { useNavigate } from 'react-router';
+import type { ButtonHTMLAttributes, ReactNode } from 'react';
+import Header from '@/components/common/Header';
 import TabBar from '@/components/common/TabBar';
-
-const STEPS = ['summary', 'result', 'carryOver', 'best', 'next'] as const;
-export type WeeklyStep = (typeof STEPS)[number];
+import { WEEKLY_STEP_TOTAL } from '../steps';
 
 interface WeeklyLayoutProps {
-  step: WeeklyStep;
-  /** 내 못 한 일이 없어 S-10을 건너뛰면 점 4개 */
-  skipCarryOver?: boolean;
-  showBack?: boolean;
+  /** 헤더 오른쪽 n/5. 없으면 첫 화면(S-08): 뒤로가기 · 단계 · 하단 탭 없음 */
+  step?: number;
+  /** 큰 제목 (두 줄이면 \n) */
+  title?: ReactNode;
+  /** 제목 아래 설명 */
+  description?: ReactNode;
   children?: ReactNode;
-  /** 하단 고정 버튼 영역 */
+  /** 하단 버튼 영역 */
   footer?: ReactNode;
 }
 
-// 플로우 ③ 공통 화면 틀. 스타일은 디자인 확정 전 임시 무채색
-function WeeklyLayout({
-  step,
-  skipCarryOver = false,
-  showBack = true,
-  children,
-  footer,
-}: WeeklyLayoutProps) {
-  const navigate = useNavigate();
-  const steps = skipCarryOver ? STEPS.filter((s) => s !== 'carryOver') : STEPS;
+/**
+ * 플로우 ③ 공통 화면 틀 — 피그마 ③ 주간 종료 플로우 디자인 (S-08 ~ S-12)
+ * 헤더 "이번 주 결산" + n/5, 제목 28 SemiBold · 설명 16 Medium, 하단 CTA + 탭바
+ */
+function WeeklyLayout({ step, title, description, children, footer }: WeeklyLayoutProps) {
+  const isFirst = step === undefined;
 
   return (
     <div className="flex flex-1 flex-col">
-      <header className="flex h-14 items-center px-4">
-        {showBack && (
-          <button
-            type="button"
-            aria-label="뒤로가기"
-            onClick={() => navigate(-1)}
-            className="-ml-2 flex size-10 items-center justify-center text-xl"
-          >
-            ‹
-          </button>
+      <Header
+        variant="default"
+        title="이번 주 결산"
+        showBack={!isFirst}
+        right={
+          !isFirst && (
+            <span className="text-sm leading-[normal] font-medium whitespace-nowrap text-primary-500">
+              {step}/{WEEKLY_STEP_TOTAL}
+            </span>
+          )
+        }
+      />
+
+      <main className="flex flex-1 flex-col px-4 pb-4">
+        {title && (
+          <h2 className="mt-8 text-[28px] leading-[normal] font-semibold whitespace-pre-line text-gray-800">
+            {title}
+          </h2>
         )}
-        <h1 className="text-lg font-bold">이번 주 결산</h1>
-        <div className="ml-auto flex items-center gap-1.5">
-          {steps.map((s) => (
-            <span
-              key={s}
-              className={`h-2.5 rounded-full ${s === step ? 'w-6 bg-neutral-900' : 'w-2.5 bg-neutral-300'}`}
-            />
-          ))}
-        </div>
-      </header>
+        {description && (
+          <p className="mt-5 text-base leading-[normal] font-medium text-gray-500">{description}</p>
+        )}
+        {children}
+      </main>
 
-      <main className="flex flex-1 flex-col px-5 pt-4 pb-4">{children}</main>
+      {/* 하단 CTA: 위쪽은 흰색으로 흐려짐 */}
+      {footer && (
+        <footer className="sticky bottom-0 flex flex-col gap-3 bg-gradient-to-b from-white/0 from-[20%] to-white px-4 pt-3 pb-4">
+          {footer}
+        </footer>
+      )}
 
-      {footer && <footer className="flex flex-col gap-2 p-5">{footer}</footer>}
-
-      <TabBar />
+      {!isFirst && <TabBar />}
     </div>
+  );
+}
+
+/** 결산 하단 버튼: primary(보라 꽉 참) / secondary(연보라 + 테두리, S-12 다시 나누기) */
+export function WeeklyButton({
+  variant = 'primary',
+  className = '',
+  ...props
+}: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: 'primary' | 'secondary' }) {
+  const style =
+    variant === 'primary'
+      ? 'rounded-xl bg-primary-500 text-white disabled:bg-line-500 disabled:text-gray-300'
+      : 'rounded-[14px] border-[1.5px] border-primary-400 bg-primary-100 text-primary-500 disabled:opacity-40';
+  return (
+    <button
+      type="button"
+      className={`h-[54px] w-full text-lg leading-[normal] font-semibold ${style} ${className}`}
+      {...props}
+    />
   );
 }
 
