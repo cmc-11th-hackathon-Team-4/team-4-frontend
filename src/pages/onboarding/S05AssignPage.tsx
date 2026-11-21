@@ -18,7 +18,7 @@ import ChoreIcon from './components/ChoreIcon';
 import OnboardingLayout from './components/OnboardingLayout';
 import { ONBOARDING_STEP_TOTAL } from './constants';
 import { onboardingKeys } from './queryKeys';
-import { useMe } from './useMyHouse';
+import { useMe, useRefreshMe } from './useMyHouse';
 
 /** 나를 맨 위로 */
 function sortMembers(members: DistributionResponse['members']) {
@@ -45,6 +45,7 @@ function getDescription(members: DistributionResponse['members']) {
 function S05AssignPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const refreshMe = useRefreshMe();
   const showToast = useToastStore((s) => s.show);
   const reset = useOnboardingStore((s) => s.reset);
 
@@ -69,7 +70,7 @@ function S05AssignPage() {
     mutationFn: () => startHouse(houseId!),
     onSuccess: () => {
       reset();
-      queryClient.invalidateQueries({ queryKey: onboardingKeys.me });
+      refreshMe();
       navigate(HOME_PATH, { replace: true });
     },
     onError: (error) => showToast(errorMessage(error)),

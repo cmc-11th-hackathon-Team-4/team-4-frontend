@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { Navigate, useNavigate, useSearchParams } from 'react-router';
 import { ApiError } from '@/apis/error';
 import { getInvitePreview, joinHouse } from '@/apis/onboarding';
@@ -11,7 +11,7 @@ import BottomButton from './components/BottomButton';
 import OnboardingLayout from './components/OnboardingLayout';
 import { toCodeErrorMessage } from './inviteErrors';
 import { onboardingKeys } from './queryKeys';
-import { isNoProfile } from './useMyHouse';
+import { isNoProfile, useRefreshMe } from './useMyHouse';
 import { INVITE_CODE_LENGTH, normalizeInviteCode } from './validation';
 
 /**
@@ -26,7 +26,7 @@ function S13CJoinConfirmPage() {
   const [searchParams] = useSearchParams();
   const code = normalizeInviteCode(searchParams.get('code') ?? '');
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
+  const refreshMe = useRefreshMe();
   const showToast = useToastStore((s) => s.show);
   const goProfile = () => navigate(`${ONBOARDING_PATHS.profileNew}?next=confirm&code=${code}`);
 
@@ -38,7 +38,7 @@ function S13CJoinConfirmPage() {
   });
 
   const goWaiting = () => {
-    queryClient.invalidateQueries({ queryKey: onboardingKeys.me });
+    refreshMe();
     navigate(ONBOARDING_PATHS.joinWaiting, { replace: true });
   };
 
