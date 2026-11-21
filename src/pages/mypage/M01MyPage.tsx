@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { useNavigate } from 'react-router';
+import Header from '@/components/common/Header';
 import StateView from '@/components/common/StateView';
 import TabBar from '@/components/common/TabBar';
 import { IconChevronRight, IconHome, IconUser } from '@/components/common/icons';
@@ -21,7 +22,7 @@ const APP_VERSION = '1.0.0';
  */
 function M01MyPage() {
   const navigate = useNavigate();
-  const { profile, hasHouse, group, me, isLoading, isError, refetch } = useMyProfile();
+  const { profile, hasHouse, house, me, isLoading, isError, refetch } = useMyProfile();
 
   if (isLoading) return <StateView type="loading" />;
   if (isError) {
@@ -37,17 +38,17 @@ function M01MyPage() {
 
   const subtitle = !profile
     ? '프로필을 만들어요'
-    : hasHouse && group && me
-      ? `${group.name} · ${me.isHost ? '방장' : '구성원'}`
+    : hasHouse && me?.house
+      ? `${me.house.name} · ${me.house.isHost ? '방장' : '구성원'}`
       : '아직 우리 집이 없어요';
 
   return (
     <div className="flex flex-1 flex-col">
-      <main className="flex flex-1 flex-col px-5 pt-6 pb-6">
-        <h1 className="text-[28px] font-bold text-gray-900">마이</h1>
+      <Header variant="main" title="마이" />
 
+      <main className="flex flex-1 flex-col px-5 pb-6">
         {/* 프로필 카드 */}
-        <section className="mt-6 flex items-center gap-4 rounded-2xl bg-line-400 p-4">
+        <section className="mt-4 flex items-center gap-4 rounded-2xl bg-line-400 p-4">
           {profile && hasImage(profile.character) ? (
             <CharacterImage id={profile.character} size={72} />
           ) : (
@@ -112,11 +113,11 @@ function M01MyPage() {
           </>
         )}
 
-        {profile && hasHouse && group && (
+        {profile && hasHouse && house && (
           <>
-            <SectionLabel>우리 집 구성원 {group.members.length}명</SectionLabel>
+            <SectionLabel>우리 집 구성원 {house.members.length}명</SectionLabel>
             <ul className="mt-2">
-              {group.members.map((m) => (
+              {house.members.map((m) => (
                 <li
                   key={m.id}
                   className="flex items-center gap-3 border-b border-line-600 py-3 last:border-b-0"
@@ -127,7 +128,7 @@ function M01MyPage() {
                     <span className="block size-10 shrink-0 rounded-full border border-line-700 bg-white" />
                   )}
                   <span className="text-base font-medium text-gray-900">{m.nickname}</span>
-                  {m.id === me?.id && (
+                  {m.isMe && (
                     <span className="rounded border border-line-800 px-1.5 text-xs text-gray-600">
                       나
                     </span>

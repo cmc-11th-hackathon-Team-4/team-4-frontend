@@ -1,7 +1,6 @@
 import { useNavigate } from 'react-router';
 import BottomButton from '@/components/common/BottomButton';
 import StateView from '@/components/common/StateView';
-import { useDevSession } from '@/hooks/useDevSession';
 import { useWeeklySettlement } from '@/hooks/useWeekly';
 import { WEEKLY_PATHS } from '@/routes/weeklyPaths';
 import { formatPeriod, getDaysLeft } from '@/utils/weekly';
@@ -10,7 +9,6 @@ import WeeklyLayout from './components/WeeklyLayout';
 
 /** S-08 결산 홈 */
 function S08SummaryPage() {
-  useDevSession();
   const navigate = useNavigate();
   const { data, isPending, isError, refetch } = useWeeklySettlement();
 

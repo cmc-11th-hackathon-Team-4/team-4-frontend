@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Navigate, useNavigate } from 'react-router';
 import BottomButton from '@/components/common/BottomButton';
 import StateView from '@/components/common/StateView';
-import { useDevSession } from '@/hooks/useDevSession';
 import { useCarryOver, useWeeklySettlement } from '@/hooks/useWeekly';
 import { WEEKLY_PATHS } from '@/routes/weeklyPaths';
 import { useToastStore } from '@/stores/toast';
@@ -18,7 +17,6 @@ const OPTIONS: [CarryChoice, string][] = [
 
 /** S-10 못 한 일 이월 (본인 것만) */
 function S10CarryOverPage() {
-  useDevSession();
   const { data, isPending, isError, refetch } = useWeeklySettlement();
 
   if (isPending) return <StateView type="loading" />;
