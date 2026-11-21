@@ -102,6 +102,10 @@ export const MAIN_TEXT = {
   sectionDemo: '시연',
   endCycle: '기간 종료하기',
   endCycleTag: '시연용',
+  resetDevice: '처음부터 다시 하기',
+  resetDeviceTitle: '처음부터 다시 할까요?',
+  resetDeviceDesc: '이 기기는 새 사용자가 돼요. 프로필 만들기부터 다시 시작해요.',
+  resetDeviceOk: '다시 하기',
 
   // V5-12 › 구성원 목록
   hostTag: '방장',
