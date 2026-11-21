@@ -29,3 +29,9 @@ export function formatMonthDay(value: string) {
 export function formatMonthDayWeekday(value: string) {
   return `${formatMonthDay(value)} (${WEEKDAYS[parseYmd(value).getDay()]})`;
 }
+
+/** 오늘(로컬)부터 YYYY-MM-DD까지 남은 날 수 (오늘 0, 내일 1, 지난 날은 음수) */
+export function daysFromToday(value: string) {
+  const today = parseYmd(toYmd(new Date()));
+  return Math.round((parseYmd(value).getTime() - today.getTime()) / 86_400_000);
+}

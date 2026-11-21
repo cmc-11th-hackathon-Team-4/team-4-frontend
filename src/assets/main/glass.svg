@@ -1,0 +1,28 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="364" height="353" viewBox="0 0 364 353" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="&#236;&#186;&#144;&#235;&#166;&#173;&#237;&#132;&#176; &#235;&#146;&#164;&#236;&#157;&#152; &#236;&#156;&#160;&#235;&#166;&#172; &#236;&#155;&#144;">
+<ellipse cx="182" cy="176.5" rx="182" ry="176.5" fill="url(#paint0_linear_0_84)"/>
+<ellipse cx="182" cy="176.5" rx="182" ry="176.5" fill="url(#paint1_radial_0_84)"/>
+<mask id="stroke0_0_84" fill="white">
+<path d="M364 176.5C364 273.978 282.516 353 182 353C81.4842 353 0 273.978 0 176.5C0 79.0217 81.4842 0 182 0C282.516 0 364 79.0217 364 176.5Z"/>
+</mask>
+<ellipse cx="182" cy="176.5" rx="182" ry="176.5" stroke-width="1.8" stroke="url(#paint2_linear_0_84)" mask="url(#stroke0_0_84)"/>
+</g>
+<defs>
+<linearGradient id="paint0_linear_0_84" x1="182" y1="0" x2="182" y2="353" gradientUnits="userSpaceOnUse">
+<stop stop-color="#FFFAFF" stop-opacity="0.5"/>
+<stop offset="0.37" stop-color="#F3E9FD" stop-opacity="0.22"/>
+<stop offset="0.71" stop-color="#EFE3FA" stop-opacity="0.21"/>
+<stop offset="1" stop-color="#F5EAFE" stop-opacity="0.24"/>
+</linearGradient>
+<radialGradient id="paint1_radial_0_84" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(182 176.5) scale(182 176.5)">
+<stop stop-color="#FCF3FF" stop-opacity="0.2"/>
+<stop offset="0.72" stop-color="#F2DEFF" stop-opacity="0.04"/>
+<stop offset="1" stop-color="white" stop-opacity="0"/>
+</radialGradient>
+<linearGradient id="paint2_linear_0_84" x1="182" y1="0" x2="182" y2="353" gradientUnits="userSpaceOnUse">
+<stop stop-color="#FFFCFF" stop-opacity="0.59"/>
+<stop offset="0.55" stop-color="white" stop-opacity="0.08"/>
+<stop offset="1" stop-color="white" stop-opacity="0.02"/>
+</linearGradient>
+</defs>
+</svg>

@@ -5,23 +5,36 @@ const nim = (name: string) => `${name}님`;
 
 /** 덜어주기 · 짐 올리기 · 완료 플로우(V5) 문구 모음 */
 export const MAIN_TEXT = {
-  homeTitle: '우리집',
+  homeTitle: '우리 집',
   settings: '설정',
   meLabel: '나',
-  moodButton: (label: string) => `기분 · ${label}`,
-  moodTitle: '오늘 기분 어때?',
-  gaugeCount: (count: number, max: number) => `짐 ${count}/${max}`,
+  moodTitle: '오늘 기분은 어때요?',
+  // 위쪽 칩 (V5-01 '내 기분 · 쌩쌩', V5-07 '민지 기분 · 지침', '맡은 짐 5개')
+  moodChipMine: '내 기분',
+  moodChipOf: (name: string, mood: string) => `${name} 기분 · ${mood}`,
+  loadChip: '맡은 짐 ',
+  loadChipCount: (count: number) => `${count}개`,
+
+  // 내 구성원 카드
+  membersTitle: '내 구성원',
+  membersHint: '구성원의 짐을 확인해 보세요.',
 
   // 내 메인 (V5-01)
-  myChoresTitle: '오늘 내 집안일',
-  myChoresHint: '카드를 누르면 짐 올리기 · X를 누르면 완료',
-  thisWeek: '이번 주',
-  requesting: (name: string) => `${nim(name)}에게 요청 중`,
+  myChoresTitle: '오늘 내 짐',
+  myChoresHint: '카드를 길게 눌러 내 짐을 나누고, 완료한 일은 X를 눌러 없애요.',
+  completeChore: (chore: string) => `${chore} 완료`,
+  // 카드 마감 표시 (결산일 기준)
+  dueToday: '오늘까지',
+  dueTomorrow: '내일까지',
+  dueThisWeek: '이번 주까지',
+  dueOn: (date: string) => `${date}까지`,
+  requesting: (name: string) => `${nim(name)}에게 부탁 중`,
+  requestingMe: '나에게 부탁 중',
   emptyMyChores: '오늘 할 일을 다 했어요',
 
   // 상대 상세 (V5-07)
   memberChores: (name: string) => `${nim(name)}의 짐`,
-  memberChoresHint: '카드를 누르면 내 짐으로 가져와요',
+  memberChoresHint: '카드를 누르면 내 짐으로 가져와요.',
   emptyMemberChores: '덜어갈 짐이 없어요',
 
   // A · 덜어주기 (V5-08, V5-09)
@@ -35,25 +48,24 @@ export const MAIN_TEXT = {
   // 하트 (V5-11)
   takenBy: (name: string, chore: string) =>
     `${josa(nim(name), '이/가')} ${josa(chore, '을/를')} 덜어갔어요`,
-  heartHint: '하트로 고마움을 전해요',
+  heartHint: '하트로 고마움을 전해 보세요.',
   sendHeart: '하트 보내기',
   heartSent: (name: string) => `${nim(name)}에게 하트를 보냈어요`,
   heartReceived: (name: string) => `${josa(nim(name), '이/가')} 하트를 보냈어요`,
 
   // B · 짐 올리기 (V5-05, V5-06, V5-10)
-  requestTitle: '누구에게 올릴까요?',
-  requestDesc: (chore: string) => `${josa(chore, '을/를')} 부탁해요. 상대가 받으면 넘어가요.`,
+  requestTitle: '누구에게 짐을 올릴까요?',
+  requestDesc: (chore: string) => `상대가 받아야 ${josa(chore, '이/가')} 넘어가요.`,
   requestMemberInfo: (status: string, count: number) => `${status} · 짐 ${count}개`,
   requestMemberFull: (count: number) => `짐 ${count}개 · 가득 찼어요`,
   requestMemberFullToast: (name: string) =>
     `${nim(name)}은 짐이 가득 찼어요. 다른 구성원에게 부탁해 주세요.`,
-  requestTip: '짐이 적거나 여유 있는 사람에게 부탁하면 좋아요.',
   requestOk: '부탁하기',
   requestNoMember: '아직 부탁할 사람이 없어요',
   requestedToast: '짐 올리기를 요청했어요',
   requestedBy: (name: string, chore: string) =>
     `${josa(nim(name), '이/가')} ${josa(chore, '을/를')} 부탁했어요`,
-  requestHint: '받으면 내 짐으로 들어와요',
+  requestHint: '받으면 내 짐으로 들어와요.',
   requestAccept: '받을게요',
   requestDecline: '다음에',
   acceptedToast: (chore: string) => `${josa(chore, '을/를')} 받았어요`,
@@ -66,11 +78,11 @@ export const MAIN_TEXT = {
   canceledToast: '짐 올리기를 취소했어요',
 
   // C · 완료 (V5-03, V5-04)
-  doneTitle: '완료하셨나요?',
+  doneTitle: '다 끝냈나요?',
   doneDesc: (chore: string) => `${josa(chore, '을/를')} 목록에서 뺄게요.`,
   doneOk: '완료했어요',
   doneNo: '아니요',
-  doneToast: (chore: string) => `${chore} 완료!`,
+  doneToast: (chore: string) => `${josa(chore, '을/를')} 끝냈어요`,
 
   // V5-12 우리 집 설정
   settingsTitle: '우리 집 설정',

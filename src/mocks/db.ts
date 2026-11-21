@@ -16,7 +16,7 @@ interface MockDb {
   cycle: CycleInfo;
 }
 
-const STORAGE_KEY = 'mock-db-v6';
+const STORAGE_KEY = 'mock-db-v7';
 
 const chore = (id: string, name: string, ownerId: string): Chore => ({
   id,
@@ -30,18 +30,22 @@ const initialDb = (): MockDb => ({
     id: 'g1',
     name: '우리 집',
     inviteCode: 'ABCD12',
+    // 피그마 ② 디자인 시안과 같은 값: 수아(보라 · 쌩쌩 · 짐 5개), 민지(주황 · 지침 · 짐 5개)
     members: [
-      { id: 'm1', nickname: '수아', status: 'relaxed', isHost: true, character: '1' },
+      { id: 'm1', nickname: '수아', status: 'relaxed', isHost: true, character: '5' },
       { id: 'm2', nickname: '민지', status: 'unwilling', isHost: false, character: '2' },
     ],
     chores: [
       chore('c1', '빨래 널기', 'm1'),
       chore('c2', '설거지', 'm1'),
-      chore('c12', '분리수거', 'm1'),
-      chore('c13', '욕실 청소', 'm1'),
-      chore('c3', '분리수거', 'm2'),
-      chore('c4', '화장실 청소', 'm2'),
-      chore('c5', '장보기', 'm2'),
+      chore('c3', '분리수거', 'm1'),
+      chore('c4', '일반쓰레기 버리기', 'm1'),
+      chore('c5', '욕실 청소', 'm1'),
+      chore('c6', '빨래 개기', 'm2'),
+      chore('c7', '청소기 돌리기', 'm2'),
+      chore('c8', '바닥 닦기', 'm2'),
+      chore('c9', '세탁기 돌리기', 'm2'),
+      chore('c10', '음식물쓰레기 버리기', 'm2'),
     ],
   },
   notifications: [],

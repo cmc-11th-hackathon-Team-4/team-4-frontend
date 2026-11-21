@@ -1,67 +1,83 @@
-import { MAIN_TEXT, MAX_LOAD } from '@/constants/main';
-import { STATUS_ICON } from '@/constants/mood';
-import type { MemberStatus } from '@/types/member';
-import HeartBurst from './HeartBurst';
+import { useId } from 'react';
+import { MAX_LOAD } from '@/constants/main';
+
+// 피그마 "게이지" 318px: 중심 (159,159) · 반지름 151 · 두께 15.9
+// 왼쪽 아래(162.35°)에서 위를 지나 오른쪽 아래(17.8°)까지 215.5° 호
+const SIZE = 318;
+const C = 159;
+const R = 151;
+const START = 162.35;
+const SWEEP = 215.5;
+/** 짐이 가득(5개)일 때 손잡이 위치: 시안 (278.5, 65.6) = 호의 74% 지점. 그 뒤는 흰색으로 사라지는 꼬리 */
+const FULL_AT = 0.7408;
+
+const point = (deg: number) => {
+  const rad = (deg * Math.PI) / 180;
+  return { x: C + R * Math.cos(rad), y: C + R * Math.sin(rad) };
+};
 
 interface LoadGaugeProps {
+  /** 맡은 짐 수 (1인 최대 5개) */
   count: number;
-  status: MemberStatus;
-  /** 새 하트를 받았을 때 캐릭터 뒤 하트 뿅뿅 (1회성). key가 바뀌면 다시 재생 */
-  heartBurstKey?: string;
-  onHeartBurstEnd?: () => void;
-  /** 내 메인: 캐릭터를 누르면 기분 말풍선 (V5-01) */
-  onCharacterClick?: () => void;
+  /** 테마 색 (게이지 · 손잡이 테두리) */
+  color: string;
+  /** 손잡이 그림자 색 */
+  glow: string;
+  className?: string;
 }
 
-/** 캐릭터 + 오른쪽 반원 게이지: 맡은 짐이 많을수록 위에서부터 참 (1인 최대 5개) */
-function LoadGauge({
-  count,
-  status,
-  heartBurstKey,
-  onHeartBurstEnd,
-  onCharacterClick,
-}: LoadGaugeProps) {
-  const ratio = Math.min(count / MAX_LOAD, 1);
-  const Face = STATUS_ICON[status];
+/** 캐릭터를 감싸는 호 게이지: 손잡이가 맡은 짐 수만큼 왼쪽 아래 → 오른쪽 위(가득)로 이동 */
+function LoadGauge({ count, color, glow, className = '' }: LoadGaugeProps) {
+  const id = useId();
+  const ratio = Math.min(Math.max(count / MAX_LOAD, 0), 1);
+  const start = point(START);
+  const end = point(START + SWEEP);
+  const knob = point(START + SWEEP * FULL_AT * ratio);
 
   return (
-    <div className="relative mx-auto size-[200px]">
-      <svg viewBox="0 0 200 200" className="absolute inset-0">
-        <path
-          d="M 100 8 A 92 92 0 0 1 100 192"
-          fill="none"
-          stroke="#e5e5e5"
-          strokeWidth="9"
-          strokeLinecap="round"
-        />
-        <path
-          d="M 100 8 A 92 92 0 0 1 100 192"
-          fill="none"
-          stroke="#171717"
-          strokeWidth="9"
-          strokeLinecap="round"
-          pathLength={100}
-          strokeDasharray={`${ratio * 100} 100`}
-          className="transition-[stroke-dasharray] duration-500"
-        />
-      </svg>
-      {/* TODO(디자인): '짐 3/5' 위치는 임시로 게이지 아래쪽 끝 */}
-      <span className="absolute right-0 bottom-0 text-xs font-semibold text-neutral-600">
-        {MAIN_TEXT.gaugeCount(count, MAX_LOAD)}
-      </span>
-      {/* 하트 뿅뿅은 캐릭터 뒤 (캐릭터보다 먼저 그림) */}
-      {heartBurstKey && <HeartBurst key={heartBurstKey} onEnd={() => onHeartBurstEnd?.()} />}
-      {/* TODO: 상태별 캐릭터 에셋으로 교체 */}
-      <button
-        type="button"
-        aria-label={MAIN_TEXT.moodTitle}
-        disabled={!onCharacterClick}
-        className="absolute inset-[26px] flex items-center justify-center rounded-full border border-dashed border-neutral-300 bg-neutral-100 text-neutral-600 disabled:cursor-default"
-        onClick={onCharacterClick}
-      >
-        <Face size={56} strokeWidth={1.4} />
-      </button>
-    </div>
+    <svg
+      aria-hidden
+      width={SIZE}
+      height={SIZE}
+      viewBox={`0 0 ${SIZE} ${SIZE}`}
+      fill="none"
+      className={`overflow-visible ${className}`}
+    >
+      <defs>
+        {/* 시안 그대로: 오른쪽 아래 흰색 → 왼쪽 테마색 */}
+        <radialGradient
+          id={`${id}-g`}
+          cx="0"
+          cy="0"
+          r="1"
+          gradientUnits="userSpaceOnUse"
+          gradientTransform="translate(300.483 209.754) rotate(-178.835) scale(287.068 230.579)"
+        >
+          <stop offset="0.0053" stopColor="white" stopOpacity="0.8" />
+          <stop offset="1" stopColor={color} />
+        </radialGradient>
+        <filter id={`${id}-s`} x="-50%" y="-50%" width="200%" height="200%">
+          <feDropShadow dx="0" dy="0" stdDeviation="2" floodColor={glow} />
+        </filter>
+      </defs>
+      <path
+        d={`M ${start.x} ${start.y} A ${R} ${R} 0 1 1 ${end.x} ${end.y}`}
+        stroke={`url(#${id}-g)`}
+        strokeWidth={15.9}
+        strokeLinecap="round"
+      />
+      <circle
+        cx={knob.x}
+        cy={knob.y}
+        r={10.78}
+        fill="white"
+        fillOpacity={0.8}
+        stroke={color}
+        strokeWidth={5.39}
+        filter={`url(#${id}-s)`}
+        className="transition-all duration-500"
+      />
+    </svg>
   );
 }
 

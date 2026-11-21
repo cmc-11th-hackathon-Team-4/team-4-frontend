@@ -1,15 +1,15 @@
 import { useNavigate } from 'react-router';
-import BottomButton from '@/components/common/BottomButton';
+import settlementIllustration from '@/assets/illustrations/settlement.png';
 import StateView from '@/components/common/StateView';
-import { useWeeklySettlement } from '@/hooks/useWeekly';
+import { useMyId, useWeeklySettlement } from '@/hooks/useWeekly';
 import { WEEKLY_PATHS } from '@/routes/weeklyPaths';
 import { formatPeriod, getDaysLeft } from '@/utils/weekly';
-import Avatar from './components/Avatar';
-import WeeklyLayout from './components/WeeklyLayout';
+import WeeklyLayout, { WeeklyButton } from './components/WeeklyLayout';
 
-/** S-08 결산 홈 */
+/** S-08 결산 홈 — 피그마 ③ 디자인 (뒤로가기 · 단계 · 하단 탭 없음) */
 function S08SummaryPage() {
   const navigate = useNavigate();
+  const myId = useMyId();
   const { data, isPending, isError, refetch } = useWeeklySettlement();
 
   if (isPending) return <StateView type="loading" />;
@@ -37,43 +37,45 @@ function S08SummaryPage() {
   }
 
   const { members, summary } = settlement;
+  const names = members.map((m) => (m.id === myId ? '나' : m.nickname)).join(' · ');
   const stats = [
-    { label: '한 일', value: summary.doneCount },
-    { label: '못 한 일', value: summary.undoneCount },
-    { label: '덜어줌', value: summary.helpedCount },
+    { label: '한 일', value: summary.doneCount, accent: false },
+    { label: '못한 일', value: summary.undoneCount, accent: false },
+    { label: '덜어줌', value: summary.helpedCount, accent: true },
   ];
 
   return (
     <WeeklyLayout
-      step="summary"
-      showBack={false}
-      skipCarryOver={settlement.myUndone.length === 0}
-      footer={
-        <BottomButton variant="solid" onClick={() => navigate(WEEKLY_PATHS.result)}>
-          결산 보기
-        </BottomButton>
-      }
+      footer={<WeeklyButton onClick={() => navigate(WEEKLY_PATHS.result)}>결산보기</WeeklyButton>}
     >
-      <div className="flex h-50 items-center justify-center gap-6 rounded-2xl bg-neutral-100">
-        {members.map((m) => (
-          <Avatar key={m.id} character={m.character} size={92} />
-        ))}
+      <img
+        src={settlementIllustration}
+        alt=""
+        className="-mx-4 h-[282px] w-[calc(100%+32px)] max-w-none object-contain"
+      />
+
+      <div className="mt-10 flex flex-col items-center gap-3">
+        <p className="text-[28px] leading-[normal] font-semibold text-primary-500">
+          이번 주도 고생했어요
+        </p>
+        <p className="flex gap-3 text-base leading-[normal] font-medium text-gray-500">
+          <span>{names}</span>
+          <span>{formatPeriod(period.startDate, period.endDate, '~')}</span>
+        </p>
       </div>
 
-      <h2 className="mt-6 text-center text-2xl font-bold">이번 주도 고생했어요</h2>
-      <p className="mt-2 text-center text-sm text-neutral-500">
-        {members.map((m) => m.nickname).join(' · ')} ·{' '}
-        {formatPeriod(period.startDate, period.endDate)}
-      </p>
-
-      <ul className="mt-6 grid grid-cols-3 gap-2">
+      <ul className="mt-10 flex gap-2.5">
         {stats.map((s) => (
           <li
             key={s.label}
-            className="flex flex-col items-center gap-2 rounded-2xl border border-neutral-200 py-5"
+            className="flex flex-1 flex-col items-center gap-1 rounded-xl border border-line-500 bg-white p-6 shadow-[0_1px_1.5px_rgba(113,113,113,0.25)]"
           >
-            <span className="text-2xl font-bold">{s.value}</span>
-            <span className="text-xs text-neutral-500">{s.label}</span>
+            <span
+              className={`text-[28px] leading-[normal] font-semibold ${s.accent ? 'text-primary-500' : 'text-gray-800'}`}
+            >
+              {s.value}
+            </span>
+            <span className="text-sm leading-[normal] font-semibold text-gray-500">{s.label}</span>
           </li>
         ))}
       </ul>

@@ -1,4 +1,4 @@
-import { NavLink } from 'react-router';
+import { NavLink, useLocation } from 'react-router';
 import homeIcon from '@/assets/icons/nav-home.svg';
 import homeActiveIcon from '@/assets/icons/nav-home-active.svg';
 import myIcon from '@/assets/icons/nav-my.svg';
@@ -23,11 +23,16 @@ const TABS = [
 
 /** 하단 탭바 (공용): 홈 · 결산 · 마이 — 피그마 Components · Navigation / Bottom */
 function TabBar() {
+  const { pathname } = useLocation();
+  const isHomeSub = pathname.startsWith('/member/');
   return (
     <nav className="sticky bottom-0 z-10 grid grid-cols-3 bg-white px-4 pt-[11px] pb-[max(28px,var(--safe-bottom))] shadow-[0_-4px_12px_rgba(174,174,174,0.25)]">
       {TABS.map(({ to, label, icon, activeIcon, end }) => (
         <NavLink key={to} to={to} end={end} className="flex h-[51px] flex-col items-center">
-          {({ isActive }) => (
+          {({ isActive: linkActive }) => {
+            // 상대 상세(/member/…)도 홈 탭 (피그마 V5-07)
+            const isActive = linkActive || (to === MAIN_PATHS.home && isHomeSub);
+            return (
             <>
               <span className="mt-0.5 flex h-6 items-center justify-center">
                 <img src={isActive ? activeIcon : icon} alt="" />
@@ -40,7 +45,8 @@ function TabBar() {
                 {label}
               </span>
             </>
-          )}
+            );
+          }}
         </NavLink>
       ))}
     </nav>
